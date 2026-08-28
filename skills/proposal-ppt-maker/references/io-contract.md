@@ -6,7 +6,7 @@
 |---|---|---|
 | Skill 번들 | `scripts/proposal-slide-renderer`, `assets/proposal-pattern-library` | blueprint 렌더링과 도식 자산 검색 |
 | 필수 런타임 | Node.js, `@oai/artifact-tool` | PPTX와 PNG 생성 |
-| 권장 Skill | `ppt-master`, `presentations:Presentations` | PowerPoint 작성 규칙과 시각 QA |
+| 권장 Skill | `proposal-slide-renderer` (?? ???? ???) | PowerPoint 작성 규칙과 시각 QA |
 | 조건부 변환기 | `kordoc` 또는 동등한 문서 파서 | PDF·DOCX·HWP 등 원문을 Markdown으로 변환할 때 사용 |
 | 최종 검증 | Microsoft PowerPoint | 실제 파일 열기, 전체 슬라이드 PNG 내보내기, 호환성 확인 |
 

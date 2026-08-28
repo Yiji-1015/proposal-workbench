@@ -1,0 +1,24 @@
+{
+  "name": "proposal-workbench",
+  "version": "2.1.0",
+  "description": "Agent-centric proposal automation workbench with 7 specialized skills, zero-dependency SQLite vector/lexical search, and offline HitL viewers.",
+  "author": {
+    "name": "Yiji-1015",
+    "url": "https://github.com/Yiji-1015"
+  },
+  "homepage": "https://github.com/Yiji-1015/proposal-workbench",
+  "repository": "https://github.com/Yiji-1015/proposal-workbench",
+  "license": "MIT",
+  "keywords": [
+    "proposal",
+    "rfp",
+    "pptx",
+    "hwp",
+    "ai-agent",
+    "skills",
+    "hitl"
+  ],
+  "skills": "./skills",
+  "tools": "./tools",
+  "references": "./references"
+}
