@@ -41,16 +41,15 @@ RFP 분석 결과의 특정 요구사항(ID, 정량지표, 세부 내용)과 사
 3. **HitL Launcher 호출 (브라우저 자동 오픈)**:
    - 세션 URL을 대상으로 `hitl_launcher.mjs`를 실행합니다:
    ```powershell
-   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5173/planning?session=plan_xxxx"
+   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5174/planner.html?session=plan_xxxx"
    ```
-   - Launcher는 Bridge/UI 헬스체크 및 자동 기동 후 기본 브라우저를 엽니다.
-   - 기동 실패 시 사용자에게 오류 원인을 보고합니다.
+   - Launcher는 Bridge Server(5174) 헬스체크 및 미기동 시 자동 실행하고, 사용자의 기본 브라우저에 해당 화면을 자동으로 엽니다.
 
 4. **사용자 안내 및 입력 대기**:
    - 브라우저가 열린 후 사용자에게 다음 메시지로 안내합니다:
    ```text
    SFR-001 요구사항에 대한 슬라이드 청사진(Blueprint)을 기획하여 **기본 브라우저로 화면을 열었습니다.**
-   (브라우저가 열리지 않은 경우: http://localhost:5173/planning?session=plan_xxxx)
+   (브라우저가 열리지 않은 경우: http://localhost:5174/planner.html?session=plan_xxxx)
 
    거버닝 메시지와 5개 블록 구성을 확인하시고, 문구 수정 또는 승인을 진행해 주세요.
    확인 및 승인 후 채팅창에 **"승인했어"**라고 알려주시면 최종 PPT를 생성하겠습니다!

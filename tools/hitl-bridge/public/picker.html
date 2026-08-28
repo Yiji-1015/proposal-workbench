@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레퍼런스 장표 피커 — Proposal Workbench</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap">
+  <style>
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div class="max-w-7xl mx-auto p-6 space-y-5">
+    <!-- 헤더 -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-600 text-white text-[11px] font-bold px-1.5 py-0.5 rounded">HitL</span>
+          <h1 class="text-xl font-bold text-slate-900" id="headerTitle">레퍼런스 장표 선택</h1>
+        </div>
+        <p class="text-xs text-slate-500 mt-1" id="headerSub">Agent가 검색한 추천 후보 장표입니다. 참고할 슬라이드를 선택해 주세요.</p>
+      </div>
+      <div id="actionArea">
+        <button id="btnConfirm" class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span id="btnConfirmText">선택 확정</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 완료 배너 -->
+    <div id="completedBanner" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-800 flex items-center gap-2.5">
+      <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>선택이 확정되었습니다! <strong>Agent 채팅창으로 돌아가 "골랐어"</strong>라고 입력해 주시면 다음 작업을 이어갑니다.</span>
+    </div>
+
+    <!-- 검색 질의 정보 바 -->
+    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs shadow-sm">
+      <div class="flex items-center gap-2 truncate">
+        <span class="text-slate-400 font-medium">검색어:</span>
+        <span class="font-semibold text-slate-800 truncate" id="queryText">-</span>
+      </div>
+      <div class="text-slate-500 text-[11px] shrink-0" id="candidateCount">0건 검색됨</div>
+    </div>
+
+    <!-- 슬라이드 카드 그리드 -->
+    <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      <!-- 렌더링 카드들 -->
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get('session') || 'ref_test_001';
+    let sessionData = null;
+    let selectedIds = new Set();
+
+    async function loadSession() {
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}`);
+        if (!res.ok) throw new Error('세션을 찾을 수 없습니다.');
+        sessionData = await res.json();
+        render();
+      } catch (err) {
+        document.getElementById('gridContainer').innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">${err.message}</div>`;
+      }
+    }
+
+    function toggleSelect(id, e) {
+      if (e) e.stopPropagation();
+      if (selectedIds.has(id)) selectedIds.delete(id);
+      else selectedIds.add(id);
+      renderCards();
+      updateButton();
+    }
+
+    function updateButton() {
+      const btn = document.getElementById('btnConfirm');
+      const text = document.getElementById('btnConfirmText');
+      if (selectedIds.size > 0 && sessionData?.status !== 'completed') {
+        btn.classList.remove('hidden');
+        text.innerText = `선택한 ${selectedIds.size}개 장표 확정`;
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
+
+    async function confirmSelection() {
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}/select`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selected_slide_ids: Array.from(selectedIds) })
+        });
+        if (res.ok) {
+          sessionData.status = 'completed';
+          document.getElementById('completedBanner').classList.remove('hidden');
+          updateButton();
+        }
+      } catch (err) {
+        alert('저장 실패: ' + err.message);
+      }
+    }
+
+    document.getElementById('btnConfirm').addEventListener('click', confirmSelection);
+
+    function render() {
+      document.getElementById('headerTitle').innerText = `레퍼런스 장표 선택 (${sid})`;
+      document.getElementById('queryText').innerText = `“${sessionData.query || ''}”`;
+      document.getElementById('candidateCount').innerText = `${sessionData.candidates?.length || 0}건 후보`;
+
+      if (sessionData.status === 'completed') {
+        document.getElementById('completedBanner').classList.remove('hidden');
+      }
+      if (Array.isArray(sessionData.selected_slide_ids)) {
+        sessionData.selected_slide_ids.forEach(id => selectedIds.add(id));
+      }
+      renderCards();
+      updateButton();
+    }
+
+    function renderCards() {
+      const container = document.getElementById('gridContainer');
+      const candidates = sessionData?.candidates || [];
+
+      container.innerHTML = candidates.map(c => {
+        const isSelected = selectedIds.has(c.slide_id);
+        const tags = (c.tags || []).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded">#${t}</span>`).join(' ');
+        const imgSrc = c.image_ref || '';
+        const hasImg = imgSrc && imgSrc.startsWith('/');
+
+        return `
+          <div onclick="toggleSelect('${c.slide_id}')" class="relative bg-white border ${isSelected ? 'border-blue-600 ring-2 ring-blue-500/20 bg-blue-50/20' : 'border-slate-200 hover:border-slate-300'} rounded-xl p-3 cursor-pointer transition-all shadow-sm flex flex-col justify-between">
+            <div class="absolute top-3 right-3 z-10 size-6 rounded-full border flex items-center justify-center ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/90 text-slate-300 border-slate-300'} shadow-sm">
+              ${isSelected ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>' : ''}
+            </div>
+            
+            <div>
+              <div class="aspect-video w-full rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400 text-xs relative">
+                ${hasImg ? `<img src="${imgSrc}" class="w-full h-full object-cover" onerror="this.style.display='none'">` : ''}
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center pointer-events-none ${hasImg ? 'bg-black/40 text-white' : ''}">
+                  <span class="font-bold text-[11px] truncate max-w-full">${c.title || '슬라이드'}</span>
+                  <span class="text-[9px] opacity-80 mt-0.5">${c.layout || 'diagram'}</span>
+                </div>
+              </div>
+
+              <div class="mt-2.5 flex items-center justify-between text-[11px]">
+                <span class="font-medium text-slate-500">Slide ${c.slide_no || 1}</span>
+                <span class="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">${Math.round((c.similarity || 0.85) * 100)}% 일치</span>
+              </div>
+
+              <div class="mt-1 font-semibold text-xs text-slate-800 leading-snug line-clamp-1">${c.title || ''}</div>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5">${c.source_pptx || ''}</div>
+              <p class="text-[11px] text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">${c.image_description || ''}</p>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1">
+              ${tags || '<span class="text-[10px] text-slate-300">태그 없음</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadSession();
+  </script>
+</body>
+</html>

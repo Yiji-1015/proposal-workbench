@@ -20,14 +20,14 @@ description: 기존 제안서 PPTX 파일을 입력받아 슬라이드 분할, �
 2. **HitL Launcher 호출 (브라우저 자동 오픈)**:
    - 파이프라인이 완료되면 파일명 stem을 기반으로 브라우저 뷰어를 엽니다:
    ```powershell
-   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5173/ingest?pptx=<파일명_stem>"
+   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5174/ingest.html?pptx=<파일명_stem>"
    ```
 
 3. **결과 보고**:
    - 사용자에게 기본 브라우저에 인제스트 뷰어를 열었음을 알리고 핵심 요약을 보고합니다:
    ```text
    제안서 '<파일명.pptx>'의 슬라이드 분할(총 N장) 및 고화질 PNG 렌더링, 색인을 완료하여 **기본 브라우저로 뷰어를 열었습니다.**
-   (브라우저가 열리지 않은 경우: http://localhost:5173/ingest?pptx=<파일명_stem>)
+   (브라우저가 열리지 않은 경우: http://localhost:5174/ingest.html?pptx=<파일명_stem>)
    ```
 
 ---

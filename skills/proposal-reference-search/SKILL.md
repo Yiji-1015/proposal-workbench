@@ -21,18 +21,17 @@ RFP 요구사항이나 작성하고자 하는 장표의 핵심 주제를 자연�
 2. **HitL Launcher 호출 (브라우저 자동 오픈)**:
    - 세션 URL(`http://localhost:5173/search?session=ref_xxxx`)을 대상으로 `hitl_launcher.mjs`를 실행합니다:
    ```powershell
-   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5173/search?session=ref_xxxx"
+   node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5174/picker.html?session=ref_xxxx"
    ```
-   - Launcher는 Bridge(5174)와 UI(5173) 헬스체크를 수행하여 미기동 시 자동 실행하고, 사용자의 기본 브라우저에 해당 화면을 자동으로 엽니다.
-   - 만약 기동 실패(`error`)가 발생하면 사용자에게 해당 에러 원인을 명확히 안내합니다.
+   - Launcher는 Bridge Server(5174) 헬스체크 및 미기동 시 자동 실행하고, 사용자의 기본 브라우저에 해당 화면을 자동으로 엽니다.
 
 3. **사용자 안내 및 입력 대기**:
    - 브라우저가 열린 후 사용자에게 다음 메시지로 안내합니다:
    ```text
    요구사항에 맞는 유사 제안 장표 후보 7건을 검색하여 **기본 브라우저로 화면을 열었습니다.**
-   (브라우저가 열리지 않은 경우: http://localhost:5173/search?session=ref_xxxx)
+   (브라우저가 열리지 않은 경우: http://localhost:5174/picker.html?session=ref_xxxx)
 
-   슬라이드 구성과 HTML을 비교하신 후 참고할 장표를 선택하고 확정해주세요.
+   슬라이드 구성과 내용을 비교하신 후 참고할 장표를 선택하고 확정해주세요.
    선택을 마치신 후 채팅창에 **"골랐어"**라고 알려주시면 다음 작업을 이어가겠습니다!
    ```
 

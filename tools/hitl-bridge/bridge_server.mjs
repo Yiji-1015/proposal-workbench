@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * bridge_server.mjs
- * Human-in-the-loop (HitL) 브라우저 UI (deal-mechanic)와 Agent 간의 데이터 교환을 위한 초경량 로컬 세션 서버입니다.
- * - 포트: 5174 (또는 PORT 환경변수)
- * - CORS 지원 (Vite 프론트엔드 localhost:5173 연동)
+ * Human-in-the-loop (HitL) 독립 초경량 로컬 세션 및 웹 뷰어 서버입니다.
+ * - 단일 포트: 5174
+ * - Zero-dependency: 번들러/Vite/React 없이 순수 Node.js 단일 서버로 API와 HTML 뷰어 서빙
  */
 
 import fs from "node:fs/promises";
@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..", "..");
+const publicDir = path.join(__dirname, "public");
 const PORT = Number(process.env.BRIDGE_PORT || 5174);
 
 function sendJson(res, status, data) {
@@ -128,7 +129,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 4. 정적 파일 서빙: 슬라이드 이미지 및 HTML 서빙 (/storage/ingest_data/...)
+  // 4. 슬라이드 이미지 및 HTML 서빙 (/storage/ingest_data/...)
   if (url.pathname.startsWith("/storage/ingest_data/")) {
     const relativePath = decodeURIComponent(url.pathname.replace(/^\/storage\/ingest_data\//, ""));
     const filePath = path.join(workbenchRoot, "storage", "ingest_data", relativePath);
@@ -145,8 +146,8 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // 기본 상태 확인 (고유 식별 정보 포함)
-  if (url.pathname === "/health" || url.pathname === "/") {
+  // 5. 헬스체크
+  if (url.pathname === "/health") {
     sendJson(res, 200, {
       status: "ok",
       app: "proposal-workbench-bridge",
@@ -156,6 +157,24 @@ const server = http.createServer(async (req, res) => {
     });
     return;
   }
+
+  // 6. HitL HTML 뷰어 서빙 (단축 경로 매핑)
+  let staticFile = url.pathname;
+  if (staticFile === "/" || staticFile === "") staticFile = "index.html";
+  else if (staticFile === "/search") staticFile = "picker.html";
+  else if (staticFile === "/planning") staticFile = "planner.html";
+  else if (staticFile === "/ingest") staticFile = "ingest.html";
+  else staticFile = staticFile.replace(/^\//, "");
+
+  const filePath = path.join(publicDir, staticFile);
+  try {
+    const htmlContent = await fs.readFile(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = ext === ".html" ? "text/html; charset=utf-8" : "application/octet-stream";
+    res.writeHead(200, { "Content-Type": contentType });
+    res.end(htmlContent);
+    return;
+  } catch {}
 
   sendError(res, 404, "Not found");
 });

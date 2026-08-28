@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * hitl_launcher.mjs
- * HitL Bridge Server(5174) 및 Vite UI Dev Server(5173)의 고유 헬스체크를 수행하고,
- * 필요한 경우 백그라운드로 자동 기동한 뒤 사용자의 기본 브라우저에서 지정된 세션 URL을 엽니다.
+ * HitL Bridge Server(5174)의 헬스체크를 수행하고,
+ * 미기동 시 백그라운드로 자동 실행한 뒤 기본 브라우저에서 지정된 뷰어 URL을 즉시 엽니다.
  */
 
 import { spawn, exec } from "node:child_process";
@@ -12,9 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..", "..");
-
 const BRIDGE_HEALTH_URL = "http://localhost:5174/health";
-const UI_URL = "http://localhost:5173";
 
 function fetchText(url, timeoutMs = 1500) {
   return new Promise((resolve, reject) => {
@@ -33,7 +31,7 @@ function fetchText(url, timeoutMs = 1500) {
 }
 
 /**
- * 1. Bridge Server 헬스체크 (고유 식별자 검증)
+ * Bridge Server 헬스체크 (고유 식별자 검증)
  */
 export async function checkBridgeHealth() {
   try {
@@ -55,29 +53,14 @@ export async function checkBridgeHealth() {
   }
 }
 
-/**
- * 2. UI Dev Server 헬스체크
- */
-export async function checkUiHealth() {
-  try {
-    const res = await fetchText(UI_URL);
-    if (res.status === 200) {
-      return { ready: true };
-    }
-    return { ready: false, error: `UI returned HTTP ${res.status}` };
-  } catch (err) {
-    return { ready: false, error: err.message };
-  }
-}
-
-async function waitFor(checkFn, timeoutMs = 6000, intervalMs = 250) {
+async function waitFor(checkFn, timeoutMs = 4000, intervalMs = 200) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const check = await checkFn();
     if (check.ready) return check;
     await new Promise((r) => setTimeout(r, intervalMs));
   }
-  return { ready: false, error: `Server failed to start within ${timeoutMs}ms` };
+  return { ready: false, error: `Bridge Server failed to start within ${timeoutMs}ms` };
 }
 
 /**
@@ -96,35 +79,9 @@ export async function ensureBridgeServer() {
   });
   child.unref();
 
-  const waitRes = await waitFor(checkBridgeHealth, 5000);
+  const waitRes = await waitFor(checkBridgeHealth, 4000);
   if (!waitRes.ready) {
     throw new Error(`Failed starting Bridge Server: ${waitRes.error}`);
-  }
-  return { started: true, already_running: false };
-}
-
-/**
- * UI Dev Server 자동 기동
- */
-export async function ensureUiServer() {
-  const health = await checkUiHealth();
-  if (health.ready) return { started: false, already_running: true };
-
-  console.log("[HitL Launcher] Starting UI Dev Server (port 5173)...");
-  const uiDir = path.join(workbenchRoot, "ui");
-  const bunPath = "C:\\Users\\LLOYDK\\.bun\\bin\\bun.exe";
-
-  const child = spawn(bunPath, ["run", "dev"], {
-    cwd: uiDir,
-    detached: true,
-    stdio: "ignore",
-    windowsHide: true,
-  });
-  child.unref();
-
-  const waitRes = await waitFor(checkUiHealth, 8000);
-  if (!waitRes.ready) {
-    throw new Error(`Failed starting UI Dev Server: ${waitRes.error}`);
   }
   return { started: true, already_running: false };
 }
@@ -138,7 +95,6 @@ export function openBrowser(url) {
     const platform = process.platform;
 
     if (platform === "win32") {
-      // Windows: start "" "<url>"
       command = `start "" "${url}"`;
     } else if (platform === "darwin") {
       command = `open "${url}"`;
@@ -148,7 +104,7 @@ export function openBrowser(url) {
 
     exec(command, { windowsHide: true }, (err) => {
       if (err) {
-        console.warn(`[HitL Launcher Warn] Browser open command failed (${err.message}). Fallback to URL output.`);
+        console.warn(`[HitL Launcher Warn] Browser open failed (${err.message}). Fallback to URL output.`);
         resolve({ opened: false, error: err.message, fallback_url: url });
       } else {
         resolve({ opened: true, url });
@@ -163,7 +119,6 @@ export function openBrowser(url) {
 export async function launchHitlSession(url) {
   const result = {
     bridge_ready: false,
-    ui_ready: false,
     browser_opened: false,
     url,
     error: null,
@@ -174,11 +129,7 @@ export async function launchHitlSession(url) {
     await ensureBridgeServer();
     result.bridge_ready = true;
 
-    // 2. UI Server 준비
-    await ensureUiServer();
-    result.ui_ready = true;
-
-    // 3. 기본 브라우저 자동 오픈
+    // 2. 기본 브라우저 자동 오픈
     const openRes = await openBrowser(url);
     result.browser_opened = openRes.opened;
     if (!openRes.opened) {
@@ -194,7 +145,7 @@ export async function launchHitlSession(url) {
 
 async function main() {
   const args = process.argv.slice(2);
-  let targetUrl = "http://localhost:5173";
+  let targetUrl = "http://localhost:5174";
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--open" && args[i + 1]) {

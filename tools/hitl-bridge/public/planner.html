@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장표 청사진 검토 — Proposal Workbench</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap">
+  <style>
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div class="max-w-4xl mx-auto p-6 space-y-5">
+    <!-- 헤더 -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-600 text-white text-[11px] font-bold px-1.5 py-0.5 rounded">HitL</span>
+          <h1 class="text-xl font-bold text-slate-900" id="headerTitle">장표 청사진 검토 및 승인</h1>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">Agent가 기획한 슬라이드 구조와 문구를 확인/수정한 뒤 최종 승인해 주세요.</p>
+      </div>
+      <div>
+        <button id="btnApprove" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span id="btnApproveText">기획안 최종 승인</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 완료 배너 -->
+    <div id="approvedBanner" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-800 flex items-center gap-2.5">
+      <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>청사진 승인이 완료되었습니다! <strong>Agent 채팅창으로 돌아가 "승인했어"</strong>라고 입력해 주시면 PPT 제작을 시작합니다.</span>
+    </div>
+
+    <!-- 기획 카드 본문 -->
+    <div class="bg-white border border-slate-200 rounded-xl p-6 space-y-5 shadow-sm">
+      <!-- 1. 슬라이드 제목 -->
+      <div>
+        <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">슬라이드 가시 제목</label>
+        <input type="text" id="slideTitle" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500">
+      </div>
+
+      <!-- 2. 거버닝 메시지 -->
+      <div>
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Governing Message (핵심 결론)</label>
+          <span class="text-[10px] text-slate-400 font-mono">종결: <strong class="text-blue-600">~니다.</strong></span>
+        </div>
+        <textarea id="governingMessage" rows="2" class="mt-1 w-full border border-slate-200 rounded-lg p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 leading-relaxed"></textarea>
+      </div>
+
+      <!-- 3. 5개 핵심 내용 블록 -->
+      <div>
+        <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">배치될 5개 핵심 내용 블록</label>
+        <div id="blocksContainer" class="mt-2 space-y-2">
+          <!-- 블록 리스트 렌더링 -->
+        </div>
+      </div>
+
+      <!-- 4. 보호되는 정량지표 & RFP 원문 근거 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+        <div>
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">보호되는 정량지표 (Protected Metrics)</label>
+          <div id="metricsContainer" class="mt-2 space-y-1.5 text-xs">
+            <!-- 지표 리스트 -->
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">RFP 원문 근거 (Source Reference)</label>
+          <div id="sourcesContainer" class="mt-2 space-y-1.5 text-xs">
+            <!-- 원문 근거 리스트 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get('session') || 'plan_test_001';
+    let sessionData = null;
+
+    async function loadSession() {
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}`);
+        if (!res.ok) throw new Error('청사진 세션을 찾을 수 없습니다.');
+        sessionData = await res.json();
+        render();
+      } catch (err) {
+        document.body.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">${err.message}</div>`;
+      }
+    }
+
+    async function approveBlueprint() {
+      const title = document.getElementById('slideTitle').value;
+      const governing = document.getElementById('governingMessage').value;
+
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blueprint: {
+              ...(sessionData.blueprint || {}),
+              slide_title: title,
+              governing_message: governing
+            }
+          })
+        });
+        if (res.ok) {
+          document.getElementById('approvedBanner').classList.remove('hidden');
+          document.getElementById('btnApproveText').innerText = '승인 완료됨';
+          document.getElementById('btnApprove').className = 'bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-default';
+        }
+      } catch (err) {
+        alert('승인 실패: ' + err.message);
+      }
+    }
+
+    document.getElementById('btnApprove').addEventListener('click', approveBlueprint);
+
+    function render() {
+      const bp = sessionData?.blueprint || {};
+      document.getElementById('headerTitle').innerText = `장표 청사진 검토 (${sid})`;
+      document.getElementById('slideTitle').value = bp.slide_title || '제안 장표 청사진';
+      document.getElementById('governingMessage').value = bp.governing_message || '';
+
+      if (sessionData.status === 'approved') {
+        document.getElementById('approvedBanner').classList.remove('hidden');
+        document.getElementById('btnApproveText').innerText = '승인 완료됨';
+        document.getElementById('btnApprove').className = 'bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-default';
+      }
+
+      // 블록 리스트
+      const blocks = bp.blocks || [];
+      document.getElementById('blocksContainer').innerHTML = blocks.map((b, i) => {
+        const roleNames = {
+          main_process: '프로세스',
+          technology_comparison: '비교/선택',
+          operation_quality: '품질/통제',
+          requirement_summary: '핵심전략',
+          metric_highlight: '목표지표'
+        };
+        const roleLabel = roleNames[b.role] || b.role || '블록';
+        const headline = b.content?.headline || '';
+        const detail = (b.content?.bullets || b.content?.steps || []).join(' · ');
+
+        return `
+          <div class="flex items-start gap-2.5 border border-slate-100 bg-slate-50/80 rounded-lg p-2.5">
+            <span class="bg-blue-100 text-blue-700 text-[10.5px] font-bold px-2 py-0.5 rounded shrink-0">${roleLabel}</span>
+            <div class="flex-1 text-xs">
+              <span class="font-bold text-slate-800">${headline}</span>
+              ${detail ? `<span class="text-slate-500 ml-1.5 text-[11px]">${detail}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 정량지표
+      const metrics = bp.protected_metrics || [];
+      document.getElementById('metricsContainer').innerHTML = metrics.map(m => `
+        <div class="border border-slate-100 bg-slate-50 p-2 rounded-lg">
+          <div class="flex justify-between font-medium">
+            <span class="text-slate-500">${m.name || '정량지표'}</span>
+            <span class="font-bold text-slate-900">${m.value_text || m.parsed_value || ''}</span>
+          </div>
+        </div>
+      `).join('') || '<div class="text-slate-400 text-[11px]">정량지표 없음</div>';
+
+      // RFP 원문 근거
+      const sources = bp.source_refs || [];
+      document.getElementById('sourcesContainer').innerHTML = sources.map(s => `
+        <div class="border border-slate-100 bg-slate-50 p-2 rounded-lg text-[11px]">
+          <div class="text-slate-400 font-medium">${s.doc_name || 'RFP'} ${s.page ? `(p.${s.page})` : ''}</div>
+          <div class="text-slate-700 mt-0.5 line-clamp-1">“${s.quote || s.section_path || ''}”</div>
+        </div>
+      `).join('') || '<div class="text-slate-400 text-[11px]">원문 근거 없음</div>';
+    }
+
+    loadSession();
+  </script>
+</body>
+</html>

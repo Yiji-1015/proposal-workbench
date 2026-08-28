@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPT 인제스트 뷰어 — Proposal Workbench</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap">
+  <style>
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div class="max-w-7xl mx-auto p-6 space-y-5">
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-600 text-white text-[11px] font-bold px-1.5 py-0.5 rounded">HitL</span>
+          <h1 class="text-xl font-bold text-slate-900" id="headerTitle">PPT 인제스트 뷰어</h1>
+        </div>
+        <p class="text-xs text-slate-500 mt-1" id="headerSub">슬라이드 분할 및 색인 상태를 확인합니다.</p>
+      </div>
+      <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-3 py-1.5 rounded-lg font-medium">
+        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span>색인 및 렌더링 완료</span>
+      </div>
+    </header>
+
+    <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      <!-- 렌더링 카드들 -->
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stem = params.get('pptx') || params.get('stem') || 'test_requirement_data_learning';
+
+    async function loadManifest() {
+      try {
+        const res = await fetch(`/api/ingest/${encodeURIComponent(stem)}`);
+        if (!res.ok) throw new Error('인제스트 매니페스트를 찾을 수 없습니다.');
+        const data = await res.json();
+        render(data);
+      } catch (err) {
+        document.getElementById('gridContainer').innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">${err.message}</div>`;
+      }
+    }
+
+    function render(data) {
+      document.getElementById('headerTitle').innerText = `PPT 인제스트 뷰어 (${data.source_pptx || stem})`;
+      document.getElementById('headerSub').innerText = `총 ${data.total_slides || 0}개 슬라이드 분할 및 ${data.rendered_png_count || 0}개 PNG 고화질 렌더링 완료`;
+
+      const slides = data.slides || [];
+      document.getElementById('gridContainer').innerHTML = slides.map(s => {
+        const tags = (s.tags || []).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded">#${t}</span>`).join(' ');
+        const imgSrc = `/storage/ingest_data/${stem}${s.image_ref || ''}`;
+
+        return `
+          <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="aspect-video w-full rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400 text-xs relative">
+                <img src="${imgSrc}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center pointer-events-none bg-black/30 text-white">
+                  <span class="font-bold text-[11px] truncate max-w-full">${s.title || '슬라이드'}</span>
+                </div>
+              </div>
+
+              <div class="mt-2.5 flex items-center justify-between text-[11px]">
+                <span class="font-medium text-slate-500">Slide ${s.slide_no || 1}</span>
+                <span class="font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">색인 완료</span>
+              </div>
+
+              <div class="mt-1 font-semibold text-xs text-slate-800 leading-snug line-clamp-1">${s.title || ''}</div>
+              <p class="text-[11px] text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">${s.image_description || ''}</p>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1">
+              ${tags}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadManifest();
+  </script>
+</body>
+</html>
