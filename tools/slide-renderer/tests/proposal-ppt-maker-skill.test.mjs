@@ -5,7 +5,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const rendererRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const skillRoot = path.resolve(rendererRoot, "..", "..");
+const workbenchRoot = path.resolve(rendererRoot, "..", "..");
+const skillRoot = path.resolve(workbenchRoot, "skills", "proposal-ppt-maker");
 
 test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, and inline approval", async () => {
   const [skill, io, assetSelection, portraitProposal, metadata, agentContract] = await Promise.all([
@@ -96,7 +97,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
 });
 
 test("every catalog module declares orientation-independent reuse", async () => {
-  const catalogPath = path.resolve(skillRoot, "assets", "proposal-pattern-library", "unified-visual-module-catalog.json");
+  const catalogPath = path.resolve(rendererRoot, "..", "pattern-library", "unified-visual-module-catalog.json");
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   assert.ok(catalog.length > 0);
   for (const module of catalog) {

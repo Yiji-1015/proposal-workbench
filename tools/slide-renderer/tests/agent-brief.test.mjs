@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateAgentBrief } from "../../validate-agent-brief.mjs";
+import { validateAgentBrief } from "../src/validate-agent-brief.mjs";
 
 function validBrief() {
   return {

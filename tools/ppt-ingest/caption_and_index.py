@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 caption_and_index.py
-추출된 슬라이드 텍스트/이미지를 바탕으로 설명·태그를 구성하고, BGE-M3 임베딩 후 Elasticsearch에 색인합니다.
+??? ???? ???? ???? ?????(??/??/????)? ????
+????? BGE-M3 ??? ? SQLite3 ??????? ?????.
 """
 
-import argparse
-import base64
+import hashlib
 import json
 import os
 import re
@@ -16,8 +16,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-DEFAULT_INDEX = "proposal_ppt_refs_v1"
-DEFAULT_DIMS = 1024
+from sqlite_indexer import get_db_path, init_db, upsert_slides
+
 DEFAULT_MODEL = "BAAI/bge-m3"
 
 
@@ -44,26 +44,9 @@ def request_json(url: str, method="GET", body=None, headers=None, insecure=True)
     context = ssl._create_unverified_context() if insecure else None
     request = urllib.request.Request(url, data=data, headers=request_headers, method=method)
 
-    try:
-        with urllib.request.urlopen(request, timeout=60, context=context) as response:
-            text = response.read().decode("utf-8")
-            return response.status, json.loads(text) if text else {}
-    except urllib.error.HTTPError as exc:
-        text = exc.read().decode("utf-8", errors="replace")
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError:
-            payload = text
-        return exc.code, payload
-
-
-def basic_auth_header(user, password):
-    token = base64.b64encode(f"{user}:{password}".encode("utf-8")).decode("ascii")
-    return f"Basic {token}"
-
-
-def join_url(base, path):
-    return base.rstrip("/") + "/" + path.lstrip("/")
+    with urllib.request.urlopen(request, timeout=30, context=context) as response:
+        text = response.read().decode("utf-8")
+        return response.status, json.loads(text) if text else {}
 
 
 def embed_text(env: dict, text: str) -> list[float]:
@@ -80,81 +63,20 @@ def embed_text(env: dict, text: str) -> list[float]:
     if status >= 400:
         raise RuntimeError(f"Embedding failed: HTTP {status} {payload}")
 
-    return payload["data"][0]["embedding"]
-
-
-def build_index_body(dims: int = DEFAULT_DIMS) -> dict:
-    return {
-        "mappings": {
-            "properties": {
-                "slide_id": {"type": "keyword"},
-                "source_pptx": {"type": "keyword"},
-                "slide_no": {"type": "integer"},
-                "title": {"type": "text"},
-                "image_description": {"type": "text"},
-                "tags": {"type": "keyword"},
-                "tags_text": {"type": "text"},
-                "html": {"type": "text", "index": False},
-                "html_ref": {"type": "keyword", "index": False},
-                "image_ref": {"type": "keyword", "index": False},
-                "layout": {"type": "keyword"},
-                "year": {"type": "integer"},
-                "description_vector": {
-                    "type": "dense_vector",
-                    "dims": dims,
-                    "index": True,
-                    "similarity": "cosine",
-                },
-                "created_at": {"type": "date"},
-            }
-        }
-    }
-
-
-def ensure_index(env: dict, index_name: str, dims: int = DEFAULT_DIMS):
-    headers = {}
-    if env.get("ELASTICSEARCH_USER") and env.get("ELASTICSEARCH_PASSWORD"):
-        headers["Authorization"] = basic_auth_header(env["ELASTICSEARCH_USER"], env["ELASTICSEARCH_PASSWORD"])
-
-    status, _ = request_json(join_url(env["ELASTICSEARCH_URL"], index_name), method="HEAD", headers=headers)
-    if status == 200:
-        return "exists"
-    if status != 404:
-        raise RuntimeError(f"Index check failed: HTTP {status}")
-
-    status, payload = request_json(
-        join_url(env["ELASTICSEARCH_URL"], index_name),
-        method="PUT",
-        body=build_index_body(dims),
-        headers=headers,
-    )
-    if status >= 400:
-        raise RuntimeError(f"Index create failed: HTTP {status} {payload}")
-    return "created"
-
-
-def index_document(env: dict, index_name: str, doc: dict):
-    headers = {}
-    if env.get("ELASTICSEARCH_USER") and env.get("ELASTICSEARCH_PASSWORD"):
-        headers["Authorization"] = basic_auth_header(env["ELASTICSEARCH_USER"], env["ELASTICSEARCH_PASSWORD"])
-
-    # slide_id를 고유 _id로 사용하여 중복 색인 방지 (Upsert)
-    url = join_url(env["ELASTICSEARCH_URL"], f"{index_name}/_doc/{doc['slide_id']}")
-    status, payload = request_json(url, method="PUT", body=doc, headers=headers)
-    if status >= 400:
-        raise RuntimeError(f"Index document failed: HTTP {status} {payload}")
-    return payload
+    if "data" in payload and len(payload["data"]) > 0:
+        return payload["data"][0]["embedding"]
+    if "embedding" in payload:
+        return payload["embedding"]
+    raise RuntimeError("Embedding response missing vector payload.")
 
 
 def generate_heuristic_metadata(slide: dict) -> dict:
-    """텍스트 기반 기본 메타데이터 및 설명 생성 (AI 캡셔닝 전단계 또는 Fallback)"""
     title = slide.get("title", "")
     raw_text = slide.get("raw_text", "")
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
 
-    # 태그 추출 (간단한 키워드 추출)
-    words = re.findall(r"[가-힣A-Za-z0-9_]{2,}", raw_text)
-    stop_words = {"제안", "사업", "추진", "방안", "시스템", "목표", "구축", "제공", "기능", "대하여", "통해", "위해"}
+    words = re.findall(r"[?-?A-Za-z0-9_]{2,}", raw_text)
+    stop_words = {"??", "??", "??", "??", "???", "??", "??", "??", "??", "???", "??", "??"}
     freq = {}
     for w in words:
         if w not in stop_words and len(w) >= 2:
@@ -164,17 +86,15 @@ def generate_heuristic_metadata(slide: dict) -> dict:
     if not sorted_tags and title:
         sorted_tags = [title[:10]]
 
-    # 레이아웃 판별 휴리스틱
     layout = "bullets"
-    if any(k in raw_text for k in ["아키텍처", "구성도", "흐름도", "프로세스", "단계", "연계"]):
+    if any(k in raw_text for k in ["????", "???", "???", "????", "??", "??"]):
         layout = "diagram"
-    elif any(k in raw_text for k in ["표", "매핑", "구분", "항목", "비교"]):
+    elif any(k in raw_text for k in ["?", "??", "??", "??", "??"]):
         layout = "table"
-    elif any(k in raw_text for k in ["%", "건", "초", "TPS", "지표", "KPI"]):
+    elif any(k in raw_text for k in ["%", "?", "?", "TPS", "??", "KPI"]):
         layout = "chart"
 
-    # 기본 설명 텍스트
-    description = f"이 장표는 {title}에 대한 제안 내용을 설명한다. 주요 내용: {', '.join(lines[:4])}"
+    description = f"? ??? {title}? ?? ?? ??? ????. ?? ??: {', '.join(lines[:4])}"
 
     return {
         "image_description": description,
@@ -186,56 +106,81 @@ def generate_heuristic_metadata(slide: dict) -> dict:
 
 def process_and_index_slides(
     extracted_slides: list[dict],
+    source_key: str,
+    data_dir: Path,
     env: dict,
-    index_name: str = DEFAULT_INDEX,
-    prefix_id: str = "slide",
-    no_es: bool = False,
-) -> list[dict]:
+    rendered_pngs: list[str] | None = None,
+) -> tuple[list[dict], dict]:
     created_at = datetime.now(timezone.utc).isoformat()
-    if not no_es and env.get("ELASTICSEARCH_URL"):
-        print(f"[Index] Index state: {ensure_index(env, index_name)}")
-
     indexed_docs = []
+    has_embeddings = False
+    embedding_failures = 0
+
+    rendered_slide_nos = set()
+    if rendered_pngs:
+        for p in rendered_pngs:
+            match = re.search(r"slide[-_](\d+)", Path(p).stem, re.IGNORECASE)
+            if match:
+                rendered_slide_nos.add(int(match.group(1)))
 
     for s in extracted_slides:
         slide_no = s["slide_no"]
-        slide_id = f"{prefix_id}_{slide_no:03d}"
-        
-        # 메타데이터 생성 (휴리스틱 또는 추후 VLM 결과 적용)
+        slide_id = f"{source_key}_s{slide_no:03d}"
         meta = generate_heuristic_metadata(s)
+
+        is_rendered = slide_no in rendered_slide_nos if rendered_pngs is not None else False
+        render_status = "completed" if is_rendered else ("skipped" if rendered_pngs is None else "failed")
 
         doc = {
             "slide_id": slide_id,
+            "source_key": source_key,
             "source_pptx": s["source_pptx"],
             "slide_no": slide_no,
             "title": s["title"],
+            "content_text": s.get("raw_text", ""),
             "image_description": meta["image_description"],
             "tags": meta["tags"],
+            "tags_json": json.dumps(meta["tags"], ensure_ascii=False),
             "tags_text": meta["tags_text"],
             "layout": meta["layout"],
-            "year": s.get("year", 2026),
-            "html": s.get("html_content", ""),
-            "html_ref": f"/html/{s.get('html_file_name', f'slide_{slide_no:02d}.html')}",
-            "image_ref": f"/slides/slide-{slide_no}.png",
-            "created_at": created_at,
+            "image_ref": f"/storage/ingest_data/{source_key}/slides/slide-{slide_no}.png",
+            "html_ref": f"/storage/ingest_data/{source_key}/html/{s.get('html_file_name', f'slide_{slide_no:02d}.html')}",
+            "vector": None,
+            "embedding_model": None,
+            "render_status": render_status,
+            "embedding_status": "skipped",
+            "updated_at": created_at,
         }
 
-        # BGE-M3 임베딩 생성
+        # BGE-M3 ??? ?? (???)
         if env.get("EMBEDDING_API_URL"):
             try:
-                embedding = embed_text(env, doc["image_description"])
-                doc["description_vector"] = embedding
+                vec = embed_text(env, doc["image_description"])
+                doc["vector"] = vec
+                doc["embedding_model"] = env.get("EMBEDDING_MODEL_NAME") or env.get("EMBEDDING_MODEL") or DEFAULT_MODEL
+                doc["embedding_status"] = "completed"
+                has_embeddings = True
             except Exception as e:
+                embedding_failures += 1
+                doc["embedding_status"] = "failed"
                 print(f"[Warn] Embedding failed for {slide_id}: {e}", file=sys.stderr)
-
-        # Elasticsearch 색인
-        if not no_es and env.get("ELASTICSEARCH_URL") and "description_vector" in doc:
-            try:
-                res = index_document(env, index_name, doc)
-                print(f"[Index] {slide_id} -> ES OK ({res.get('result')})")
-            except Exception as e:
-                print(f"[Warn] ES indexing failed for {slide_id}: {e}", file=sys.stderr)
 
         indexed_docs.append(doc)
 
-    return indexed_docs
+    # SQLite3 ??????? ?? ?????? ??? ??
+    db_path = get_db_path(data_dir)
+    conn = init_db(db_path)
+    try:
+        upsert_slides(conn, source_key, indexed_docs)
+        print(f"[SQLite Index] Successfully indexed {len(indexed_docs)} slides into {db_path}")
+    finally:
+        conn.close()
+
+    embedding_summary = {
+        "status": "completed" if has_embeddings and embedding_failures == 0 else ("partial" if has_embeddings else "skipped"),
+        "mode": "semantic" if has_embeddings else "lexical",
+        "completed": sum(1 for d in indexed_docs if d["embedding_status"] == "completed"),
+        "total": len(indexed_docs),
+    }
+
+    return indexed_docs, embedding_summary

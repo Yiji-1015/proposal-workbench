@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { discoverArtifactTools } from "./proposal-slide-renderer/src/artifact-tool-runtime.mjs";
 
 async function exists(file) {
   try {
@@ -13,21 +12,42 @@ async function exists(file) {
 }
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const workbenchRoot = path.resolve(skillRoot, "..", "..");
+
+async function resolveFirst(paths) {
+  for (const p of paths) {
+    if (await exists(p)) return p;
+  }
+  return paths[0];
+}
+
+const artifactRuntimePath = await resolveFirst([
+  path.join(workbenchRoot, "tools", "slide-renderer", "src", "artifact-tool-runtime.mjs"),
+  path.join(skillRoot, "scripts", "proposal-slide-renderer", "src", "artifact-tool-runtime.mjs"),
+]);
+const { discoverArtifactTools } = await import(`file://${artifactRuntimePath.replace(/\\/g, "/")}`);
+
 const checks = [];
 const add = (name, passed, detail) => checks.push({ name, passed, detail });
 const nodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
 add("node", nodeMajor >= 20, `Node.js ${process.versions.node}`);
 
-const renderer = path.join(skillRoot, "scripts", "proposal-slide-renderer", "bin", "build-proposal.mjs");
-add("renderer", await exists(renderer), await exists(renderer) ? "bundled renderer found" : "bundled renderer is missing");
+const renderer = await resolveFirst([
+  path.join(workbenchRoot, "tools", "slide-renderer", "bin", "build-proposal.mjs"),
+  path.join(skillRoot, "scripts", "proposal-slide-renderer", "bin", "build-proposal.mjs"),
+]);
+add("renderer", await exists(renderer), await exists(renderer) ? "canonical renderer found" : "renderer is missing");
 
-const catalogPath = path.join(skillRoot, "assets", "proposal-pattern-library", "unified-visual-module-catalog.json");
+const catalogPath = await resolveFirst([
+  path.join(workbenchRoot, "tools", "pattern-library", "unified-visual-module-catalog.json"),
+  path.join(skillRoot, "assets", "proposal-pattern-library", "unified-visual-module-catalog.json"),
+]);
 try {
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   const items = Array.isArray(catalog) ? catalog : (catalog.modules ?? catalog.items ?? []);
-  add("catalog", items.length > 0, `bundled pattern catalog contains ${items.length} items`);
+  add("catalog", items.length > 0, `pattern catalog contains ${items.length} items`);
 } catch (error) {
-  add("catalog", false, `bundled pattern catalog cannot be read: ${error.message}`);
+  add("catalog", false, `pattern catalog cannot be read: ${error.message}`);
 }
 
 const runtimes = await discoverArtifactTools();

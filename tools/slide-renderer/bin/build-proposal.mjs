@@ -7,7 +7,7 @@ import { compileRenderModel } from "../src/compile-render-model.mjs";
 import { createLayoutPlan } from "../src/layouts.mjs";
 
 const rendererRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const defaultPatternRoot = path.resolve(rendererRoot, "..", "..", "assets", "proposal-pattern-library");
+const defaultPatternRoot = path.resolve(rendererRoot, "..", "pattern-library");
 function parseArgs(argv) {
   const values = {};
   for (let index = 0; index < argv.length; index += 1) {

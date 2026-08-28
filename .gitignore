@@ -12,6 +12,12 @@ storage/deliverables/*
 !storage/deliverables/.gitkeep
 storage/ingest_data/*
 !storage/ingest_data/.gitkeep
+storage/index/*
+!storage/index/.gitkeep
+
+# Python caches
+__pycache__/
+*.pyc
 
 # Environment files
 .env

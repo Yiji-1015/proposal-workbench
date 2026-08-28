@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
 ingest_pipeline.py
-임의의 제안서 PPTX 파일을 입력받아:
-1. 슬라이드별 고화질 PNG 렌더링 (PowerPoint COM)
-2. 슬라이드 구조/텍스트/좌표 추출 및 HTML 생성 (python-pptx)
-3. 메타데이터 생성 (Deterministic + AI 보완)
-4. BGE-M3 임베딩 및 Elasticsearch 색인 (ES KNN)
-을 한 번에 수행하는 통합 Ingest CLI 도구입니다.
+??? ??? PPTX ??? ????:
+1. ????? ??? PNG ??? (PowerPoint COM - ?? ?)
+2. ???? ??/???/?? ?? ? HTML ?? (python-pptx)
+3. ????? ?? (??/??/????)
+4. SQLite3 DB ??? ? BGE-M3 ?? ??? (??)
+? ???? ?? Ingest CLI ?????.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import sys
 from pathlib import Path
 
-# 모듈 상대 임포트 경로 설정
 CURRENT_DIR = Path(__file__).resolve().parent
 WORKBENCH_ROOT = CURRENT_DIR.parent.parent
 
@@ -23,25 +23,26 @@ from extract_slide_structure import extract_slides
 from caption_and_index import load_dotenv, process_and_index_slides
 
 
+def generate_source_key(pptx_path: Path) -> str:
+    path_bytes = str(pptx_path.resolve()).encode("utf-8")
+    stem_clean = re_stem = "".join(c if c.isalnum() or c in "_-" else "_" for c in pptx_path.stem)
+    h = hashlib.sha256(path_bytes).hexdigest()[:8]
+    return f"{stem_clean}_{h}"
+
+
 def run_ingest_pipeline(
     pptx_path: str,
-    output_base_dir: str | None = None,
+    data_dir: str | None = None,
     skip_com_render: bool = False,
-    no_es: bool = False,
-    prefix_id: str | None = None,
 ) -> dict:
     pptx_file = Path(pptx_path).resolve()
     if not pptx_file.exists():
         raise FileNotFoundError(f"PPTX file not found: {pptx_file}")
 
-    stem = pptx_file.stem.replace(" ", "_")
-    prefix = prefix_id or stem[:20].lower()
+    data_root = Path(data_dir).resolve() if data_dir else (WORKBENCH_ROOT / "storage")
+    source_key = generate_source_key(pptx_file)
 
-    if output_base_dir:
-        out_root = Path(output_base_dir).resolve() / stem
-    else:
-        out_root = WORKBENCH_ROOT / "storage" / "ingest_data" / stem
-
+    out_root = data_root / "ingest_data" / source_key
     out_slides_dir = out_root / "slides"
     out_html_dir = out_root / "html"
     out_slides_dir.mkdir(parents=True, exist_ok=True)
@@ -49,53 +50,76 @@ def run_ingest_pipeline(
 
     print(f"\n==========================================")
     print(f"[PPT Ingest Pipeline] Starting: {pptx_file.name}")
+    print(f"[Source Key] {source_key}")
     print(f"[Output Directory] {out_root}")
     print(f"==========================================\n")
 
-    # Step 1: PowerPoint COM 고화질 PNG 렌더링
+    # Step 1: PowerPoint COM ??? PNG ???
     rendered_pngs = []
+    render_status = {"status": "skipped", "completed": 0, "total": 0}
     if not skip_com_render:
         try:
             from render_slides_com import render_pptx_to_png
             print("[Step 1/3] Rendering high-fidelity slide PNGs via PowerPoint COM...")
             rendered_pngs = render_pptx_to_png(str(pptx_file), str(out_slides_dir))
+            render_status = {
+                "status": "completed" if len(rendered_pngs) > 0 else "failed",
+                "completed": len(rendered_pngs),
+                "total": len(rendered_pngs),
+            }
         except Exception as e:
-            print(f"[Step 1/3 Warn] PowerPoint COM rendering failed or skipped: {e}")
+            render_status = {
+                "status": "failed",
+                "completed": 0,
+                "error": str(e),
+            }
+            print(f"[Step 1/3 Note] PowerPoint COM rendering unavailable: {e}")
     else:
         print("[Step 1/3] Skipping PowerPoint COM rendering (--skip-com-render specified)")
 
-    # Step 2: python-pptx 슬라이드 구조, 텍스트 및 HTML 생성
-    print("[Step 2/3] Extracting slide structure, texts, and absolute HTMLs...")
+    # Step 2: python-pptx ???? ??, ??? ? HTML ??
+    print("[Step 2/3] Extracting slide structure, texts, and HTMLs...")
     extracted_slides = extract_slides(str(pptx_file), str(out_html_dir))
 
-    # Step 3: 메타데이터 생성, BGE-M3 임베딩 및 Elasticsearch 색인
-    print("[Step 3/3] Generating metadata, embeddings, and indexing into Elasticsearch...")
+    # Step 3: ????? ?? ? SQLite3 ??
+    print("[Step 3/3] Generating metadata and indexing into SQLite3 database...")
     env = {
         **load_dotenv(WORKBENCH_ROOT / ".env"),
         **load_dotenv(WORKBENCH_ROOT / "tools" / "reference-search" / ".env"),
         **os.environ,
     }
 
-    indexed_docs = process_and_index_slides(
+    indexed_docs, embedding_summary = process_and_index_slides(
         extracted_slides=extracted_slides,
+        source_key=source_key,
+        data_dir=data_root,
         env=env,
-        prefix_id=prefix,
-        no_es=no_es,
+        rendered_pngs=rendered_pngs if not skip_com_render and render_status["status"] == "completed" else None,
     )
 
-    # Ingest Manifest 저장 (html_content 제외한 메타데이터 요약)
+    # Ingest Manifest ??
+    overall_status = "completed" if render_status["status"] in ["completed", "skipped"] else "partial"
     manifest = {
+        "status": overall_status,
         "source_pptx": pptx_file.name,
+        "source_key": source_key,
         "total_slides": len(extracted_slides),
-        "rendered_png_count": len(rendered_pngs),
+        "render": render_status,
+        "extract": {"status": "completed", "completed": len(extracted_slides)},
+        "embedding": embedding_summary,
+        "index": {
+            "status": "completed",
+            "db": str(data_root / "index" / "slides.sqlite3"),
+            "completed": len(indexed_docs),
+        },
         "output_dir": str(out_root),
-        "slides": [{k: v for k, v in doc.items() if k not in ["html", "description_vector"]} for doc in indexed_docs],
+        "slides": [{k: v for k, v in doc.items() if k not in ["vector", "html"]} for doc in indexed_docs],
     }
 
     manifest_path = out_root / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"\n[PPT Ingest Complete] Successfully processed {len(extracted_slides)} slides!")
+    print(f"\n[PPT Ingest Complete] Status: {overall_status} ({len(extracted_slides)} slides processed)")
     print(f"[Manifest] {manifest_path}\n")
 
     return manifest
@@ -104,20 +128,16 @@ def run_ingest_pipeline(
 def main():
     parser = argparse.ArgumentParser(description="End-to-End PPTX Ingestion Pipeline.")
     parser.add_argument("--pptx", required=True, help="Path to the input PPTX file")
-    parser.add_argument("--output-dir", help="Base output directory for slide images, HTMLs, and manifests")
+    parser.add_argument("--data-dir", help="Base data directory (default: storage/)")
     parser.add_argument("--skip-com-render", action="store_true", help="Skip PowerPoint COM PNG rendering")
-    parser.add_argument("--no-es", action="store_true", help="Skip Elasticsearch indexing")
-    parser.add_argument("--prefix-id", help="Prefix for slide_id (default: pptx filename stem)")
 
     args = parser.parse_args()
 
     try:
         run_ingest_pipeline(
             pptx_path=args.pptx,
-            output_base_dir=args.output_dir,
+            data_dir=args.data_dir,
             skip_com_render=args.skip_com_render,
-            no_es=args.no_es,
-            prefix_id=args.prefix_id,
         )
     except Exception as e:
         print(f"[Error] Pipeline failed: {e}", file=sys.stderr)

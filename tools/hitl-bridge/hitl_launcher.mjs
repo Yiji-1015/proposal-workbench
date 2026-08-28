@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
  * hitl_launcher.mjs
- * HitL Bridge Server(5174)의 헬스체크를 수행하고,
- * 미기동 시 백그라운드로 자동 실행한 뒤 기본 브라우저에서 지정된 뷰어 URL을 즉시 엽니다.
+ * HitL Bridge Server(5174)? ????? ???? ??? ? ?? ?? ? ???? ??.
  */
 
 import { spawn, exec } from "node:child_process";
@@ -12,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..", "..");
-const BRIDGE_HEALTH_URL = "http://localhost:5174/health";
+const BRIDGE_HEALTH_URL = "http://127.0.0.1:5174/health";
 
 function fetchText(url, timeoutMs = 1500) {
   return new Promise((resolve, reject) => {
@@ -30,9 +29,6 @@ function fetchText(url, timeoutMs = 1500) {
   });
 }
 
-/**
- * Bridge Server 헬스체크 (고유 식별자 검증)
- */
 export async function checkBridgeHealth() {
   try {
     const res = await fetchText(BRIDGE_HEALTH_URL);
@@ -63,14 +59,11 @@ async function waitFor(checkFn, timeoutMs = 4000, intervalMs = 200) {
   return { ready: false, error: `Bridge Server failed to start within ${timeoutMs}ms` };
 }
 
-/**
- * Bridge Server 자동 기동
- */
 export async function ensureBridgeServer() {
   const health = await checkBridgeHealth();
   if (health.ready) return { started: false, already_running: true };
 
-  console.log("[HitL Launcher] Starting Bridge Server (port 5174)...");
+  console.log("[HitL Launcher] Starting Bridge Server (127.0.0.1:5174)...");
   const bridgeScript = path.join(workbenchRoot, "tools", "hitl-bridge", "bridge_server.mjs");
   const child = spawn(process.execPath, [bridgeScript], {
     detached: true,
@@ -86,9 +79,6 @@ export async function ensureBridgeServer() {
   return { started: true, already_running: false };
 }
 
-/**
- * 기본 브라우저 자동 Open (Cross-Platform & Safe Fallback)
- */
 export function openBrowser(url) {
   return new Promise((resolve) => {
     let command = "";
@@ -113,9 +103,6 @@ export function openBrowser(url) {
   });
 }
 
-/**
- * 통합 세션 런처 (Health Check -> Auto Spawn -> Browser Open)
- */
 export async function launchHitlSession(url) {
   const result = {
     bridge_ready: false,
@@ -125,17 +112,10 @@ export async function launchHitlSession(url) {
   };
 
   try {
-    // 1. Bridge Server 준비
     await ensureBridgeServer();
     result.bridge_ready = true;
-
-    // 2. 기본 브라우저 자동 오픈
     const openRes = await openBrowser(url);
     result.browser_opened = openRes.opened;
-    if (!openRes.opened) {
-      result.browser_error = openRes.error;
-    }
-
     return result;
   } catch (err) {
     result.error = err.message;
@@ -145,11 +125,11 @@ export async function launchHitlSession(url) {
 
 async function main() {
   const args = process.argv.slice(2);
-  let targetUrl = "http://localhost:5174";
+  let targetUrl = "http://127.0.0.1:5174";
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--open" && args[i + 1]) {
-      targetUrl = args[i + 1];
+      targetUrl = args[i + 1].replace("localhost", "127.0.0.1");
     }
   }
 
