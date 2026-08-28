@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="hr_solution_master" data-pptx-master-name="HR Solution Master" data-pptx-layout="comparison" data-pptx-layout-name="comparison">
+<rect id="page-bg" x="0" y="0" width="1280" height="720" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="left-rule" x="0" y="0" width="12" height="720" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="section-pill" x="48" y="26" width="1184" height="42" rx="24" fill="#F4F5F7" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="left-panel" x="72" y="250" width="440" height="340" rx="22" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="right-panel" x="768" y="250" width="440" height="340" rx="22" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<circle id="dispatch" cx="620" cy="405" r="72" fill="#2376F5" data-pptx-layer="layout" data-pptx-editable="false"/>
+<circle id="contract" cx="660" cy="405" r="72" fill="#5BC0EB" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="l-0" x="96" y="286" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="rr-0" x="792" y="286" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="l-1" x="96" y="344" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="rr-1" x="792" y="344" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="l-2" x="96" y="402" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="rr-2" x="792" y="402" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="l-3" x="96" y="460" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="rr-3" x="792" y="460" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="l-4" x="96" y="518" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="rr-4" x="792" y="518" width="392" height="42" rx="21" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="footer-rule" x="48" y="682" width="1184" height="1" rx="0" fill="#E5E7EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<text id="section" x="72" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >04. Legal understanding</text>
+<text id="brand" x="1100" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >HR Solution</text>
+<g id="page-title" data-pptx-placeholder="title" data-pptx-idx="0" data-pptx-bounds="72 92 1136 62"><text id="page-title-carrier" data-pptx-carrier="true" x="640" y="137" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="36">{{PAGE_TITLE}}</text></g>
+<text id="subtitle" x="72" y="190" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" >Judge the actual operating model and command structure, not only the contract title.</text>
+<text id="dispatch-label" x="603" y="413" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="14" text-anchor="middle">Dispatch</text>
+<text id="contract-label" x="677" y="413" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="14" text-anchor="middle">Contract</text>
+<g id="ls-0" data-pptx-placeholder="body" data-pptx-idx="1" data-pptx-bounds="96 286 392 42"><text id="ls-0-carrier" data-pptx-carrier="true" x="292" y="313" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Work direction</text></g>
+<g id="rs-0" data-pptx-placeholder="body" data-pptx-idx="6" data-pptx-bounds="792 286 392 42"><text id="rs-0-carrier" data-pptx-carrier="true" x="988" y="313" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Work direction</text></g>
+<g id="ls-1" data-pptx-placeholder="body" data-pptx-idx="2" data-pptx-bounds="96 344 392 42"><text id="ls-1-carrier" data-pptx-carrier="true" x="292" y="371" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Attendance</text></g>
+<g id="rs-1" data-pptx-placeholder="body" data-pptx-idx="7" data-pptx-bounds="792 344 392 42"><text id="rs-1-carrier" data-pptx-carrier="true" x="988" y="371" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Attendance</text></g>
+<g id="ls-2" data-pptx-placeholder="body" data-pptx-idx="3" data-pptx-bounds="96 402 392 42"><text id="ls-2-carrier" data-pptx-carrier="true" x="292" y="429" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Performance</text></g>
+<g id="rs-2" data-pptx-placeholder="body" data-pptx-idx="8" data-pptx-bounds="792 402 392 42"><text id="rs-2-carrier" data-pptx-carrier="true" x="988" y="429" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Performance</text></g>
+<g id="ls-3" data-pptx-placeholder="body" data-pptx-idx="4" data-pptx-bounds="96 460 392 42"><text id="ls-3-carrier" data-pptx-carrier="true" x="292" y="487" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Legal basis</text></g>
+<g id="rs-3" data-pptx-placeholder="body" data-pptx-idx="9" data-pptx-bounds="792 460 392 42"><text id="rs-3-carrier" data-pptx-carrier="true" x="988" y="487" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Legal basis</text></g>
+<g id="ls-4" data-pptx-placeholder="body" data-pptx-idx="5" data-pptx-bounds="96 518 392 42"><text id="ls-4-carrier" data-pptx-carrier="true" x="292" y="545" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Caution</text></g>
+<g id="rs-4" data-pptx-placeholder="body" data-pptx-idx="10" data-pptx-bounds="792 518 392 42"><text id="rs-4-carrier" data-pptx-carrier="true" x="988" y="545" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Caution</text></g>
+<text id="footer" x="72" y="706" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12" >Proposal visual module</text>
+</svg>

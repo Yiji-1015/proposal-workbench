@@ -1,0 +1,121 @@
+[
+  {
+    "slide_id": "ir_deck_slide_01",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 1,
+    "purpose": "cover",
+    "title": "MIRICOMPANY Template 2080.09 miri@miricompany.com 김미리 | IR 디렉터 스토리/핵심 지표/슬라이드 예시를 한 번에 담은 실무형 종합 가이드 IR Deck",
+    "text_excerpt": "MIRICOMPANY Template 2080.09 miri@miricompany.com 김미리 | IR 디렉터 스토리/핵심 지표/슬라이드 예시를 한 번에 담은 실무형 종합 가이드 IR Deck",
+    "shape_count": 7,
+    "group_count": 0,
+    "image_count": 10,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_01_minimal_cover"
+    ],
+    "preview": "previews/slide_01.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_02",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 2,
+    "purpose": "problem",
+    "title": "MIRICOMPANY 02 비효율성 고객이 어떤 불편함을 느끼고 시간/비용적으로 얼마나 손해를 보고 있는지 구체적인 수치로 설명하세요. 높은 비용 기존의 방식이나 해결책이 왜 비싸고 접근하기 어려운지, 그로 인해 어",
+    "text_excerpt": "MIRICOMPANY 02 비효율성 고객이 어떤 불편함을 느끼고 시간/비용적으로 얼마나 손해를 보고 있는지 구체적인 수치로 설명하세요. 높은 비용 기존의 방식이나 해결책이 왜 비싸고 접근하기 어려운지, 그로 인해 어떤 기회비용이 발생하는지 설명하세요. 정보 부족 고객이 올바른 결정을 내리는 데 필요한 정보가 왜 부족하거나 비대칭적인지, 이것이 어떤 부정적 결과를 낳는지 보여주세요. 고객이 현재 겪고 있는 가장 크고 명확한 문제를 구체적인 상황과 함께 제시하세요 . 이 문제가 얼마나 심각하고 시급한지를 투자자가 깊이 공감하도록 만드는 것이 목표입니다 해결하려는 문제의 핵심을 정의하세요 Problem",
+    "shape_count": 11,
+    "group_count": 1,
+    "image_count": 10,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_02_parallel_rows"
+    ],
+    "preview": "previews/slide_02.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_03",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 3,
+    "purpose": "solution",
+    "title": "MIRICOMPANY 03 1 해결책을 입력하세요 이 기능은 고객에게 실질적인 가치를 제공하며, 핵심적인 문제를 정확히 짚어냅니다. 그리고 명쾌하고 효과적인 해결책으로 확실한 답을 제시하세요. 2 해결책을 입력하세요",
+    "text_excerpt": "MIRICOMPANY 03 1 해결책을 입력하세요 이 기능은 고객에게 실질적인 가치를 제공하며, 핵심적인 문제를 정확히 짚어냅니다. 그리고 명쾌하고 효과적인 해결책으로 확실한 답을 제시하세요. 2 해결책을 입력하세요 이 기능은 고객에게 실질적인 가치를 제공하며, 핵심적인 문제를 정확히 짚어냅니다. 그리고 명쾌하고 효과적인 해결책으로 확실한 답을 제시하세요. 3 해결책을 입력하세요 이 기능은 고객에게 실질적인 가치를 제공하며, 핵심적인 문제를 정확히 짚어냅니다. 그리고 명쾌하고 효과적인 해결책으로 확실한 답을 제시하세요. 앞서 제시한 문제점을 회사의 제품/서비스가 어떻게 명쾌하게 해결하는지 직관적으로 설명하세요. '우리는 [핵심 기술/방식]을 통해 [고객]의 [문제]를 해결합니다' 형식으로 간결하게 표현하는 것이 좋습니다. 문제에 대한 명쾌한 해결책을 제시하세요 Solution",
+    "shape_count": 14,
+    "group_count": 0,
+    "image_count": 7,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_03_three_column_cards"
+    ],
+    "preview": "previews/slide_03.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_04",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 4,
+    "purpose": "market",
+    "title": "TAM SAM SOM * 자료 출처 명시 필수 시장 규모 및 기회 TOM 회사가 속한 가장 큰 시장의 규모를 제시하세요. (예: 글로벌 인테리어 시장) 전체 시장 유효 시장 그중 회사의 제품/서비스가 공략 가능한 시",
+    "text_excerpt": "TAM SAM SOM * 자료 출처 명시 필수 시장 규모 및 기회 TOM 회사가 속한 가장 큰 시장의 규모를 제시하세요. (예: 글로벌 인테리어 시장) 전체 시장 유효 시장 그중 회사의 제품/서비스가 공략 가능한 시장의 규모를 보여주세요. (예: 국내 온라인 인테리어 플랫폼 시장) SAM 초기 목표 시장 향후 1~3년 내에 현실적으로 점유할 수 있는 시장의 규모를 정의하세요. (예: 수도권 아파트 전문 디자인 서비스 시장) SOM MIRICOMPANY 04 Market Size 전체 시장(TAM), 유효 시장(SAM), 그리고 초기 목표 시장(SOM)을 신뢰할 수 있는 데이터와 함께 제시하여 시장의 매력도를 증명하세요.",
+    "shape_count": 18,
+    "group_count": 0,
+    "image_count": 6,
+    "aspect_ratio": "wide",
+    "density": "high",
+    "module_ids": [
+      "ir_deck_slide_04_nested_circles"
+    ],
+    "preview": "previews/slide_04.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_05",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 5,
+    "purpose": "technology",
+    "title": "이 공간에는 솔루션이 어떤 기술적 기반 위에 구축되었는지를 작성하세요. 경쟁사와 비교했을 때 우리 기술이 가진 차별성과 강점을 설명하세요. 이를 통해 왜 우리의 솔루션이 시장에서 우월한지 명확히 보여주세요. MIRI",
+    "text_excerpt": "이 공간에는 솔루션이 어떤 기술적 기반 위에 구축되었는지를 작성하세요. 경쟁사와 비교했을 때 우리 기술이 가진 차별성과 강점을 설명하세요. 이를 통해 왜 우리의 솔루션이 시장에서 우월한지 명확히 보여주세요. MIRICOMPANY 05 제품의 기술 구조를 다이어그램으로 시각화하여 데이터 흐름, 핵심 엔진, 서비스 모듈 등을 보여주세요. 기술에 대한 깊은 이해도를 어필할 수 있습니다. 이곳에 핵심기술을 입력해 주세요. 제품의 기술 구조를 다이어그램으로 시각화하여 데이터 흐름, 핵심 엔진, 서비스 모듈 등을 보여주세요. 기술에 대한 깊은 이해도를 어필할 수 있습니다. 이곳에 핵심기술을 입력해 주세요. 제품의 기술 구조를 다이어그램으로 시각화하여 데이터 흐름, 핵심 엔진, 서비스 모듈 등을 보여주세요. 기술에 대한 깊은 이해도를 어필할 수 있습니다. 이곳에 핵심기술을 입력해 주세요. 우리 회사만의 차별화된 핵심 기술 Product 05",
+    "shape_count": 12,
+    "group_count": 0,
+    "image_count": 9,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_05_three_vertical_cards"
+    ],
+    "preview": "previews/slide_05.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_06",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 6,
+    "purpose": "business",
+    "title": "구독료 (SaaS) 어떤 고객이 어떤 가치에 대해 월/연 단위로 비용을 지불하는지 설명해 주세요. 중개 수수료 플랫폼 내에서 발생하는 거래의 어떤 부분에서 몇 %의 수수료를 받는지 설명해 주세요. 기타 광고, 데이터",
+    "text_excerpt": "구독료 (SaaS) 어떤 고객이 어떤 가치에 대해 월/연 단위로 비용을 지불하는지 설명해 주세요. 중개 수수료 플랫폼 내에서 발생하는 거래의 어떤 부분에서 몇 %의 수수료를 받는지 설명해 주세요. 기타 광고, 데이터 판매, 부가 서비스 등 추가적인 수익원이 있다면 설명해 주세요. Basic: 월 10만 원 거래액의 5~10% 리포트 건당/API 호출당 과금 회사의 핵심 수익 모델(예: 구독, 수수료, 광고)을 명확히 설명하세요. 투자자가 회사가 어떻게 돈을 버는지 쉽고 명확하게 이해할 수 있도록 가격 정책 표 등을 활용하는 것이 좋습니다. 회사의 수익 창출 구조와 비즈니스 모델 Business Model MIRICOMPANY 06",
+    "shape_count": 14,
+    "group_count": 0,
+    "image_count": 11,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_06_three_pricing_cards"
+    ],
+    "preview": "previews/slide_06.png"
+  },
+  {
+    "slide_id": "ir_deck_slide_07",
+    "source_deck": "IR_Deck.pptx",
+    "source_slide_no": 7,
+    "purpose": "traction",
+    "title": "100만명 누적가입자 200억 연매출 4.9/5.0 고객만족도 MIRICOMPANY 07 회사의 성장을 증명하는 핵심 지표들 Traction 지금까지 달성한 구체적인 성과를 보여주며, 우리 팀이 '실행력'을 갖추고 ",
+    "text_excerpt": "100만명 누적가입자 200억 연매출 4.9/5.0 고객만족도 MIRICOMPANY 07 회사의 성장을 증명하는 핵심 지표들 Traction 지금까지 달성한 구체적인 성과를 보여주며, 우리 팀이 '실행력'을 갖추고 있음을 증명하는 가장 중요한 페이지 중 하나입니다. 지표는 반드시 그래프로 시각화하여 성장 추세를 한눈에 보여주세요.",
+    "shape_count": 11,
+    "group_count": 0,
+    "image_count": 9,
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "module_ids": [
+      "ir_deck_slide_07_metric_bars"
+    ],
+    "preview": "previews/slide_07.png"
+  }
+]

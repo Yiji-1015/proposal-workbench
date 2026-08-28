@@ -1,0 +1,18 @@
+node_modules/
+.output/
+.dist/
+*.log
+.DS_Store
+Thumbs.db
+
+# Storage runtime data
+storage/sessions/*.json
+!storage/sessions/.gitkeep
+storage/deliverables/*
+!storage/deliverables/.gitkeep
+storage/ingest_data/*
+!storage/ingest_data/.gitkeep
+
+# Environment files
+.env
+.env.local

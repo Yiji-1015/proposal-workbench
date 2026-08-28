@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="hr_solution_master" data-pptx-master-name="HR Solution Master" data-pptx-layout="metric_table" data-pptx-layout-name="metric_table">
+<rect id="page-bg" x="0" y="0" width="1280" height="720" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="left-rule" x="0" y="0" width="12" height="720" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="section-pill" x="48" y="26" width="1184" height="42" rx="24" fill="#F4F5F7" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="h0" x="72" y="218" width="260" height="44" rx="0" fill="#F4F5F7" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="h1" x="332" y="218" width="270" height="44" rx="0" fill="#5BC0EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="h2" x="602" y="218" width="270" height="44" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="h3" x="872" y="218" width="336" height="44" rx="0" fill="#111111" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="row-0" x="72" y="262" width="1136" height="74" rx="0" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="after-bg-0" x="602" y="262" width="270" height="74" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="row-1" x="72" y="336" width="1136" height="74" rx="0" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="after-bg-1" x="602" y="336" width="270" height="74" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="row-2" x="72" y="410" width="1136" height="74" rx="0" fill="#F8FAFC" stroke="#E5E7EB" stroke-width="1" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="after-bg-2" x="602" y="410" width="270" height="74" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="row-3" x="72" y="484" width="1136" height="74" rx="0" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="after-bg-3" x="602" y="484" width="270" height="74" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="footer-rule" x="48" y="682" width="1184" height="1" rx="0" fill="#E5E7EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<text id="section" x="72" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >09. Quantitative effect</text>
+<text id="brand" x="1100" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >HR Solution</text>
+<g id="page-title" data-pptx-placeholder="title" data-pptx-idx="0" data-pptx-bounds="72 92 1136 62"><text id="page-title-carrier" data-pptx-carrier="true" x="640" y="137" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="36">{{PAGE_TITLE}}</text></g>
+<text id="h0t" x="202" y="247" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" text-anchor="middle">Metric</text>
+<text id="h1t" x="467" y="247" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" text-anchor="middle">Before</text>
+<text id="h2t" x="737" y="247" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" text-anchor="middle">After</text>
+<text id="h3t" x="1040" y="247" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" text-anchor="middle">Improvement</text>
+<g id="m-0" data-pptx-placeholder="body" data-pptx-idx="1" data-pptx-bounds="72 262 260 74"><text id="m-0-carrier" data-pptx-carrier="true" x="202" y="309" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Average hiring days</text></g>
+<g id="b-0" data-pptx-placeholder="body" data-pptx-idx="5" data-pptx-bounds="332 262 270 74"><text id="b-0-carrier" data-pptx-carrier="true" x="467" y="309" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">34 days</text></g>
+<g id="a-0" data-pptx-placeholder="body" data-pptx-idx="9" data-pptx-bounds="602 262 270 74"><text id="a-0-carrier" data-pptx-carrier="true" x="737" y="309" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">22 days</text></g>
+<g id="d-0" data-pptx-placeholder="body" data-pptx-idx="13" data-pptx-bounds="872 262 336 74"><text id="d-0-carrier" data-pptx-carrier="true" x="1040" y="309" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">35%</text></g>
+<g id="m-1" data-pptx-placeholder="body" data-pptx-idx="2" data-pptx-bounds="72 336 260 74"><text id="m-1-carrier" data-pptx-carrier="true" x="202" y="383" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Internal operation hours</text></g>
+<g id="b-1" data-pptx-placeholder="body" data-pptx-idx="6" data-pptx-bounds="332 336 270 74"><text id="b-1-carrier" data-pptx-carrier="true" x="467" y="383" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">52 hours</text></g>
+<g id="a-1" data-pptx-placeholder="body" data-pptx-idx="10" data-pptx-bounds="602 336 270 74"><text id="a-1-carrier" data-pptx-carrier="true" x="737" y="383" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">24 hours</text></g>
+<g id="d-1" data-pptx-placeholder="body" data-pptx-idx="14" data-pptx-bounds="872 336 336 74"><text id="d-1-carrier" data-pptx-carrier="true" x="1040" y="383" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">54%</text></g>
+<g id="m-2" data-pptx-placeholder="body" data-pptx-idx="3" data-pptx-bounds="72 410 260 74"><text id="m-2-carrier" data-pptx-carrier="true" x="202" y="457" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Re-hiring cost</text></g>
+<g id="b-2" data-pptx-placeholder="body" data-pptx-idx="7" data-pptx-bounds="332 410 270 74"><text id="b-2-carrier" data-pptx-carrier="true" x="467" y="457" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">$950k</text></g>
+<g id="a-2" data-pptx-placeholder="body" data-pptx-idx="11" data-pptx-bounds="602 410 270 74"><text id="a-2-carrier" data-pptx-carrier="true" x="737" y="457" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">$620k</text></g>
+<g id="d-2" data-pptx-placeholder="body" data-pptx-idx="15" data-pptx-bounds="872 410 336 74"><text id="d-2-carrier" data-pptx-carrier="true" x="1040" y="457" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">35%</text></g>
+<g id="m-3" data-pptx-placeholder="body" data-pptx-idx="4" data-pptx-bounds="72 484 260 74"><text id="m-3-carrier" data-pptx-carrier="true" x="202" y="531" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Labor issue response</text></g>
+<g id="b-3" data-pptx-placeholder="body" data-pptx-idx="8" data-pptx-bounds="332 484 270 74"><text id="b-3-carrier" data-pptx-carrier="true" x="467" y="531" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">21 hours</text></g>
+<g id="a-3" data-pptx-placeholder="body" data-pptx-idx="12" data-pptx-bounds="602 484 270 74"><text id="a-3-carrier" data-pptx-carrier="true" x="737" y="531" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">10 hours</text></g>
+<g id="d-3" data-pptx-placeholder="body" data-pptx-idx="16" data-pptx-bounds="872 484 336 74"><text id="d-3-carrier" data-pptx-carrier="true" x="1040" y="531" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">52%</text></g>
+<text id="footer" x="72" y="706" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12" >Proposal visual module</text>
+</svg>

@@ -1,0 +1,188 @@
+[
+  {
+    "module_id": "ir_deck_slide_01_minimal_cover",
+    "module_type": "minimal_cover",
+    "purpose": "cover",
+    "flow_direction": "none",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": null,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 1,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "hero_title",
+      "single_statement",
+      "minimal"
+    ],
+    "semantic_tags": [
+      "cover"
+    ],
+    "preview": "previews/slide_01.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_02_parallel_rows",
+    "module_type": "parallel_rows",
+    "purpose": "problem",
+    "flow_direction": "left_to_right",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": 3,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "native_group",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 2,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "three_row_repeat",
+      "left_to_right_arrows",
+      "label_to_callout"
+    ],
+    "semantic_tags": [
+      "problem",
+      "pain_point"
+    ],
+    "preview": "previews/slide_02.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_03_three_column_cards",
+    "module_type": "three_column_cards",
+    "purpose": "solution",
+    "flow_direction": "left_to_right",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": 7,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 3,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "three_columns",
+      "icon_cards",
+      "parallel_cards"
+    ],
+    "semantic_tags": [
+      "solution",
+      "value_proposition"
+    ],
+    "preview": "previews/slide_03.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_04_nested_circles",
+    "module_type": "nested_circles",
+    "purpose": "market",
+    "flow_direction": "left_to_right",
+    "aspect_ratio": "wide",
+    "density": "high",
+    "step_count": 3,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 4,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "split_layout",
+      "concentric_circles",
+      "three_tier_hierarchy"
+    ],
+    "semantic_tags": [
+      "market",
+      "tam",
+      "sam",
+      "som"
+    ],
+    "preview": "previews/slide_04.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_05_three_vertical_cards",
+    "module_type": "three_vertical_cards",
+    "purpose": "technology",
+    "flow_direction": "mixed",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": null,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 5,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "split_layout",
+      "three_columns",
+      "icon_cards",
+      "feature_columns"
+    ],
+    "semantic_tags": [
+      "technology",
+      "architecture"
+    ],
+    "preview": "previews/slide_05.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_06_three_pricing_cards",
+    "module_type": "three_pricing_cards",
+    "purpose": "business",
+    "flow_direction": "none",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": null,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 6,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "three_columns",
+      "pricing_cards",
+      "highlighted_column"
+    ],
+    "semantic_tags": [
+      "business_model",
+      "pricing",
+      "revenue"
+    ],
+    "preview": "previews/slide_06.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  },
+  {
+    "module_id": "ir_deck_slide_07_metric_bars",
+    "module_type": "metric_bars",
+    "purpose": "traction",
+    "flow_direction": "none",
+    "aspect_ratio": "wide",
+    "density": "medium",
+    "step_count": null,
+    "min_width": 0.55,
+    "min_height": 0.25,
+    "editable_level": "reference_only",
+    "extraction_status": "slide_reference",
+    "source_slide_no": 7,
+    "source_deck": "IR_Deck.pptx",
+    "visual_tags": [
+      "split_layout",
+      "vertical_metric_bars",
+      "large_number_metrics"
+    ],
+    "semantic_tags": [
+      "traction",
+      "kpi",
+      "evidence"
+    ],
+    "preview": "previews/slide_07.png",
+    "notes": "시각 구조 우선 1차 분류. 실제 도식 영역을 수동 큐레이션하면 shape 범위와 preview를 보강할 수 있음."
+  }
+]

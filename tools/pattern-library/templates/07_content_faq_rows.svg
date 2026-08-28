@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="hr_solution_master" data-pptx-master-name="HR Solution Master" data-pptx-layout="faq_rows" data-pptx-layout-name="faq_rows">
+<rect id="page-bg" x="0" y="0" width="1280" height="720" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="left-rule" x="0" y="0" width="12" height="720" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="section-pill" x="48" y="26" width="1184" height="42" rx="24" fill="#F4F5F7" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="person" x="72" y="250" width="180" height="340" rx="18" fill="#DCE8FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="marks" x="110" y="222" width="70" height="70" rx="18" fill="#DCE8FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="q-0" x="280" y="240" width="330" height="78" rx="18" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="ans-0" x="632" y="240" width="576" height="78" rx="18" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="q-1" x="280" y="340" width="330" height="78" rx="18" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="ans-1" x="632" y="340" width="576" height="78" rx="18" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="q-2" x="280" y="440" width="330" height="78" rx="18" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="ans-2" x="632" y="440" width="576" height="78" rx="18" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="q-3" x="280" y="540" width="330" height="78" rx="18" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="ans-3" x="632" y="540" width="576" height="78" rx="18" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="footer-rule" x="48" y="682" width="1184" height="1" rx="0" fill="#E5E7EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<text id="section" x="72" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >13. FAQ</text>
+<text id="brand" x="1100" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >HR Solution</text>
+<g id="page-title" data-pptx-placeholder="title" data-pptx-idx="0" data-pptx-bounds="72 92 1136 62"><text id="page-title-carrier" data-pptx-carrier="true" x="640" y="137" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="36">{{PAGE_TITLE}}</text></g>
+<g id="q-slot-0" data-pptx-placeholder="body" data-pptx-idx="1" data-pptx-bounds="280 240 330 78"><text id="q-slot-0-carrier" data-pptx-carrier="true" x="445" y="287" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Staffing vs recruiting agency?</text></g>
+<g id="ans-slot-0" data-pptx-placeholder="body" data-pptx-idx="5" data-pptx-bounds="632 240 576 78"><text id="ans-slot-0-carrier" data-pptx-carrier="true" x="920" y="287" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Review structure, then propose a fit.</text></g>
+<g id="q-slot-1" data-pptx-placeholder="body" data-pptx-idx="2" data-pptx-bounds="280 340 330 78"><text id="q-slot-1-carrier" data-pptx-carrier="true" x="445" y="387" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Public sector adoption?</text></g>
+<g id="ans-slot-1" data-pptx-placeholder="body" data-pptx-idx="6" data-pptx-bounds="632 340 576 78"><text id="ans-slot-1-carrier" data-pptx-carrier="true" x="920" y="387" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Review structure, then propose a fit.</text></g>
+<g id="q-slot-2" data-pptx-placeholder="body" data-pptx-idx="3" data-pptx-bounds="280 440 330 78"><text id="q-slot-2-carrier" data-pptx-carrier="true" x="445" y="487" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">When is cost confirmed?</text></g>
+<g id="ans-slot-2" data-pptx-placeholder="body" data-pptx-idx="7" data-pptx-bounds="632 440 576 78"><text id="ans-slot-2-carrier" data-pptx-carrier="true" x="920" y="487" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Review structure, then propose a fit.</text></g>
+<g id="q-slot-3" data-pptx-placeholder="body" data-pptx-idx="4" data-pptx-bounds="280 540 330 78"><text id="q-slot-3-carrier" data-pptx-carrier="true" x="445" y="587" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Short-term support?</text></g>
+<g id="ans-slot-3" data-pptx-placeholder="body" data-pptx-idx="8" data-pptx-bounds="632 540 576 78"><text id="ans-slot-3-carrier" data-pptx-carrier="true" x="920" y="587" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Review structure, then propose a fit.</text></g>
+<text id="footer" x="72" y="706" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12" >Proposal visual module</text>
+</svg>

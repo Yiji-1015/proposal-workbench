@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import test from "node:test";
+
+test("builds a non-DAR portrait proposal from project JSON without DAR leakage", async (t) => {
+  const rendererRoot = path.resolve(import.meta.dirname, "..");
+  const project = path.join(rendererRoot, "tests", "fixtures", "non-dar-project");
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-renderer-"));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const output = path.join(temp, "SEC-204.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output], { encoding: "utf8" });
+  assert.equal(result.status, 0, `stderr=${result.stderr}\nstdout=${result.stdout}`);
+  const report = JSON.parse(await fs.readFile(path.join(temp, "verification-report.json"), "utf8"));
+  const pptx = await fs.readFile(output);
+  const wireframe = await fs.readFile(path.join(temp, "wireframe.png"));
+  const finalSlide = await fs.readFile(path.join(temp, "final-slide.png"));
+  assert.equal(report.requirement_id, "SEC-204");
+  assert.equal(report.orientation, "portrait");
+  assert.deepEqual(report.protected_metrics, ["분기 1회"]);
+  assert.equal(JSON.stringify(report).includes("DAR-010"), false);
+  assert.ok(report.selected_assets.length > 0);
+  assert.ok(report.selected_assets.every((asset) => asset.render_mode === "native_powerpoint_shapes"));
+  assert.equal(report.theme.primary, "#1769E0");
+  assert.equal(report.density, "high");
+  assert.ok(report.content_box_count >= 5);
+  assert.ok(report.meaningful_area_count >= 5);
+  assert.ok(report.selected_assets.every((asset) => asset.selected && asset.loaded && asset.applied && asset.fidelity_passed && asset.used));
+  assert.ok(report.selected_assets.every((asset) => asset.renderer_key && asset.structure_fingerprint));
+  assert.ok(report.selected_assets.every((asset) => asset.required_motifs.length > 0 && asset.produced_motifs.length > 0));
+  assert.equal(pptx.subarray(0, 2).toString("hex"), "504b");
+  assert.equal(wireframe.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(finalSlide.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+});

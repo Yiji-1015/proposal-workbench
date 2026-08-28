@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="hr_solution_master" data-pptx-master-name="HR Solution Master" data-pptx-layout="case_cards" data-pptx-layout-name="case_cards">
+<rect id="page-bg" x="0" y="0" width="1280" height="720" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="left-rule" x="0" y="0" width="12" height="720" rx="0" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="section-pill" x="48" y="26" width="1184" height="42" rx="24" fill="#F4F5F7" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-0" x="72" y="238" width="350" height="340" rx="22" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-head-0" x="96" y="258" width="302" height="44" rx="22" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-image-0" x="96" y="318" width="302" height="112" rx="18" fill="#DCE8FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-copy-0" x="96" y="448" width="302" height="104" rx="18" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-1" x="465" y="238" width="350" height="340" rx="22" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-head-1" x="489" y="258" width="302" height="44" rx="22" fill="#5BC0EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-image-1" x="489" y="318" width="302" height="112" rx="18" fill="#DCE8FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-copy-1" x="489" y="448" width="302" height="104" rx="18" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-2" x="858" y="238" width="350" height="340" rx="22" fill="#F1F6FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-head-2" x="882" y="258" width="302" height="44" rx="22" fill="#2376F5" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-image-2" x="882" y="318" width="302" height="112" rx="18" fill="#DCE8FF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="case-copy-2" x="882" y="448" width="302" height="104" rx="18" fill="#FFFFFF" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="footer-rule" x="48" y="682" width="1184" height="1" rx="0" fill="#E5E7EB" stroke="none" stroke-width="0" data-pptx-layer="layout" data-pptx-editable="false"/>
+<text id="section" x="72" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >12. Cases</text>
+<text id="brand" x="1100" y="54" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="16" >HR Solution</text>
+<g id="page-title" data-pptx-placeholder="title" data-pptx-idx="0" data-pptx-bounds="72 92 1136 62"><text id="page-title-carrier" data-pptx-carrier="true" x="640" y="137" text-anchor="middle" fill="#111827" font-family="Arial, Malgun Gothic, sans-serif" font-size="36">{{PAGE_TITLE}}</text></g>
+<text id="subtitle" x="72" y="190" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="18" >Three case cards with image, context, and outcome.</text>
+<g id="case-title-0" data-pptx-placeholder="body" data-pptx-idx="1" data-pptx-bounds="96 258 302 44"><text id="case-title-0-carrier" data-pptx-carrier="true" x="247" y="287" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Manufacturing SME</text></g>
+<g id="case-copy-slot-0" data-pptx-placeholder="body" data-pptx-idx="4" data-pptx-bounds="112 462 270 78"><text id="case-copy-slot-0-carrier" data-pptx-carrier="true" x="247" y="495" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Reduce workload and stabilize operations.</text></g>
+<g id="case-title-1" data-pptx-placeholder="body" data-pptx-idx="2" data-pptx-bounds="489 258 302 44"><text id="case-title-1-carrier" data-pptx-carrier="true" x="640" y="287" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Public organization</text></g>
+<g id="case-copy-slot-1" data-pptx-placeholder="body" data-pptx-idx="5" data-pptx-bounds="505 462 270 78"><text id="case-copy-slot-1-carrier" data-pptx-carrier="true" x="640" y="495" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Reduce workload and stabilize operations.</text></g>
+<g id="case-title-2" data-pptx-placeholder="body" data-pptx-idx="3" data-pptx-bounds="882 258 302 44"><text id="case-title-2-carrier" data-pptx-carrier="true" x="1033" y="287" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Service organization</text></g>
+<g id="case-copy-slot-2" data-pptx-placeholder="body" data-pptx-idx="6" data-pptx-bounds="898 462 270 78"><text id="case-copy-slot-2-carrier" data-pptx-carrier="true" x="1033" y="495" text-anchor="middle" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12">Reduce workload and stabilize operations.</text></g>
+<text id="footer" x="72" y="706" fill="#667085" font-family="Arial, Malgun Gothic, sans-serif" font-size="12" >Proposal visual module</text>
+</svg>

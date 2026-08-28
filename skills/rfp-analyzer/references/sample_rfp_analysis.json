@@ -1,0 +1,165 @@
+{
+  "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+  "analyzed_at": "2026-08-28T12:40:00Z",
+  "overview": [
+    { "label": "사업명", "value": "스마트물류 통합관제 플랫폼 구축" },
+    { "label": "발주기관", "value": "한국물류공사" },
+    { "label": "사업기간", "value": "계약일로부터 10개월" },
+    { "label": "사업예산", "value": "금 2,400,000,000원 (VAT 포함)" },
+    { "label": "평가방식", "value": "기술평가 80 : 가격평가 20" }
+  ],
+  "workflow_steps": [
+    { "step": 1, "title": "현황 수집 및 연계", "desc": "전국 12개 거점 WMS/TMS 데이터 표준 API 수집" },
+    { "step": 2, "title": "보안 검증 및 정제", "desc": "개인정보 비식별화 및 스트림 데이터 정제" },
+    { "step": 3, "title": "통합 적재 및 인덱싱", "desc": "분산 데이터 레이크하우스 적재 및 검색 인덱싱" },
+    { "step": 4, "title": "실시간 관제 및 알림", "desc": "단일 대시보드 모니터링 및 5초 이내 이상 상황 알림" },
+    { "step": 5, "title": "성과 분석 및 피드백", "desc": "일·월 단위 관제 KPI 리포트 자동 산출" }
+  ],
+  "requirements": [
+    {
+      "id": "SFR-001",
+      "category": "기능",
+      "name": "실시간 통합관제 대시보드",
+      "summary": "전국 12개 물류 거점의 실시간 상태를 단일 화면에서 조회",
+      "priority": "필수",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 13,
+          "section_path": "3. 목표 시스템 > 3.1 통합관제 대시보드",
+          "quote": "전국 12개 물류 거점의 실시간 상태를 단일 화면에서 조회할 수 있어야 한다."
+        }
+      ]
+    },
+    {
+      "id": "SFR-002",
+      "category": "기능",
+      "name": "이상 상황 실시간 알림",
+      "summary": "이상 상황 발생 시 5초 이내 알림 발송",
+      "priority": "필수",
+      "quantitative_metrics": [
+        {
+          "id": "KPI-01",
+          "name": "알림 지연시간",
+          "value_text": "5초 이내",
+          "parsed_value": 5,
+          "unit": "초",
+          "operator": "<=",
+          "source_refs": [
+            {
+              "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+              "page": 13,
+              "section_path": "3. 목표 시스템 > 3.1 통합관제 대시보드",
+              "quote": "이상 상황 발생 시 5초 이내에 담당자에게 알림을 발송해야 한다."
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 13,
+          "section_path": "3. 목표 시스템 > 3.1 통합관제 대시보드",
+          "quote": "이상 상황 발생 시 5초 이내에 담당자에게 알림을 발송해야 한다."
+        }
+      ]
+    }
+  ],
+  "domains": [
+    { "name": "통합관제", "desc": "실시간 모니터링, 이상감지, 알림 발송, 조치 이력 관리", "req_count": 9 },
+    { "name": "데이터 수집/연계", "desc": "12개 거점 WMS/TMS 3종 연계, 표준 API, 스트림 수집", "req_count": 6 },
+    { "name": "데이터 저장/관리", "desc": "일 500만 건 분산 적재, 레이크하우스, 백업/복구", "req_count": 5 },
+    { "name": "보안/개인정보", "desc": "개인정보 비식별화, RBAC 접근통제, 감사로그", "req_count": 4 }
+  ],
+  "explicit_features": [
+    {
+      "text": "12개 거점 실시간 통합관제 대시보드",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 13,
+          "quote": "단일 화면에서 조회"
+        }
+      ]
+    },
+    {
+      "text": "이상 상황 발생 시 5초 이내 담당자 알림 발송",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 13,
+          "quote": "5초 이내 알림"
+        }
+      ]
+    }
+  ],
+  "hidden_features": [
+    {
+      "text": "거점별 데이터 품질 프로파일링 및 유효성 자동 검증",
+      "reason": "이기종 WMS 3종 표준화 요건은 있으나 데이터 수집 시점의 정합성 검증 절차가 RFP에 누락됨"
+    },
+    {
+      "text": "알림 피로도 억제 및 중복 알림 억제(Deduplication) 정책",
+      "reason": "5초 이내 즉시 알림 요건 충족 시 장애 전파 상황에서 수만 건의 중복 알림 폭풍(Storm) 발생 위험"
+    }
+  ],
+  "kpis": [
+    {
+      "id": "KPI-01",
+      "name": "알림 지연시간",
+      "value_text": "5초 이내",
+      "parsed_value": 5,
+      "unit": "초",
+      "operator": "<=",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 13,
+          "quote": "5초 이내 알림"
+        }
+      ]
+    },
+    {
+      "id": "KPI-02",
+      "name": "일 처리 이벤트 규모",
+      "value_text": "일 500만 건 이상",
+      "parsed_value": 5000000,
+      "unit": "건/일",
+      "operator": ">=",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 18,
+          "quote": "일 500만 건 이상 데이터 처리"
+        }
+      ]
+    },
+    {
+      "id": "KPI-03",
+      "name": "연간 시스템 가용성",
+      "value_text": "99.9% 이상",
+      "parsed_value": 99.9,
+      "unit": "%",
+      "operator": ">=",
+      "source_refs": [
+        {
+          "doc_name": "2026_스마트물류_통합관제_RFP.hwp",
+          "page": 33,
+          "quote": "연간 가용성 99.9% 이상 보장"
+        }
+      ]
+    }
+  ],
+  "risk_areas": [
+    {
+      "area": "레거시 WMS 3종 비표준 연계 및 규격 미제공",
+      "reason": "기관별 레거시 인터페이스가 상이하고 사전 규격서가 미제공되어 연계 일정 지연 위험",
+      "level": "높음"
+    },
+    {
+      "area": "대규모 물리 서버 및 전용선 네트워크 망 포설",
+      "reason": "우리 회사의 SW/AI 전문 역량 외에 물리 센터 공사 및 네트워크 공사업체 협력 필요",
+      "level": "중간"
+    }
+  ]
+}
