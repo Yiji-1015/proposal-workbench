@@ -87,11 +87,17 @@ proposal-workbench/
 codex plugin marketplace add .
 ```
 
-### 0-1) 최초 실행 환경 점검 및 Python 의존성 설치
-플러그인 설치 후 먼저 Doctor를 실행합니다. `python_pptx` 또는 `powerpoint_com`이 실패하면 출력된 `Run:` 명령을 그대로 PowerShell에 붙여 넣고 다시 실행합니다.
+### 0-1) 최초 실행 환경 점검 및 의존성 설치
+플러그인 설치 후 먼저 Doctor를 실행합니다. HWP·PDF·DOCX 원문을 변환하려면 `doc_converter_kordoc`가 필요합니다. 해당 체크가 실패하면 출력된 `Run:` 명령(`npm --prefix ... install`)을 PowerShell에 붙여 넣고 다시 실행합니다. `python_pptx` 또는 `powerpoint_com`이 실패해도 같은 방식으로 출력된 Python 설치 명령을 사용합니다.
 
 ```powershell
 node tools/verify-workbench.mjs
+```
+
+문서 변환 의존성만 직접 설치할 때:
+
+```powershell
+npm --prefix tools/doc-converter install
 ```
 
 실제 PowerPoint 렌더링·검증까지 하려면 `python-pptx`, `pywin32`, 데스크톱 PowerPoint가 필요합니다. 구조·텍스트 추출만 할 때는 `powerpoint_com` 경고를 허용할 수 있습니다.

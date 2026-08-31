@@ -14,6 +14,7 @@ import { DatabaseSync } from "node:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..");
+const docConverterRoot = path.join(workbenchRoot, "tools", "doc-converter");
 const pythonRequirementsPath = path.join(workbenchRoot, "tools", "ppt-ingest", "requirements.txt");
 
 const checks = [];
@@ -32,6 +33,10 @@ function quotePowerShell(value) {
 
 function pythonInstallCommand(pythonCommand) {
   return `& ${quotePowerShell(pythonCommand)} -m pip install -r ${quotePowerShell(pythonRequirementsPath)}`;
+}
+
+function nodeInstallCommand() {
+  return `npm --prefix ${quotePowerShell(docConverterRoot)} install`;
 }
 
 function discoverBundledPythonCommands() {
@@ -72,6 +77,20 @@ async function runDoctor() {
 
   // 1. Node.js Version Check. node:sqlite was added in Node.js 22.5.0.
   addCheck("node_runtime", nodeVersionAtLeast(22, 5), `Node.js ${process.versions.node} (>= 22.5 required for node:sqlite)`);
+
+  // 1-1. Document converter dependency check.
+  const kordocCheck = spawnSync(
+    process.execPath,
+    ["-e", "import('kordoc').then(() => process.exit(0)).catch(() => process.exit(1));"],
+    { cwd: docConverterRoot, encoding: "utf8", windowsHide: true },
+  );
+  addCheck(
+    "doc_converter_kordoc",
+    kordocCheck.status === 0,
+    kordocCheck.status === 0
+      ? "kordoc available for HWP/HWPX/PDF/DOCX/PPTX conversion"
+      : `kordoc not installed. Run:\n${nodeInstallCommand()}`,
+  );
 
   // 2. Python Version & Packages Check
   const py = detectPythonCommand();

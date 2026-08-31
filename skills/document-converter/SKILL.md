@@ -15,7 +15,7 @@ HWP, HWPX, PDF, DOCX, PPTX 원문을 `kordoc`으로 파싱해 Markdown과 헤딩
 node "<plugin-root>/tools/doc-converter/cli.mjs" --input "<input-file>" --output-dir "<output-dir>"
 ```
 
-웹 업로드가 필요한 경우에만 `tools/doc-converter/server.js`를 사용한다. 변환기 의존성은 선택 사항이며 다음 명령으로 설치한다.
+웹 업로드가 필요한 경우에만 `tools/doc-converter/server.js`를 사용한다. HWP·HWPX·PDF·DOCX·PPTX 변환에는 `kordoc` 의존성이 필요하며 다음 명령으로 설치한다.
 
 ```powershell
 npm --prefix "<plugin-root>/tools/doc-converter" install
