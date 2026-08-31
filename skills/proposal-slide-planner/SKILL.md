@@ -24,7 +24,7 @@ description: RFP 요구사항과 선택된 레퍼런스를 바탕으로 고밀�
 4. 필요하면 HitL 검토 화면을 연다.
 
 ```powershell
-node tools/hitl-bridge/hitl_launcher.mjs --open "http://127.0.0.1:5174/planner.html?session=plan_<id>"
+node tools/hitl-bridge/hitl_launcher.mjs --open "http://127.0.0.1:5274/planner.html?session=plan_<id>"
 ```
 
 사용자 승인 후에만 `$proposal-ppt-maker`를 호출한다. 승인 전에는 PPTX를 만들지 않는다.

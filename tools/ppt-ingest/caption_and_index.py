@@ -19,6 +19,8 @@ from pathlib import Path
 from sqlite_indexer import get_db_path, init_db, upsert_slides
 
 DEFAULT_MODEL = "BAAI/bge-m3"
+HEADING_RE = re.compile(r"^\s*\d+(?:\.\d+)*\.?\s+(.+?)\s*$")
+TOKEN_RE = re.compile(r"[가-힣A-Za-z][가-힣A-Za-z0-9_+./-]{1,}")
 
 
 def load_dotenv(path: Path) -> dict:
@@ -77,19 +79,69 @@ def embed_text(env: dict, text: str) -> list[float]:
     raise RuntimeError("Embedding response missing vector payload.")
 
 
+def extract_headings(raw_text: str) -> list[str]:
+    headings = []
+    for line in raw_text.splitlines():
+        match = HEADING_RE.match(line.strip())
+        if match and len(match.group(1)) <= 100:
+            heading = match.group(1).strip()
+            if heading not in headings:
+                headings.append(heading)
+    return headings
+
+
+def classify_slide_type(title: str, headings: list[str], raw_text: str) -> str:
+    # 제목/소제목을 우선한다. 본문에 '아키텍처'가 한 번 언급된 개요 장표가
+    # architecture로 오분류되지 않게 하는 최소한의 보호 장치다.
+    heading_text = " ".join([title, *headings]).lower()
+    if any(k in heading_text for k in ["아키텍처", "구성도", "시스템 구성"]):
+        return "architecture"
+    if any(k in heading_text for k in ["제안 개요", "제안 목적", "특장점", "기대효과"]):
+        return "overview"
+    if any(k in heading_text for k in ["전략", "구축방안", "추진방안"]):
+        return "strategy"
+    if any(k in heading_text for k in ["요구사항", "수용표", "기능범위"]):
+        return "requirements"
+    if any(k in heading_text for k in ["일정", "수행계획", "wbs", "로드맵"]):
+        return "plan"
+    if any(k in heading_text for k in ["운영", "유지보수", "품질관리"]):
+        return "operations"
+    if any(k in raw_text.lower() for k in ["구성도", "흐름도", "프로세스"]):
+        return "diagram"
+    if any(k in raw_text for k in ["표", "매핑", "비교"]):
+        return "table"
+    return "content"
+
+
 def generate_heuristic_metadata(slide: dict) -> dict:
     title = slide.get("title", "")
     raw_text = slide.get("raw_text", "")
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    headings = extract_headings(raw_text)
+    slide_type = classify_slide_type(title, headings, raw_text)
 
-    words = re.findall(r"[가-힣A-Za-z0-9_]{2,}", raw_text)
-    stop_words = {"제안", "사업", "추진", "방안", "시스템", "목표", "구축", "제공", "기능", "대하여", "통해", "위해"}
+    words = TOKEN_RE.findall(f"{title} {' '.join(headings)} {raw_text}")
+    stop_words = {
+        "제안", "사업", "추진", "방안", "시스템", "목표", "구축", "제공", "기능",
+        "대하여", "통해", "위해", "대한", "기반", "내용", "관리", "확인", "구성",
+    }
     freq = {}
     for w in words:
-        if w not in stop_words and len(w) >= 2:
-            freq[w] = freq.get(w, 0) + 1
+        if w in stop_words or len(w) < 2:
+            continue
+        freq[w] = freq.get(w, 0) + 1
 
-    sorted_tags = sorted(freq.keys(), key=lambda x: freq[x], reverse=True)[:6]
+    title_and_headings = " ".join([title, *headings])
+    sorted_tags = sorted(
+        freq.keys(),
+        key=lambda word: (
+            freq[word]
+            + (3 if word in title_and_headings else 0)
+            + (2 if re.search(r"[A-Z]", word) else 0),
+            len(word),
+        ),
+        reverse=True,
+    )[:10]
     if not sorted_tags and title:
         sorted_tags = [title[:10]]
 
@@ -101,13 +153,28 @@ def generate_heuristic_metadata(slide: dict) -> dict:
     elif any(k in raw_text for k in ["%", "건", "초", "TPS", "지표", "KPI"]):
         layout = "chart"
 
-    description = f"이 장표는 {title}에 대한 제안 내용을 설명한다. 주요 내용: {', '.join(lines[:4])}"
+    primary_heading = headings[0] if headings else title
+    body_lines = [
+        line for line in lines
+        if not HEADING_RE.match(line) and not re.fullmatch(r"\d+", line)
+    ]
+    lead = " ".join(body_lines[:3]).strip()
+    if len(lead) > 320:
+        lead = lead[:317].rstrip() + "..."
+    description = (
+        f"이 장표는 {primary_heading} 범위의 {slide_type} 내용을 설명한다. "
+        f"핵심 주제: {', '.join(sorted_tags)}."
+    )
+    if lead:
+        description += f" 주요 내용: {lead}"
 
     return {
         "image_description": description,
         "tags": sorted_tags,
         "tags_text": " ".join(sorted_tags),
         "layout": layout,
+        "slide_type": slide_type,
+        "headings": headings,
     }
 
 
@@ -137,6 +204,12 @@ def process_and_index_slides(
 
         is_rendered = slide_no in rendered_slide_nos if rendered_pngs is not None else False
         render_status = "completed" if is_rendered else ("skipped" if rendered_pngs is None else "failed")
+        image_path = data_dir / "ingest_data" / source_key / "slides" / f"slide-{slide_no}.png"
+        image_ref = (
+            f"/storage/ingest_data/{source_key}/slides/slide-{slide_no}.png"
+            if is_rendered and image_path.is_file()
+            else ""
+        )
 
         doc = {
             "slide_id": slide_id,
@@ -150,7 +223,9 @@ def process_and_index_slides(
             "tags_json": json.dumps(meta["tags"], ensure_ascii=False),
             "tags_text": meta["tags_text"],
             "layout": meta["layout"],
-            "image_ref": f"/storage/ingest_data/{source_key}/slides/slide-{slide_no}.png",
+            "slide_type": meta["slide_type"],
+            "headings": meta["headings"],
+            "image_ref": image_ref,
             "html_ref": f"/storage/ingest_data/{source_key}/html/{s.get('html_file_name', f'slide_{slide_no:02d}.html')}",
             "vector": None,
             "embedding_model": None,
@@ -162,7 +237,13 @@ def process_and_index_slides(
         # BGE-M3 임베딩 요청(선택)
         if env.get("EMBEDDING_API_URL"):
             try:
-                vec = embed_text(env, doc["image_description"])
+                embedding_input = "\n".join([
+                    doc["title"],
+                    doc["image_description"],
+                    doc["content_text"],
+                    doc["tags_text"],
+                ])
+                vec = embed_text(env, embedding_input)
                 doc["vector"] = vec
                 doc["embedding_model"] = env.get("EMBEDDING_MODEL_NAME") or env.get("EMBEDDING_MODEL") or DEFAULT_MODEL
                 doc["embedding_status"] = "completed"

@@ -23,6 +23,7 @@ def init_db(db_path: Path) -> sqlite3.Connection:
               image_description TEXT,
               tags_json TEXT,
               layout TEXT,
+              slide_type TEXT,
               image_ref TEXT,
               html_ref TEXT,
               vector BLOB,
@@ -36,6 +37,11 @@ def init_db(db_path: Path) -> sqlite3.Connection:
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_slides_source_key ON slides(source_key);
         """)
+        try:
+            conn.execute("ALTER TABLE slides ADD COLUMN slide_type TEXT")
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
     return conn
 
 
@@ -45,12 +51,12 @@ def upsert_slides(conn: sqlite3.Connection, source_key: str, slides: list[dict])
         insert_sql = """
             INSERT INTO slides (
               slide_id, source_key, source_pptx, slide_no, title,
-              content_text, image_description, tags_json, layout,
+              content_text, image_description, tags_json, layout, slide_type,
               image_ref, html_ref, vector, vector_dim, embedding_model,
               render_status, embedding_status, updated_at
             ) VALUES (
               ?, ?, ?, ?, ?,
-              ?, ?, ?, ?,
+              ?, ?, ?, ?, ?,
               ?, ?, ?, ?, ?,
               ?, ?, ?
             )
@@ -77,6 +83,7 @@ def upsert_slides(conn: sqlite3.Connection, source_key: str, slides: list[dict])
                 s.get("image_description", ""),
                 tags_json,
                 s.get("layout", "diagram"),
+                s.get("slide_type", "content"),
                 s.get("image_ref", ""),
                 s.get("html_ref", ""),
                 vec_blob,

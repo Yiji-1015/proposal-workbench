@@ -22,7 +22,7 @@
           │               │             │             │             │              │
           │               ▼             │             ▼             ▼              │
           │     ┌──────────────────┐    │       ┌────────────────────────┐         │
-          │     │ company_profile/ │    │       │ HitL Bridge (Port 5174)│         │
+          │     │ company_profile/ │    │       │ HitL Bridge (Port 5274)│         │
           │     │ (제안사 프로필)  │    │       │ • picker.html          │         │
           │     └──────────────────┘    │       │ • planner.html         │         │
           │                             │       │ • ingest.html          │         │
@@ -54,7 +54,7 @@ proposal-workbench/
 │  ├─ pattern-library/               ──▶ 45개 제안 도식 패턴 카탈로그 & 레시피
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
   │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
-│  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5174) 브릿지 & HTML 뷰어
+│  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
 │  │  ├─ bridge_server.mjs           ──▶ 세션 API 및 HTML 뷰어 서빙 서버
 │  │  ├─ hitl_launcher.mjs           ──▶ 자동 헬스체크 및 브라우저 오픈 도구
 │  │  └─ public/                     ──▶ 순수 Standalone HTML 뷰어 (picker, planner, ingest)
@@ -115,9 +115,9 @@ python -m pip install -r tools/ppt-ingest/requirements.txt
 python tools/ppt-ingest/ingest_pipeline.py --pptx "경로/제안서.pptx"
 ```
 
-### 3) HitL 세션 브릿지 & 뷰어 테스트 (포트 5174 단일 서버)
+### 3) HitL 세션 브릿지 & 뷰어 테스트 (포트 5274 단일 서버)
 ```powershell
-node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5174/picker.html?session=ref_test_001"
+node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.html?session=ref_test_001"
 ```
 
 ---

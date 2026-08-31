@@ -23,7 +23,10 @@
         <span style="color: var(--text-muted);">덱:</span>
         <strong id="deckName">-</strong>
       </div>
-      <div id="slideCount" style="color: var(--text-muted); font-size: 12px;">0장</div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span id="renderStatus" class="preview-note">렌더링 상태 확인 중</span>
+        <span id="slideCount" style="color: var(--text-muted); font-size: 12px;">0장</span>
+      </div>
     </div>
 
     <div id="gridContainer" class="grid">
@@ -50,9 +53,45 @@
       }
     }
 
+    function buildPreview(slide) {
+      const preview = document.createElement('div');
+      preview.className = 'card-preview';
+
+      const showFallback = () => {
+        preview.replaceChildren();
+        if (slide.html_ref) {
+          const frame = document.createElement('iframe');
+          frame.src = slide.html_ref;
+          frame.title = slide.title || '구조 미리보기';
+          frame.setAttribute('sandbox', 'allow-same-origin');
+          preview.appendChild(frame);
+          return;
+        }
+        const missing = document.createElement('div');
+        missing.className = 'preview-missing';
+        missing.textContent = '미리보기 없음';
+        preview.appendChild(missing);
+      };
+
+      if (slide.image_ref) {
+        const img = document.createElement('img');
+        img.src = slide.image_ref;
+        img.alt = slide.title || '슬라이드 미리보기';
+        img.addEventListener('error', showFallback, { once: true });
+        preview.appendChild(img);
+      } else {
+        showFallback();
+      }
+      return preview;
+    }
+
     function renderManifest(manifest) {
       document.getElementById('deckName').textContent = manifest.source_pptx || pptxStem;
       document.getElementById('slideCount').textContent = (manifest.total_slides || manifest.slides?.length || 0) + '장 처리됨';
+      const render = manifest.render || {};
+      document.getElementById('renderStatus').textContent = render.status === 'completed'
+        ? 'PNG 렌더링 완료'
+        : render.status === 'skipped' ? 'PNG 렌더링 생략' : 'PNG 렌더링 실패 · 구조 미리보기 사용';
 
       const grid = document.getElementById('gridContainer');
       grid.innerHTML = '';
@@ -61,9 +100,7 @@
         const card = document.createElement('div');
         card.className = 'card';
 
-        const img = document.createElement('img');
-        img.src = s.image_ref || '';
-        img.alt = s.title || '슬라이드 미리보기';
+        card.appendChild(buildPreview(s));
 
         const body = document.createElement('div');
         body.className = 'card-body';
@@ -76,9 +113,13 @@
         desc.className = 'card-desc';
         desc.textContent = s.image_description || '';
 
+        const status = document.createElement('div');
+        status.className = 'preview-note';
+        status.textContent = s.image_ref ? 'PNG 미리보기' : (s.html_ref ? 'PNG 없음 · 구조 미리보기' : '미리보기 없음');
+
         body.appendChild(title);
         body.appendChild(desc);
-        card.appendChild(img);
+        body.appendChild(status);
         card.appendChild(body);
         grid.appendChild(card);
       });

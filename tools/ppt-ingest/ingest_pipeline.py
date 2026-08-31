@@ -90,7 +90,8 @@ def run_ingest_pipeline(
         source_key=source_key,
         data_dir=data_root,
         env=env,
-        rendered_pngs=rendered_pngs if not skip_com_render and render_status["status"] == "completed" else None,
+        # None means intentionally skipped; an empty list means rendering failed.
+        rendered_pngs=rendered_pngs if not skip_com_render else None,
     )
 
     # Ingest Manifest 저장
@@ -98,6 +99,7 @@ def run_ingest_pipeline(
     manifest = {
         "status": overall_status,
         "source_pptx": pptx_file.name,
+        "source_path": str(pptx_file),
         "source_key": source_key,
         "total_slides": len(extracted_slides),
         "render": render_status,

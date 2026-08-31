@@ -1,0 +1,70 @@
+{
+  "concepts": [
+    {
+      "canonical": "RAG",
+      "aliases": [
+        "RAG",
+        "검색증강생성",
+        "검색 증강 생성",
+        "검색-증강-생성",
+        "retrieval augmented generation",
+        "retrieval-augmented generation"
+      ],
+      "context_signals": [
+        { "term": "아키텍처", "weight": 3 },
+        { "term": "구성도", "weight": 3 },
+        { "term": "구축", "weight": 2 },
+        { "term": "전략", "weight": 2 },
+        { "term": "챗봇", "weight": 2 },
+        { "term": "지식DB", "weight": 2 },
+        { "term": "가드레일", "weight": 2 },
+        { "term": "Hybrid", "weight": 1 },
+        { "term": "Rerank", "weight": 1 },
+        { "term": "파이프라인", "weight": 1 }
+      ]
+    },
+    {
+      "canonical": "개인정보",
+      "aliases": ["개인정보", "개인정보보호", "PII", "personal information"],
+      "context_signals": [
+        { "term": "보안", "weight": 2 },
+        { "term": "암호화", "weight": 2 },
+        { "term": "동의", "weight": 2 },
+        { "term": "접근권한", "weight": 1 },
+        { "term": "마스킹", "weight": 1 }
+      ]
+    },
+    {
+      "canonical": "대시보드",
+      "aliases": ["대시보드", "dashboard", "BI", "business intelligence", "시각화"],
+      "context_signals": [
+        { "term": "분석", "weight": 2 },
+        { "term": "지표", "weight": 2 },
+        { "term": "리포트", "weight": 2 },
+        { "term": "모니터링", "weight": 1 },
+        { "term": "차트", "weight": 1 }
+      ]
+    },
+    {
+      "canonical": "아키텍처",
+      "aliases": ["아키텍처", "구성도", "architecture", "system architecture"],
+      "context_signals": [
+        { "term": "레이어", "weight": 2 },
+        { "term": "연계", "weight": 2 },
+        { "term": "구성요소", "weight": 2 },
+        { "term": "인터페이스", "weight": 1 }
+      ]
+    },
+    {
+      "canonical": "보안",
+      "aliases": ["보안", "security", "security control"],
+      "context_signals": [
+        { "term": "개인정보", "weight": 2 },
+        { "term": "접근제어", "weight": 2 },
+        { "term": "암호화", "weight": 2 },
+        { "term": "인증", "weight": 1 },
+        { "term": "로그", "weight": 1 }
+      ]
+    }
+  ]
+}

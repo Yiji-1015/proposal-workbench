@@ -58,7 +58,7 @@ async function main() {
   if (session.search_note) console.log(`[Note] ${session.search_note}`);
   console.log(`[Candidates Found] ${session.candidates.length} slides`);
   console.log(`[Session File] ${sessionFilePath}`);
-  console.log(`[HitL URL] http://127.0.0.1:5174/picker.html?session=${sid}`);
+  console.log(`[HitL URL] http://127.0.0.1:5274/picker.html?session=${sid}`);
   console.log(`==========================================\n`);
 }
 

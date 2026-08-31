@@ -9,7 +9,7 @@ import { readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,7 +53,7 @@ function discoverBundledPythonCommands() {
   }
 }
 
-function detectPythonCommand() {
+export function detectPythonCommand() {
   const localPython = process.platform === "win32"
     ? path.join(workbenchRoot, ".venv", "Scripts", "python.exe")
     : path.join(workbenchRoot, ".venv", "bin", "python");
@@ -203,4 +203,6 @@ async function runDoctor() {
   if (!overallPassed) process.exitCode = 1;
 }
 
-runDoctor();
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  runDoctor();
+}

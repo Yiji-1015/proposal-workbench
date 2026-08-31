@@ -35,6 +35,7 @@ export function initDatabase(customDataDir = null) {
       image_description TEXT,
       tags_json TEXT,
       layout TEXT,
+      slide_type TEXT,
       image_ref TEXT,
       html_ref TEXT,
       vector BLOB,
@@ -46,6 +47,11 @@ export function initDatabase(customDataDir = null) {
     );
     CREATE INDEX IF NOT EXISTS idx_slides_source_key ON slides(source_key);
   `);
+  try {
+    db.exec("ALTER TABLE slides ADD COLUMN slide_type TEXT");
+  } catch (err) {
+    if (!String(err.message || err).toLowerCase().includes("duplicate column name")) throw err;
+  }
 
   return db;
 }
@@ -84,12 +90,12 @@ export function upsertDeckSlides(db, source_key, slides) {
     const insertStmt = db.prepare(`
       INSERT INTO slides (
         slide_id, source_key, source_pptx, slide_no, title,
-        content_text, image_description, tags_json, layout,
+        content_text, image_description, tags_json, layout, slide_type,
         image_ref, html_ref, vector, vector_dim, embedding_model,
         render_status, embedding_status, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?,
-        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?
       )
@@ -122,6 +128,7 @@ export function upsertDeckSlides(db, source_key, slides) {
         s.image_description || "",
         typeof s.tags_json === "string" ? s.tags_json : JSON.stringify(s.tags || []),
         s.layout || "diagram",
+        s.slide_type || "content",
         s.image_ref || "",
         s.html_ref || "",
         vecBuf,

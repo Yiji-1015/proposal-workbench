@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * hitl_launcher.mjs
- * HitL Bridge Server(5174)를 준비하고 검토 URL을 기본 브라우저로 연다.
+ * HitL Bridge Server(5274)를 준비하고 검토 URL을 기본 브라우저로 연다.
  */
 
 import { spawn } from "node:child_process";
@@ -11,7 +11,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..", "..");
-const BRIDGE_HEALTH_URL = "http://127.0.0.1:5174/health";
+const BRIDGE_PORT = 5274;
+const BRIDGE_BASE_URL = `http://127.0.0.1:${BRIDGE_PORT}`;
+const BRIDGE_HEALTH_URL = `${BRIDGE_BASE_URL}/health`;
 
 function fetchText(url, timeoutMs = 1500) {
   return new Promise((resolve, reject) => {
@@ -38,9 +40,9 @@ export async function checkBridgeHealth() {
         if (payload.app === "proposal-workbench-bridge" || payload.name === "HitL Bridge Server") {
           return { ready: true, payload };
         }
-        return { ready: false, error: "Port 5174 is in use by another application." };
+        return { ready: false, error: `Port ${BRIDGE_PORT} is in use by another application.` };
       } catch {
-        return { ready: false, error: "Port 5174 responded with invalid payload." };
+        return { ready: false, error: `Port ${BRIDGE_PORT} responded with invalid payload.` };
       }
     }
     return { ready: false, error: `Bridge returned HTTP ${res.status}` };
@@ -63,7 +65,7 @@ export async function ensureBridgeServer() {
   const health = await checkBridgeHealth();
   if (health.ready) return { started: false, already_running: true };
 
-  console.log("[HitL Launcher] Starting Bridge Server (127.0.0.1:5174)...");
+  console.log(`[HitL Launcher] Starting Bridge Server (127.0.0.1:${BRIDGE_PORT})...`);
   const bridgeScript = path.join(workbenchRoot, "tools", "hitl-bridge", "bridge_server.mjs");
   const child = spawn(process.execPath, [bridgeScript], {
     detached: true,
@@ -123,7 +125,7 @@ export async function launchHitlSession(url) {
 
 async function main() {
   const args = process.argv.slice(2);
-  let targetUrl = "http://127.0.0.1:5174";
+  let targetUrl = BRIDGE_BASE_URL;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--open" && args[i + 1]) {

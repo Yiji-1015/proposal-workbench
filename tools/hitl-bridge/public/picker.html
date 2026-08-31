@@ -16,16 +16,25 @@
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Agent가 검색한 후보입니다. 참고할 슬라이드를 선택해 주세요.</p>
       </div>
-      <div id="actionArea">
-        <button id="btnConfirm" class="btn" style="display: none;">
+      <div id="actionArea" class="selection-actions">
+        <span id="selectionCount">0개 선택</span>
+        <button id="btnExportPptx" class="btn btn-success" disabled>PPTX 다운로드</button>
+        <button id="btnConfirm" class="btn" disabled>
           <span id="btnConfirmText">선택 확정</span>
         </button>
       </div>
     </header>
 
     <div id="completedBanner" class="banner" style="display: none;">
-      선택이 저장됐습니다. <strong>Agent 채팅창으로 돌아가 "골랐어"</strong>라고 입력하면 다음 작업을 이어갑니다.
+      선택이 저장됐습니다. <strong>PPTX 다운로드</strong> 또는 Agent 채팅창에서 다음 작업을 이어갈 수 있습니다.
     </div>
+
+    <form id="searchForm" class="search-form">
+      <label for="searchInput">레퍼런스 자유 검색</label>
+      <input id="searchInput" type="search" maxlength="500" placeholder="예: 데이터 수집·분석 대시보드 운영" autocomplete="off">
+      <button id="btnSearch" class="btn" type="submit">검색</button>
+    </form>
+    <div id="searchNote" class="preview-note" style="display: none;"></div>
 
     <div class="info-bar">
       <div style="display: flex; gap: 8px; align-items: center;">
@@ -46,6 +55,8 @@
     const sid = params.get('session') || '';
     let sessionData = null;
     let selectedIds = new Set();
+    let searchInProgress = false;
+    let exportInProgress = false;
 
     async function loadSession() {
       if (!sid) {
@@ -56,6 +67,7 @@
         const res = await fetch('/api/sessions/' + encodeURIComponent(sid));
         if (!res.ok) throw new Error('세션을 찾을 수 없습니다.');
         sessionData = await res.json();
+        selectedIds = new Set(sessionData.selected_slide_ids || []);
         renderSession();
       } catch (err) {
         document.getElementById('queryText').textContent = '오류: ' + err.message;
@@ -64,15 +76,16 @@
 
     function renderSession() {
       document.getElementById('queryText').textContent = sessionData.query || '-';
-      document.getElementById('searchModeBadge').textContent = (sessionData.search_mode === 'semantic' ? 'Semantic (BGE-M3)' : 'Lexical (키워드)');
+      document.getElementById('searchInput').value = sessionData.query || '';
+      document.getElementById('searchModeBadge').textContent = sessionData.search_mode === 'semantic'
+        ? 'Semantic (BGE-M3)'
+        : sessionData.search_mode === 'none' ? '검색 결과 없음' : 'Lexical (키워드)';
       document.getElementById('candidateCount').textContent = (sessionData.candidates?.length || 0) + '건 후보';
 
-      if (sessionData.status === 'completed') {
-        document.getElementById('completedBanner').style.display = 'block';
-        if (sessionData.selected_slide_ids) {
-          selectedIds = new Set(sessionData.selected_slide_ids);
-        }
-      }
+      document.getElementById('completedBanner').style.display = sessionData.status === 'completed' ? 'block' : 'none';
+      const searchNote = document.getElementById('searchNote');
+      searchNote.textContent = sessionData.search_note || '';
+      searchNote.style.display = sessionData.search_note ? 'block' : 'none';
 
       const grid = document.getElementById('gridContainer');
       grid.innerHTML = '';
@@ -80,14 +93,37 @@
       (sessionData.candidates || []).forEach((c) => {
         const card = document.createElement('div');
         card.className = 'card' + (selectedIds.has(c.slide_id) ? ' selected' : '');
+        card.tabIndex = 0;
+        card.setAttribute('role', 'checkbox');
+        card.setAttribute('aria-checked', selectedIds.has(c.slide_id) ? 'true' : 'false');
         card.onclick = () => toggleSelect(c.slide_id);
+        card.onkeydown = (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleSelect(c.slide_id);
+          }
+        };
 
-        const img = document.createElement('img');
-        img.src = c.image_ref || '';
-        img.alt = c.title || '슬라이드 미리보기';
+        card.appendChild(buildPreview(c));
 
         const body = document.createElement('div');
         body.className = 'card-body';
+
+        const cardActions = document.createElement('div');
+        cardActions.className = 'card-actions';
+        const indicator = document.createElement('span');
+        indicator.className = 'card-select-indicator';
+        indicator.textContent = selectedIds.has(c.slide_id) ? '✓ 선택됨' : '선택';
+        cardActions.appendChild(indicator);
+        if (c.image_ref) {
+          const download = document.createElement('a');
+          download.className = 'card-download';
+          download.href = c.image_ref;
+          download.download = 'slide-' + (c.slide_no || 'reference') + '.png';
+          download.textContent = 'PNG 다운로드';
+          download.onclick = (event) => event.stopPropagation();
+          cardActions.appendChild(download);
+        }
 
         const title = document.createElement('div');
         title.className = 'card-title';
@@ -106,11 +142,11 @@
           tagsDiv.appendChild(tag);
         });
 
+        body.appendChild(cardActions);
         body.appendChild(title);
         body.appendChild(desc);
         body.appendChild(tagsDiv);
 
-        card.appendChild(img);
         card.appendChild(body);
         grid.appendChild(card);
       });
@@ -118,7 +154,40 @@
       updateActionArea();
     }
 
+    function buildPreview(c) {
+      const preview = document.createElement('div');
+      preview.className = 'card-preview';
+
+      const showFallback = () => {
+        preview.replaceChildren();
+        if (c.html_ref) {
+          const frame = document.createElement('iframe');
+          frame.src = c.html_ref;
+          frame.title = c.title || '구조 미리보기';
+          frame.setAttribute('sandbox', 'allow-same-origin');
+          preview.appendChild(frame);
+          return;
+        }
+        const missing = document.createElement('div');
+        missing.className = 'preview-missing';
+        missing.textContent = '미리보기 없음';
+        preview.appendChild(missing);
+      };
+
+      if (c.image_ref) {
+        const img = document.createElement('img');
+        img.src = c.image_ref;
+        img.alt = c.title || '슬라이드 미리보기';
+        img.addEventListener('error', showFallback, { once: true });
+        preview.appendChild(img);
+      } else {
+        showFallback();
+      }
+      return preview;
+    }
+
     function toggleSelect(id) {
+      if (sessionData?.status === 'completed') return;
       if (selectedIds.has(id)) {
         selectedIds.delete(id);
       } else {
@@ -129,27 +198,98 @@
 
     function updateActionArea() {
       const btn = document.getElementById('btnConfirm');
-      if (selectedIds.size > 0 && sessionData?.status !== 'completed') {
-        btn.style.display = 'inline-flex';
-        document.getElementById('btnConfirmText').textContent = selectedIds.size + '개 선택 확정';
-      } else {
-        btn.style.display = 'none';
-      }
+      const exportBtn = document.getElementById('btnExportPptx');
+      document.getElementById('selectionCount').textContent = selectedIds.size + '개 선택';
+      document.getElementById('btnConfirmText').textContent = selectedIds.size > 0
+        ? selectedIds.size + '개 선택 확정'
+        : '선택 확정';
+      btn.disabled = selectedIds.size === 0 || sessionData?.status === 'completed' || searchInProgress;
+      exportBtn.disabled = selectedIds.size === 0 || searchInProgress || exportInProgress;
     }
+
+    async function saveSelection() {
+      const res = await fetch('/api/sessions/' + encodeURIComponent(sid) + '/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selected_slide_ids: Array.from(selectedIds) })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '선택 저장에 실패했습니다.');
+      sessionData.status = 'completed';
+      sessionData.selected_slide_ids = Array.from(selectedIds);
+      renderSession();
+    }
+
+    document.getElementById('searchForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const input = document.getElementById('searchInput');
+      const btn = document.getElementById('btnSearch');
+      const query = input.value.trim();
+      if (!query) {
+        input.focus();
+        return;
+      }
+
+      searchInProgress = true;
+      btn.disabled = true;
+      btn.textContent = '검색 중…';
+      try {
+        const res = await fetch('/api/sessions/' + encodeURIComponent(sid) + '/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, size: 10 })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || '검색에 실패했습니다.');
+        sessionData = data.session;
+        selectedIds = new Set();
+        renderSession();
+      } catch (err) {
+        alert('검색 실패: ' + err.message);
+      } finally {
+        searchInProgress = false;
+        btn.disabled = false;
+        btn.textContent = '검색';
+        updateActionArea();
+      }
+    });
 
     document.getElementById('btnConfirm').onclick = async () => {
       try {
-        const res = await fetch('/api/sessions/' + encodeURIComponent(sid) + '/select', {
+        await saveSelection();
+      } catch (err) {
+        alert('저장 실패: ' + err.message);
+      }
+    };
+
+    document.getElementById('btnExportPptx').onclick = async () => {
+      const btn = document.getElementById('btnExportPptx');
+      exportInProgress = true;
+      btn.textContent = 'PPTX 생성 중…';
+      updateActionArea();
+      try {
+        const res = await fetch('/api/sessions/' + encodeURIComponent(sid) + '/export-pptx', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ selected_slide_ids: Array.from(selectedIds) })
         });
-        if (res.ok) {
-          document.getElementById('completedBanner').style.display = 'block';
-          document.getElementById('btnConfirm').style.display = 'none';
-        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'PPTX 생성에 실패했습니다.');
+        sessionData.status = 'completed';
+        sessionData.selected_slide_ids = Array.from(selectedIds);
+        renderSession();
+        const download = document.createElement('a');
+        download.href = data.download_url;
+        download.download = data.file_name;
+        document.body.appendChild(download);
+        download.click();
+        download.remove();
       } catch (err) {
-        alert('저장 실패: ' + err.message);
+        alert('PPTX 다운로드 실패: ' + err.message);
+      } finally {
+        exportInProgress = false;
+        btn.textContent = 'PPTX 다운로드';
+        updateActionArea();
       }
     };
 

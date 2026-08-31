@@ -1,6 +1,6 @@
 {
   "name": "proposal-workbench",
-  "version": "2.1.0+codex.20260831045415",
+  "version": "2.1.0+codex.20260831082932",
   "description": "Agent-centric proposal automation workbench with 7 specialized skills, zero-dependency SQLite search and offline HitL viewers, plus optional document and PowerPoint runtimes.",
   "author": {
     "name": "Yiji-1015",
@@ -19,6 +19,20 @@
     "hitl"
   ],
   "skills": "./skills",
-  "tools": "./tools",
-  "references": "./references"
+  "interface": {
+    "displayName": "Proposal Workbench",
+    "shortDescription": "RFP \ubd84\uc11d\ubd80\ud130 \uc81c\uc548\uc11c PPTX \uc0dd\uc131\u00b7\uac80\uc218\uae4c\uc9c0 \uc9c0\uc6d0",
+    "longDescription": "RFP \ubb38\uc11c \ubcc0\ud658\uacfc \uc694\uad6c\uc0ac\ud56d \ubd84\uc11d, \uae30\uc874 \uc81c\uc548 \uc7a5\ud45c \uac80\uc0c9, \uc81c\uc548 \uc2ac\ub77c\uc774\ub4dc \uae30\ud68d\u00b7\uc0dd\uc131\u00b7\uac80\uc218\ub97c \ud558\ub098\uc758 \ub85c\uceec \uc6cc\ud06c\ud50c\ub85c\ub85c \uc5f0\uacb0\ud569\ub2c8\ub2e4.",
+    "developerName": "Yiji-1015",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "RFP\ub97c \ubd84\uc11d\ud574 \uc81c\uc548 \uc7a5\ud45c\ub97c \uae30\ud68d\ud574\uc918.",
+      "\uae30\uc874 \uc81c\uc548\uc11c\uc5d0\uc11c \uc720\uc0ac \uc7a5\ud45c\ub97c \ucc3e\uc544\uc918.",
+      "\uc120\ud0dd\ud55c \ub808\ud37c\ub7f0\uc2a4\ub85c \uc81c\uc548\uc11c PPTX\ub97c \ub9cc\ub4e4\uc5b4\uc918."
+    ]
+  }
 }
