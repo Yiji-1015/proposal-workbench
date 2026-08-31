@@ -102,10 +102,11 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
 });
 
 test("ingest, search, and planning stay independent with optional structure references", async () => {
-  const [ingest, search, planner, readme] = await Promise.all([
+  const [ingest, search, planner, maker, readme] = await Promise.all([
     fs.readFile(path.join(workbenchRoot, "skills", "proposal-ppt-ingest", "SKILL.md"), "utf8"),
     fs.readFile(path.join(workbenchRoot, "skills", "proposal-reference-search", "SKILL.md"), "utf8"),
     fs.readFile(path.join(workbenchRoot, "skills", "proposal-slide-planner", "SKILL.md"), "utf8"),
+    fs.readFile(path.join(workbenchRoot, "skills", "proposal-ppt-maker", "SKILL.md"), "utf8"),
     fs.readFile(path.join(workbenchRoot, "README.md"), "utf8"),
   ]);
 
@@ -117,7 +118,19 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /첨부 이미지/);
   assert.match(planner, /구조와 배치/);
   assert.match(planner, /색상.*타이포그래피.*문구.*무시/s);
+  assert.match(planner, /업무 내용은 무시/);
+  assert.match(planner, /이미지를 읽을 수 없으면.*다시 첨부.*자동 검색.*대체하지 않는다/s);
+  assert.match(planner, /세션.*완료 상태.*selected_slide_ids.*확인/s);
+  assert.match(planner, /세션이 없거나 완료되지 않았으면.*레퍼런스 없이 계속할지 묻는다/s);
   assert.match(planner, /검색이나 인제스트를 호출하지 않는다/);
+  assert.match(maker, /업무 내용은 무시/);
+  assert.match(maker, /최종 장표에 삽입하지 않는다/);
+  for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {
+    assert.ok(planner.includes(color), `planner missing default color ${color}`);
+    assert.ok(maker.includes(color), `maker missing default color ${color}`);
+  }
+  assert.match(planner, /별도 팔레트나 템플릿이 없으면/);
+  assert.match(maker, /사용자가 명시한 팔레트나 템플릿만 기본값을 덮어쓴다/);
   assert.match(readme, /인제스트와 검색은 각각 독립 실행/);
 });
 
