@@ -24,3 +24,6 @@ __pycache__/
 # Environment files
 .env
 .env.local
+
+# Local recovery snapshots must never become gitlinks/submodules.
+/proposal-workbench-test-recovery-*/
