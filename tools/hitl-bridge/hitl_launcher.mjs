@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * hitl_launcher.mjs
- * HitL Bridge Server(5174)? ????? ???? ??? ? ?? ?? ? ???? ??.
+ * HitL Bridge Server(5174)를 준비하고 검토 URL을 기본 브라우저로 연다.
  */
 
-import { spawn, exec } from "node:child_process";
+import { spawn } from "node:child_process";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -81,24 +81,22 @@ export async function ensureBridgeServer() {
 
 export function openBrowser(url) {
   return new Promise((resolve) => {
-    let command = "";
-    const platform = process.platform;
-
-    if (platform === "win32") {
-      command = `start "" "${url}"`;
-    } else if (platform === "darwin") {
-      command = `open "${url}"`;
-    } else {
-      command = `xdg-open "${url}"`;
+    const parsedUrl = new URL(url);
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      resolve({ opened: false, error: "Only HTTP(S) URLs can be opened.", fallback_url: url });
+      return;
     }
 
-    exec(command, { windowsHide: true }, (err) => {
-      if (err) {
-        console.warn(`[HitL Launcher Warn] Browser open failed (${err.message}). Fallback to URL output.`);
-        resolve({ opened: false, error: err.message, fallback_url: url });
-      } else {
-        resolve({ opened: true, url });
-      }
+    const platform = process.platform;
+    const command = platform === "win32" ? "explorer.exe" : platform === "darwin" ? "open" : "xdg-open";
+    const child = spawn(command, [url], { detached: true, stdio: "ignore", windowsHide: true });
+    child.once("error", (err) => {
+      console.warn(`[HitL Launcher Warn] Browser open failed (${err.message}). Fallback to URL output.`);
+      resolve({ opened: false, error: err.message, fallback_url: url });
+    });
+    child.once("spawn", () => {
+      child.unref();
+      resolve({ opened: true, url });
     });
   });
 }

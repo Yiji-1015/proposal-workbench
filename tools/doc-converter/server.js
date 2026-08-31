@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>?? ? Markdown ???</title>
+  <title>문서 → Markdown 변환기</title>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 520px; margin: 80px auto; line-height: 1.5; }
     h2 { margin-bottom: 8px; }
@@ -26,23 +26,23 @@ app.get("/", (req, res) => {
   </style>
 </head>
 <body>
-  <h2>?? ? Markdown ??</h2>
-  <p>HWP, HWPX, PDF, DOCX ??? ????? .md ??? ???????.</p>
+  <h2>문서 → Markdown 변환</h2>
+  <p>HWP, HWPX, PDF, DOCX 문서를 .md 파일로 변환합니다.</p>
   <input type="file" id="file" accept=".hwp,.hwpx,.pdf,.docx,.pptx" />
   <br />
-  <button onclick="uploadFile()">?? ? ????</button>
+  <button onclick="uploadFile()">변환 및 다운로드</button>
   <div id="status"></div>
   <script>
     async function uploadFile() {
       const file = document.getElementById("file").files[0];
       const status = document.getElementById("status");
-      if (!file) { alert("??? ?????."); return; }
-      status.textContent = "?? ?...";
+      if (!file) { alert("파일을 선택하세요."); return; }
+      status.textContent = "변환 중...";
       const form = new FormData();
       form.append("file", file);
       const resp = await fetch("/parse", { method: "POST", body: form });
       if (!resp.ok) {
-        status.textContent = "?? ??: " + (await resp.text());
+        status.textContent = "오류 발생: " + (await resp.text());
         return;
       }
       const blob = await resp.blob();
@@ -52,7 +52,7 @@ app.get("/", (req, res) => {
       a.download = downloadName;
       a.click();
       URL.revokeObjectURL(a.href);
-      status.textContent = "??!";
+      status.textContent = "완료!";
     }
   </script>
 </body>
@@ -62,11 +62,11 @@ app.get("/", (req, res) => {
 app.post("/parse", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).send("file ??? ?????.");
+      return res.status(400).send("file 필드가 필요합니다.");
     }
     const result = await parse(req.file.buffer);
     if (!result.success) {
-      return res.status(500).send(String(result.error ?? "?? ?? ??"));
+      return res.status(500).send(String(result.error ?? "문서 변환 실패"));
     }
     const originalName = Buffer.from(req.file.originalname, "latin1").toString("utf8");
     const stem = path.basename(originalName, path.extname(originalName));
@@ -76,12 +76,12 @@ app.post("/parse", upload.single("file"), async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${outputName}`);
     res.send(result.markdown);
   } catch (err) {
-    res.status(500).send("?? ??: " + err.message);
+    res.status(500).send("서버 오류: " + err.message);
   }
 });
 
 const PORT = 8888;
 const HOST = "127.0.0.1";
 app.listen(PORT, HOST, () => {
-  console.log(`?? ?? ?? ?? ?: http://${HOST}:${PORT}`);
+  console.log(`문서 변환 서버 실행 중: http://${HOST}:${PORT}`);
 });

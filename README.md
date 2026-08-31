@@ -30,7 +30,7 @@
           ▼                             ▼                                          ▼
   ┌────────────────┐           ┌────────────────┐                         ┌────────────────┐
   │tool-doc-       │           │tool-ppt-ingest │                         │tool-slide-     │
-  │converter       │           │(COM + M3 + ES) │                         │renderer        │
+  │converter       │           │(COM + M3 + SQLite) │                     │renderer        │
   └────────────────┘           └────────────────┘                         └────────────────┘
 ```
 
@@ -43,8 +43,8 @@ proposal-workbench/
 ├─ skills/                           ──▶ Agent Skills (업무 판단 및 오케스트레이션)
 │  ├─ document-converter/            ──▶ HWP/PDF/DOCX -> Markdown 독립 변환
 │  ├─ rfp-analyzer/                  ──▶ 목표업무흐름, 13대 도메인, KPI, 역량 Gap 정밀 분석
-│  ├─ proposal-ppt-ingest/           ──▶ 과거 제안서 PPTX 분해, COM 렌더링, BGE-M3 + ES 색인
-│  ├─ proposal-reference-search/     ──▶ ES KNN 벡터 검색 + HitL Reference Picker 자동 오픈
+  │  ├─ proposal-ppt-ingest/           ──▶ 과거 제안서 PPTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
+  │  ├─ proposal-reference-search/     ──▶ SQLite lexical/vector 검색 + HitL Reference Picker 자동 오픈
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
 │  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
 │  └─ proposal-reviewer/             ──▶ 4대 결함(요구사항누락, 수치왜곡, 과장표현, 레이아웃) QA
@@ -53,7 +53,7 @@ proposal-workbench/
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
 │  ├─ pattern-library/               ──▶ 45개 제안 도식 패턴 카탈로그 & 레시피
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
-│  ├─ reference-search/              ──▶ BGE-M3 + Elasticsearch KNN 검색 모듈
+  │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5174) 브릿지 & HTML 뷰어
 │  │  ├─ bridge_server.mjs           ──▶ 세션 API 및 HTML 뷰어 서빙 서버
 │  │  ├─ hitl_launcher.mjs           ──▶ 자동 헬스체크 및 브라우저 오픈 도구
@@ -72,6 +72,7 @@ proposal-workbench/
 └─ storage/                          ──▶ 런타임 저장소 (.gitignore 적용)
    ├─ sessions/                      ──▶ HitL 세션 교환 JSON 파일
    ├─ ingest_data/                   ──▶ 색인 슬라이드 PNG, HTML, 매니페스트
+   ├─ index/                         ──▶ SQLite 슬라이드 색인 DB
    └─ deliverables/                  ──▶ 최종 생성 PPTX 및 검수 보고서
 ```
 
@@ -79,14 +80,24 @@ proposal-workbench/
 
 ## 3. 빠른 시작 가이드
 
+### 0) Codex 로컬 플러그인 설치
+`.codex-plugin/plugin.json`이 있는 저장소 루트를 로컬 marketplace로 등록한 뒤 ChatGPT 데스크톱 앱을 재시작하고 Plugins Directory에서 설치합니다.
+
+```powershell
+codex plugin marketplace add .
+```
+
 ### 1) 슬라이드 렌더러 무결성 검증 (45개 도식 패턴)
 ```powershell
 node skills/proposal-ppt-maker/scripts/verify-skill.mjs
 ```
 
 ### 2) 제안서 PPT 인제스트 (PowerPoint COM 렌더링 + python-pptx)
+개발용 Python 가상환경은 플러그인 루트 밖에 두고 활성화합니다. PATH에 Python이 없으면 `PROPOSAL_WORKBENCH_PYTHON`에 실행 파일 경로를 지정합니다.
+
 ```powershell
-py -3.13 tools/ppt-ingest/ingest_pipeline.py --pptx "경로/제안서.pptx"
+python -m pip install -r tools/ppt-ingest/requirements.txt
+python tools/ppt-ingest/ingest_pipeline.py --pptx "경로/제안서.pptx"
 ```
 
 ### 3) HitL 세션 브릿지 & 뷰어 테스트 (포트 5174 단일 서버)

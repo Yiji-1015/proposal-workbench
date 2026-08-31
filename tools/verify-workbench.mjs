@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify-workbench.mjs
- * Proposal Workbench ?? ??, ?? 7?, ???, SQLite, ???? ???? ? ?? ???? Doctor ??.
+ * Proposal Workbench Doctor: runtime, skills, SQLite, catalog, offline UI checks.
  */
 
 import fs from "node:fs/promises";
@@ -18,13 +18,22 @@ function addCheck(name, passed, detail) {
   checks.push({ name, passed, detail });
 }
 
+function nodeVersionAtLeast(major, minor = 0) {
+  const [currentMajor, currentMinor] = process.versions.node.split(".").map(Number);
+  return currentMajor > major || (currentMajor === major && currentMinor >= minor);
+}
+
 function detectPythonCommand() {
-  if (process.env.PROPOSAL_WORKBENCH_PYTHON) {
-    return process.env.PROPOSAL_WORKBENCH_PYTHON;
-  }
-  const candidates = process.platform === "win32" ? ["py", "python", "python3"] : ["python3", "python"];
+  const localPython = process.platform === "win32"
+    ? path.join(workbenchRoot, ".venv", "Scripts", "python.exe")
+    : path.join(workbenchRoot, ".venv", "bin", "python");
+  const candidates = [
+    process.env.PROPOSAL_WORKBENCH_PYTHON,
+    localPython,
+    ...(process.platform === "win32" ? ["py", "python", "python3"] : ["python3", "python"]),
+  ].filter(Boolean);
   for (const cmd of candidates) {
-    const res = spawnSync(cmd, ["-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"], { encoding: "utf8" });
+    const res = spawnSync(cmd, ["-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"], { encoding: "utf8", windowsHide: true });
     if (res.status === 0 && res.stdout.trim()) {
       return { cmd, version: res.stdout.trim() };
     }
@@ -35,9 +44,8 @@ function detectPythonCommand() {
 async function runDoctor() {
   console.log("=== Proposal Workbench Doctor Check ===\n");
 
-  // 1. Node.js Version Check
-  const nodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
-  addCheck("node_runtime", nodeMajor >= 20, `Node.js ${process.versions.node} (>= 20 required)`);
+  // 1. Node.js Version Check. node:sqlite was added in Node.js 22.5.0.
+  addCheck("node_runtime", nodeVersionAtLeast(22, 5), `Node.js ${process.versions.node} (>= 22.5 required for node:sqlite)`);
 
   // 2. Python Version & Packages Check
   const py = detectPythonCommand();

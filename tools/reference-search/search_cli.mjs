@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
  * search_cli.mjs
- * SQLite3 ?? ?????(Semantic BGE-M3 / Lexical) ???? ??? ????
- * HitL Reference Picker ??(storage/sessions/ref_<id>.json)? ?????.
+ * SQLite3 슬라이드 검색 결과를 HitL Reference Picker 세션으로 저장한다.
  */
 
 import path from "node:path";

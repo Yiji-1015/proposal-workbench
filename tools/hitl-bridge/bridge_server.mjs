@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * bridge_server.mjs
- * Human-in-the-loop (HitL) ?? ??? ?? ?? ? ? ?? ?????.
- * - ?? ??: 5174
- * - ???: 127.0.0.1 (?? ??? ??)
- * - Zero-dependency & Offline 100%: ?? CDN ?? ?? ?? ??
- * - ??: ?? ??(Path Traversal) ??, XSS ??, ??? JSON ??
+ * Human-in-the-loop (HitL) 브라우저 검토 화면과 세션 API를 제공한다.
+ * - 포트: 5174
+ * - 호스트: 127.0.0.1
+ * - Zero-dependency & Offline: 외부 CDN 없이 동작
+ * - 보호: 경로 탐색, XSS, 과도한 JSON 요청 방어
  */
 
 import fs from "node:fs/promises";
@@ -63,21 +63,21 @@ async function readBodyJson(req, maxBytes = 10 * 1024 * 1024) {
   });
 }
 
-function isValidIdentifier(id) {
-  return typeof id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(id);
+export function isValidIdentifier(id) {
+  return typeof id === "string" && /^[\p{L}\p{N}_-]{1,128}$/u.test(id);
 }
 
-function isSafePath(baseDir, targetPath) {
+export function isSafePath(baseDir, targetPath) {
   const resolvedBase = path.resolve(baseDir);
   const resolvedTarget = path.resolve(targetPath);
-  return resolvedTarget.startsWith(resolvedBase);
+  return resolvedTarget === resolvedBase || resolvedTarget.startsWith(`${resolvedBase}${path.sep}`);
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "127.0.0.1:5174"}`);
   const dataDir = getDataDir();
 
-  // 1. ?? ??: GET /api/sessions/:id
+  // 1. 세션 조회: GET /api/sessions/:id
   const sessionMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
   if (req.method === "GET" && sessionMatch) {
     const sessionId = decodeURIComponent(sessionMatch[1]);
@@ -99,7 +99,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 1-1. Ingest Manifest ??: GET /api/ingest/:stem
+  // 1-1. 인제스트 매니페스트 조회: GET /api/ingest/:stem
   const ingestMatch = url.pathname.match(/^\/api\/ingest\/([^/]+)$/);
   if (req.method === "GET" && ingestMatch) {
     const stem = decodeURIComponent(ingestMatch[1]);
@@ -121,7 +121,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 2. Reference Picker ?? ??: POST /api/sessions/:id/select
+  // 2. Reference Picker 선택 저장: POST /api/sessions/:id/select
   const selectMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)\/select$/);
   if (req.method === "POST" && selectMatch) {
     const sessionId = decodeURIComponent(selectMatch[1]);
@@ -154,7 +154,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 3. Blueprint Review ??/?? ??: POST /api/sessions/:id/approve
+  // 3. Blueprint 검토/승인: POST /api/sessions/:id/approve
   const approveMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)\/approve$/);
   if (req.method === "POST" && approveMatch) {
     const sessionId = decodeURIComponent(approveMatch[1]);
@@ -188,7 +188,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 4. ???? ??? ? HTML ?? (/storage/ingest_data/...)
+  // 4. 인제스트 이미지와 HTML 제공 (/storage/ingest_data/...)
   if (url.pathname.startsWith("/storage/ingest_data/")) {
     const relPath = decodeURIComponent(url.pathname.replace(/^\/storage\/ingest_data\//, ""));
     const filePath = path.join(dataDir, "ingest_data", relPath);
@@ -209,7 +209,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // 5. ????
+  // 5. 헬스체크
   if (url.pathname === "/health") {
     sendJson(res, 200, {
       status: "ok",
@@ -221,7 +221,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 6. HitL HTML ?? ? ?? CSS ??
+  // 6. HitL HTML 및 정적 CSS 제공
   let staticFile = url.pathname;
   if (staticFile === "/" || staticFile === "") staticFile = "index.html";
   else if (staticFile === "/search") staticFile = "picker.html";

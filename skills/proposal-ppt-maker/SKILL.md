@@ -71,13 +71,13 @@ node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" -
 
 ## 설치와 이식성
 
-Skill 폴더의 상대경로만 사용한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 렌더러는 `scripts/proposal-slide-renderer`, 패턴 카탈로그는 `assets/proposal-pattern-library`에 포함되어 있다. GitHub의 Skill 폴더 URL로 설치한 다른 PC에서도 저장소 루트 없이 동작해야 한다.
+이 Skill은 단독 폴더가 아니라 `.codex-plugin/plugin.json`이 있는 플러그인 루트와 함께 설치한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 공용 렌더러는 `tools/slide-renderer`, 패턴 카탈로그는 `tools/pattern-library`에 있다. 실행 스크립트가 플러그인 루트를 기준으로 두 경로를 찾으므로 저장소를 그대로 플러그인으로 설치해야 한다.
 
 ```powershell
 node "<skill-root>/scripts/verify-skill.mjs"
 ```
 
-검증이 실패하면 누락된 번들 파일 또는 Codex 내장 `@oai/artifact-tool` 탐색 결과를 보고하고 렌더링을 중단한다. 저장소 루트나 별도 `npm install`을 요청하지 않는다.
+검증이 실패하면 누락된 번들 파일 또는 Codex 내장 `@oai/artifact-tool` 탐색 결과를 보고하고 렌더링을 중단한다. 검색·HitL 기능은 Node.js 22.5 이상에서 동작하며, 문서 변환기는 `tools/doc-converter`의 선택적 npm 의존성을 사용한다.
 
 ## 전달 항목
 

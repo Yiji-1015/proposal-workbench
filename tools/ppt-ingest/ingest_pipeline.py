@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """
 ingest_pipeline.py
-??? ??? PPTX ??? ????:
-1. ????? ??? PNG ??? (PowerPoint COM - ?? ?)
-2. ???? ??/???/?? ?? ? HTML ?? (python-pptx)
-3. ????? ?? (??/??/????)
-4. SQLite3 DB ??? ? BGE-M3 ?? ??? (??)
-? ???? ?? Ingest CLI ?????.
+PPTX를 슬라이드 이미지, 구조/텍스트 HTML, 메타데이터, SQLite3 색인으로 변환한다.
+PowerPoint COM 렌더링과 BGE-M3 임베딩은 선택 기능이다.
 """
 
 import argparse
@@ -54,7 +50,7 @@ def run_ingest_pipeline(
     print(f"[Output Directory] {out_root}")
     print(f"==========================================\n")
 
-    # Step 1: PowerPoint COM ??? PNG ???
+    # Step 1: PowerPoint COM 고화질 PNG 렌더링
     rendered_pngs = []
     render_status = {"status": "skipped", "completed": 0, "total": 0}
     if not skip_com_render:
@@ -77,11 +73,11 @@ def run_ingest_pipeline(
     else:
         print("[Step 1/3] Skipping PowerPoint COM rendering (--skip-com-render specified)")
 
-    # Step 2: python-pptx ???? ??, ??? ? HTML ??
+    # Step 2: python-pptx 슬라이드 구조/텍스트 추출 및 HTML 생성
     print("[Step 2/3] Extracting slide structure, texts, and HTMLs...")
     extracted_slides = extract_slides(str(pptx_file), str(out_html_dir))
 
-    # Step 3: ????? ?? ? SQLite3 ??
+    # Step 3: 메타데이터 생성 및 SQLite3 색인
     print("[Step 3/3] Generating metadata and indexing into SQLite3 database...")
     env = {
         **load_dotenv(WORKBENCH_ROOT / ".env"),
@@ -97,7 +93,7 @@ def run_ingest_pipeline(
         rendered_pngs=rendered_pngs if not skip_com_render and render_status["status"] == "completed" else None,
     )
 
-    # Ingest Manifest ??
+    # Ingest Manifest 저장
     overall_status = "completed" if render_status["status"] in ["completed", "skipped"] else "partial"
     manifest = {
         "status": overall_status,

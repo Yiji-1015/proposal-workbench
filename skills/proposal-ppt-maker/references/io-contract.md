@@ -4,9 +4,9 @@
 
 | 구분 | 항목 | 용도 |
 |---|---|---|
-| Skill 번들 | `scripts/proposal-slide-renderer`, `assets/proposal-pattern-library` | blueprint 렌더링과 도식 자산 검색 |
-| 필수 런타임 | Node.js, `@oai/artifact-tool` | PPTX와 PNG 생성 |
-| 권장 Skill | `proposal-slide-renderer` (?? ???? ???) | PowerPoint 작성 규칙과 시각 QA |
+| 플러그인 번들 | `tools/slide-renderer`, `tools/pattern-library` | blueprint 렌더링과 도식 자산 검색 |
+| 필수 런타임 | Node.js 22.5 이상, `@oai/artifact-tool` | SQLite 검색 및 PPTX/PNG 생성 |
+| 권장 Skill | `presentations:Presentations` | PowerPoint 작성 규칙과 시각 QA |
 | 조건부 변환기 | `kordoc` 또는 동등한 문서 파서 | PDF·DOCX·HWP 등 원문을 Markdown으로 변환할 때 사용 |
 | 최종 검증 | Microsoft PowerPoint | 실제 파일 열기, 전체 슬라이드 PNG 내보내기, 호환성 확인 |
 
@@ -14,13 +14,13 @@
 
 ## 설치 검증
 
-`@oai/artifact-tool` 패키지는 Codex 번들 런타임이므로 일반 npm registry에서 내려받지 않는다. Skill 폴더에는 렌더러와 패턴 카탈로그가 포함되며, Codex를 한 번 실행한 PC에서 다음 검증만 수행한다.
+`@oai/artifact-tool` 패키지는 Codex 번들 런타임이므로 일반 npm registry에서 내려받지 않는다. 플러그인 루트의 `tools/` 아래에 렌더러와 패턴 카탈로그가 포함되며, Codex를 한 번 실행한 PC에서 다음 검증을 수행한다.
 
 ```powershell
 node "<skill-root>/scripts/verify-skill.mjs"
 ```
 
-- 검증기는 Node.js, 번들 renderer, pattern catalog와 Codex 내장 artifact-tool 탐색 결과를 검사한다.
+- 검증기는 Node.js 22.5 이상, 번들 renderer, pattern catalog와 Codex 내장 artifact-tool 탐색 결과를 검사한다.
 - 렌더러는 스킬 폴더를 수정하거나 `node_modules` 링크를 만들지 않고 artifact-tool을 읽기 전용으로 불러온다.
 - Codex runtime을 찾지 못하면 `CODEX_ARTIFACT_TOOL_PATH`에 해당 PC의 `@oai/artifact-tool` 패키지 폴더를 지정한 뒤 다시 실행한다.
 
@@ -118,7 +118,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 - 네이티브 폴백: `status: fallback_native_shapes`, `fallback: native_shapes`, `usage_note`
 - 적합 자산 없음: `status: no_suitable_asset`, `fallback: native_shapes`, `usage_note`
 
-`asset_id`는 `assets/proposal-pattern-library/unified-visual-module-catalog.json`에 존재해야 한다. `renderer_key`는 `process_grid`, `comparison`, `mapping`, `feedback_loop`, `quality_gate`, `hub_spoke`, `swimlane`, `architecture` 중 하나다. 지원하지 않는 선택 자산은 generic grid로 대체하지 않고 실패한다. 프로세스 단계 수가 자산 구조와 다르면 2~12개 범위에서 노드 수를 재배치하고 `adaptations: [{ type: node_count_reflow, from, to }]`를 기록한다.
+`asset_id`는 `tools/pattern-library/unified-visual-module-catalog.json`에 존재해야 한다. `renderer_key`는 `process_grid`, `comparison`, `mapping`, `feedback_loop`, `quality_gate`, `hub_spoke`, `swimlane`, `architecture` 중 하나다. 지원하지 않는 선택 자산은 generic grid로 대체하지 않고 실패한다. 프로세스 단계 수가 자산 구조와 다르면 2~12개 범위에서 노드 수를 재배치하고 `adaptations: [{ type: node_count_reflow, from, to }]`를 기록한다.
 
 `usage_mode`는 `semantic`, `structural`, `decorative` 중 하나다. `decorative`는 원본 주제와의 일치가 아니라 시각적 리듬과 완성도를 위한 재사용이며, 원본 라벨을 제거하고 사실로 오인될 관계를 만들지 않아야 한다. 정확한 주제 자산이 없다는 이유만으로 즉시 `fallback_native_shapes`를 선택하지 않는다.
 

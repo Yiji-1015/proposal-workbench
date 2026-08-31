@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>???? ?? ?? ? Proposal Workbench</title>
+  <title>레퍼런스 장표 피커 — Proposal Workbench</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -12,32 +12,32 @@
       <div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="badge">HitL</span>
-          <h1 style="font-size: 20px; font-weight: 700;">???? ?? ??</h1>
+          <h1 style="font-size: 20px; font-weight: 700;">레퍼런스 장표 선택</h1>
         </div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Agent? ??? ?? ?? ?????. ??? ????? ??? ???.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Agent가 검색한 후보입니다. 참고할 슬라이드를 선택해 주세요.</p>
       </div>
       <div id="actionArea">
         <button id="btnConfirm" class="btn" style="display: none;">
-          <span id="btnConfirmText">?? ??</span>
+          <span id="btnConfirmText">선택 확정</span>
         </button>
       </div>
     </header>
 
     <div id="completedBanner" class="banner" style="display: none;">
-      ??? ???????! <strong>Agent ????? ??? "???"</strong>?? ????? ?? ??? ?????.
+      선택이 저장됐습니다. <strong>Agent 채팅창으로 돌아가 "골랐어"</strong>라고 입력하면 다음 작업을 이어갑니다.
     </div>
 
     <div class="info-bar">
       <div style="display: flex; gap: 8px; align-items: center;">
-        <span style="color: var(--text-muted);">???:</span>
+        <span style="color: var(--text-muted);">검색어:</span>
         <strong id="queryText">-</strong>
         <span id="searchModeBadge" class="badge" style="background: #64748b;">-</span>
       </div>
-      <div id="candidateCount" style="color: var(--text-muted); font-size: 12px;">0? ???</div>
+      <div id="candidateCount" style="color: var(--text-muted); font-size: 12px;">0건 후보</div>
     </div>
 
     <div id="gridContainer" class="grid">
-      <!-- ?? ?? ??? -->
+      <!-- 후보 카드 -->
     </div>
   </div>
 
@@ -49,23 +49,23 @@
 
     async function loadSession() {
       if (!sid) {
-        document.getElementById('queryText').textContent = '?? ID? ???? ?????.';
+        document.getElementById('queryText').textContent = '세션 ID가 필요합니다.';
         return;
       }
       try {
         const res = await fetch('/api/sessions/' + encodeURIComponent(sid));
-        if (!res.ok) throw new Error('??? ??? ? ????.');
+        if (!res.ok) throw new Error('세션을 찾을 수 없습니다.');
         sessionData = await res.json();
         renderSession();
       } catch (err) {
-        document.getElementById('queryText').textContent = '??: ' + err.message;
+        document.getElementById('queryText').textContent = '오류: ' + err.message;
       }
     }
 
     function renderSession() {
       document.getElementById('queryText').textContent = sessionData.query || '-';
-      document.getElementById('searchModeBadge').textContent = (sessionData.search_mode === 'semantic' ? 'Semantic (BGE-M3)' : 'Lexical (???)');
-      document.getElementById('candidateCount').textContent = (sessionData.candidates?.length || 0) + '? ???';
+      document.getElementById('searchModeBadge').textContent = (sessionData.search_mode === 'semantic' ? 'Semantic (BGE-M3)' : 'Lexical (키워드)');
+      document.getElementById('candidateCount').textContent = (sessionData.candidates?.length || 0) + '건 후보';
 
       if (sessionData.status === 'completed') {
         document.getElementById('completedBanner').style.display = 'block';
@@ -84,14 +84,14 @@
 
         const img = document.createElement('img');
         img.src = c.image_ref || '';
-        img.alt = c.title || '???? ???';
+        img.alt = c.title || '슬라이드 미리보기';
 
         const body = document.createElement('div');
         body.className = 'card-body';
 
         const title = document.createElement('div');
         title.className = 'card-title';
-        title.textContent = (c.slide_no ? c.slide_no + '. ' : '') + (c.title || '?? ??');
+        title.textContent = (c.slide_no ? c.slide_no + '. ' : '') + (c.title || '제목 없음');
 
         const desc = document.createElement('div');
         desc.className = 'card-desc';
@@ -131,7 +131,7 @@
       const btn = document.getElementById('btnConfirm');
       if (selectedIds.size > 0 && sessionData?.status !== 'completed') {
         btn.style.display = 'inline-flex';
-        document.getElementById('btnConfirmText').textContent = selectedIds.size + '? ?? ??';
+        document.getElementById('btnConfirmText').textContent = selectedIds.size + '개 선택 확정';
       } else {
         btn.style.display = 'none';
       }
@@ -149,7 +149,7 @@
           document.getElementById('btnConfirm').style.display = 'none';
         }
       } catch (err) {
-        alert('?? ??: ' + err.message);
+        alert('저장 실패: ' + err.message);
       }
     };
 

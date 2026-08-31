@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * cli.mjs
- * HWP, HWPX, PDF, DOCX ?? ?? ??? ????
- * SHA-256 ?? doc_id? ???? Markdown ? ??? sections[] JSON? ?????.
+ * HWP, HWPX, PDF, DOCX 원문을 kordoc으로 변환한다.
+ * SHA-256 문서 ID와 Markdown sections[] JSON을 함께 만든다.
  */
 
 import crypto from "node:crypto";

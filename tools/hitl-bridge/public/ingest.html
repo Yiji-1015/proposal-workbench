@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PPT ???? ?? ? Proposal Workbench</title>
+  <title>PPT 인제스트 현황 — Proposal Workbench</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -12,22 +12,22 @@
       <div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="badge" style="background: #4f46e5;">HitL</span>
-          <h1 style="font-size: 20px; font-weight: 700;">PPTX ???? ??</h1>
+          <h1 style="font-size: 20px; font-weight: 700;">PPTX 인제스트 현황</h1>
         </div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">?? ??? ? ??? ??? ???? ?????.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">슬라이드 분할, 렌더링, 색인 결과를 확인합니다.</p>
       </div>
     </header>
 
     <div class="info-bar">
       <div style="display: flex; gap: 8px; align-items: center;">
-        <span style="color: var(--text-muted);">???:</span>
+        <span style="color: var(--text-muted);">덱:</span>
         <strong id="deckName">-</strong>
       </div>
-      <div id="slideCount" style="color: var(--text-muted); font-size: 12px;">0?</div>
+      <div id="slideCount" style="color: var(--text-muted); font-size: 12px;">0장</div>
     </div>
 
     <div id="gridContainer" class="grid">
-      <!-- ?? ?? ??? -->
+      <!-- 슬라이드 카드 -->
     </div>
   </div>
 
@@ -37,22 +37,22 @@
 
     async function loadIngest() {
       if (!pptxStem) {
-        document.getElementById('deckName').textContent = '???? ???? ?????.';
+        document.getElementById('deckName').textContent = 'PPTX 경로가 필요합니다.';
         return;
       }
       try {
         const res = await fetch('/api/ingest/' + encodeURIComponent(pptxStem));
-        if (!res.ok) throw new Error('???? ???? ??? ? ????.');
+        if (!res.ok) throw new Error('인제스트 매니페스트를 찾을 수 없습니다.');
         const manifest = await res.json();
         renderManifest(manifest);
       } catch (err) {
-        document.getElementById('deckName').textContent = '??: ' + err.message;
+        document.getElementById('deckName').textContent = '오류: ' + err.message;
       }
     }
 
     function renderManifest(manifest) {
       document.getElementById('deckName').textContent = manifest.source_pptx || pptxStem;
-      document.getElementById('slideCount').textContent = (manifest.total_slides || manifest.slides?.length || 0) + '? ????';
+      document.getElementById('slideCount').textContent = (manifest.total_slides || manifest.slides?.length || 0) + '장 처리됨';
 
       const grid = document.getElementById('gridContainer');
       grid.innerHTML = '';
@@ -63,14 +63,14 @@
 
         const img = document.createElement('img');
         img.src = s.image_ref || '';
-        img.alt = s.title || '???? ???';
+        img.alt = s.title || '슬라이드 미리보기';
 
         const body = document.createElement('div');
         body.className = 'card-body';
 
         const title = document.createElement('div');
         title.className = 'card-title';
-        title.textContent = (s.slide_no ? s.slide_no + '. ' : '') + (s.title || '?? ??');
+        title.textContent = (s.slide_no ? s.slide_no + '. ' : '') + (s.title || '제목 없음');
 
         const desc = document.createElement('div');
         desc.className = 'card-desc';

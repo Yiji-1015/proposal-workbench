@@ -29,8 +29,9 @@ const { discoverArtifactTools } = await import(`file://${artifactRuntimePath.rep
 
 const checks = [];
 const add = (name, passed, detail) => checks.push({ name, passed, detail });
-const nodeMajor = Number.parseInt(process.versions.node.split(".")[0], 10);
-add("node", nodeMajor >= 20, `Node.js ${process.versions.node}`);
+const [nodeMajor, nodeMinor] = process.versions.node.split(".").map(Number);
+const nodeSupported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 5);
+add("node", nodeSupported, `Node.js ${process.versions.node} (>= 22.5 required for node:sqlite)`);
 
 const renderer = await resolveFirst([
   path.join(workbenchRoot, "tools", "slide-renderer", "bin", "build-proposal.mjs"),

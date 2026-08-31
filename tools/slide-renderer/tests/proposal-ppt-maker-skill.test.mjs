@@ -50,8 +50,8 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /density: high.*필수/);
   assert.match(skill, /같은 카드 형태를 반복하지 않는다/);
   assert.match(skill, /요구사항마다 최종 산출물 폴더를 하나씩 만들지 않는다/);
-  assert.ok(skill.includes("scripts/proposal-slide-renderer"));
-  assert.ok(skill.includes("assets/proposal-pattern-library"));
+  assert.ok(skill.includes("tools/slide-renderer"));
+  assert.ok(skill.includes("tools/pattern-library"));
 
   for (const input of ["input/requirement.json", "blueprint/slide-blueprint.json", "mapping/asset-mapping.json"]) assert.ok(io.includes(input), `missing input ${input}`);
   for (const output of ["wireframe.png", "final-slide.png", "verification-report.json", ".pptx"]) assert.ok(io.includes(output), `missing output ${output}`);
@@ -66,6 +66,8 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(io, /selected.*loaded.*applied.*fidelity_passed/);
   assert.match(io, /Close-out과 최종 전달 구조/);
   assert.match(io, /요구사항 장표마다 별도 전달 폴더를 만들지 않는다/);
+  assert.ok(io.includes("tools/slide-renderer"));
+  assert.ok(io.includes("tools/pattern-library"));
 
   for (const mode of ["semantic", "structural", "decorative"]) assert.ok(assetSelection.includes(`\`${mode}\``), `missing reuse mode ${mode}`);
   assert.match(assetSelection, /내용 도식 우선/);

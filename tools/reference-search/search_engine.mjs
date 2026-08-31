@@ -108,7 +108,7 @@ function calculateLexicalScore(query, slide) {
   }
 
   // 3. Keyword weights (architecture/process diagrams)
-  const coreKeywords = ["????", "???", "???", "????", "??", "?????", "???", "?????", "???"];
+  const coreKeywords = ["아키텍처", "구성도", "흐름도", "프로세스", "단계", "연계"];
   for (const kw of coreKeywords) {
     if (qClean.includes(kw)) {
       if (title.includes(kw) || tags.some((t) => t.includes(kw))) {

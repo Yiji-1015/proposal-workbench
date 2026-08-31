@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>???? ??? ??? ? Proposal Workbench</title>
+  <title>장표 청사진 검토 — Proposal Workbench</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -12,36 +12,36 @@
       <div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="badge" style="background: #059669;">HitL</span>
-          <h1 style="font-size: 20px; font-weight: 700;">???? ???(Blueprint) ?? ? ??</h1>
+          <h1 style="font-size: 20px; font-weight: 700;">장표 청사진 검토 및 승인</h1>
         </div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">??? ??? ???? 5? ?? ??? ???? ??? ???.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Agent가 만든 슬라이드 구조와 문구를 확인하고 승인해 주세요.</p>
       </div>
       <div id="actionArea">
         <button id="btnApprove" class="btn btn-success">
-          <span>?? ??</span>
+          <span>승인</span>
         </button>
       </div>
     </header>
 
     <div id="approvedBanner" class="banner" style="display: none;">
-      ???? ???????! <strong>Agent ????? ??? "????"</strong>?? ????? ?? PPTX ??? ?????.
+      청사진 승인이 완료됐습니다. <strong>Agent 채팅창으로 돌아가 "승인했어"</strong>라고 입력하면 PPT 제작을 시작합니다.
     </div>
 
     <div class="info-bar">
       <div style="display: flex; gap: 8px; align-items: center;">
-        <span style="color: var(--text-muted);">???? ID:</span>
+        <span style="color: var(--text-muted);">요구사항 ID:</span>
         <strong id="reqIdText">-</strong>
       </div>
-      <div id="statusBadge" class="badge" style="background: #64748b;">?? ?</div>
+      <div id="statusBadge" class="badge" style="background: #64748b;">대기 중</div>
     </div>
 
     <div style="background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-      <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">??? ??? (Governing Message)</h3>
+      <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">핵심 결론 (Governing Message)</h3>
       <textarea id="governingInput" style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 14px;"></textarea>
     </div>
 
     <div id="blocksContainer" style="display: flex; flex-direction: column; gap: 12px;">
-      <!-- ?? ??? -->
+      <!-- 블록 목록 -->
     </div>
   </div>
 
@@ -52,16 +52,16 @@
 
     async function loadSession() {
       if (!sid) {
-        document.getElementById('reqIdText').textContent = '?? ID? ???? ?????.';
+        document.getElementById('reqIdText').textContent = '세션 ID가 필요합니다.';
         return;
       }
       try {
         const res = await fetch('/api/sessions/' + encodeURIComponent(sid));
-        if (!res.ok) throw new Error('??? ??? ? ????.');
+        if (!res.ok) throw new Error('세션을 찾을 수 없습니다.');
         sessionData = await res.json();
         renderSession();
       } catch (err) {
-        document.getElementById('reqIdText').textContent = '??: ' + err.message;
+        document.getElementById('reqIdText').textContent = '오류: ' + err.message;
       }
     }
 
@@ -72,7 +72,7 @@
 
       if (sessionData.status === 'approved') {
         document.getElementById('approvedBanner').style.display = 'block';
-        document.getElementById('statusBadge').textContent = '?? ??';
+        document.getElementById('statusBadge').textContent = '승인 완료';
         document.getElementById('statusBadge').style.background = '#059669';
         document.getElementById('btnApprove').style.display = 'none';
       }
@@ -86,11 +86,11 @@
 
         const head = document.createElement('div');
         head.style.cssText = 'display: flex; justify-content: space-between; font-weight: 700; font-size: 13px;';
-        head.textContent = '?? ' + (idx + 1) + ': ' + (b.headline || b.role || '??');
+        head.textContent = '블록 ' + (idx + 1) + ': ' + (b.headline || b.role || '제목 없음');
 
         const desc = document.createElement('div');
         desc.style.cssText = 'font-size: 12px; color: var(--text-muted);';
-        desc.textContent = '??: ' + (b.role || '-') + ' | ?? ??: ' + (b.topology || '-');
+        desc.textContent = '역할: ' + (b.role || '-') + ' | 도식: ' + (b.topology || '-');
 
         card.appendChild(head);
         card.appendChild(desc);
@@ -113,7 +113,7 @@
           document.getElementById('btnApprove').style.display = 'none';
         }
       } catch (err) {
-        alert('?? ??: ' + err.message);
+        alert('승인 실패: ' + err.message);
       }
     };
 

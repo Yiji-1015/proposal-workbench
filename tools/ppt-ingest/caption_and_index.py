@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 caption_and_index.py
-??? ???? ???? ???? ?????(??/??/????)? ????
-????? BGE-M3 ??? ? SQLite3 ??????? ?????.
+슬라이드 텍스트에서 결정론적 메타데이터를 만들고 SQLite3에 색인한다.
+BGE-M3 임베딩은 설정된 API가 있을 때만 선택적으로 요청한다.
 """
 
 import hashlib
@@ -34,7 +34,7 @@ def load_dotenv(path: Path) -> dict:
     return env
 
 
-def request_json(url: str, method="GET", body=None, headers=None, insecure=True):
+def request_json(url: str, method="GET", body=None, headers=None, insecure=False):
     data = None
     request_headers = dict(headers or {})
     if body is not None:
@@ -59,7 +59,14 @@ def embed_text(env: dict, text: str) -> list[float]:
     if env.get("EMBEDDING_API_KEY"):
         headers["Authorization"] = f"Bearer {env['EMBEDDING_API_KEY']}"
 
-    status, payload = request_json(api_url, method="POST", body={"model": model, "input": text}, headers=headers)
+    insecure_tls = str(env.get("EMBEDDING_INSECURE_TLS", "")).lower() in {"1", "true", "yes"}
+    status, payload = request_json(
+        api_url,
+        method="POST",
+        body={"model": model, "input": text},
+        headers=headers,
+        insecure=insecure_tls,
+    )
     if status >= 400:
         raise RuntimeError(f"Embedding failed: HTTP {status} {payload}")
 
@@ -75,8 +82,8 @@ def generate_heuristic_metadata(slide: dict) -> dict:
     raw_text = slide.get("raw_text", "")
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
 
-    words = re.findall(r"[?-?A-Za-z0-9_]{2,}", raw_text)
-    stop_words = {"??", "??", "??", "??", "???", "??", "??", "??", "??", "???", "??", "??"}
+    words = re.findall(r"[가-힣A-Za-z0-9_]{2,}", raw_text)
+    stop_words = {"제안", "사업", "추진", "방안", "시스템", "목표", "구축", "제공", "기능", "대하여", "통해", "위해"}
     freq = {}
     for w in words:
         if w not in stop_words and len(w) >= 2:
@@ -87,14 +94,14 @@ def generate_heuristic_metadata(slide: dict) -> dict:
         sorted_tags = [title[:10]]
 
     layout = "bullets"
-    if any(k in raw_text for k in ["????", "???", "???", "????", "??", "??"]):
+    if any(k in raw_text for k in ["아키텍처", "구성도", "흐름도", "프로세스", "단계", "연계"]):
         layout = "diagram"
-    elif any(k in raw_text for k in ["?", "??", "??", "??", "??"]):
+    elif any(k in raw_text for k in ["표", "매핑", "구분", "항목", "비교"]):
         layout = "table"
-    elif any(k in raw_text for k in ["%", "?", "?", "TPS", "??", "KPI"]):
+    elif any(k in raw_text for k in ["%", "건", "초", "TPS", "지표", "KPI"]):
         layout = "chart"
 
-    description = f"? ??? {title}? ?? ?? ??? ????. ?? ??: {', '.join(lines[:4])}"
+    description = f"이 장표는 {title}에 대한 제안 내용을 설명한다. 주요 내용: {', '.join(lines[:4])}"
 
     return {
         "image_description": description,
@@ -152,7 +159,7 @@ def process_and_index_slides(
             "updated_at": created_at,
         }
 
-        # BGE-M3 ??? ?? (???)
+        # BGE-M3 임베딩 요청(선택)
         if env.get("EMBEDDING_API_URL"):
             try:
                 vec = embed_text(env, doc["image_description"])
@@ -167,7 +174,7 @@ def process_and_index_slides(
 
         indexed_docs.append(doc)
 
-    # SQLite3 ??????? ?? ?????? ??? ??
+    # SQLite3 색인용 문서와 임베딩을 준비한다.
     db_path = get_db_path(data_dir)
     conn = init_db(db_path)
     try:
