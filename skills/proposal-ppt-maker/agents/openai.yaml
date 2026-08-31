@@ -1,7 +1,7 @@
 interface:
   display_name: "Proposal PPT Maker"
   short_description: "RFP를 고밀도 네이티브 제안 PPTX로 변환"
-  default_prompt: "Use $proposal-ppt-maker. Confirm requirement IDs first, then orientation and the approved blue palette. Show asset candidates and the wireframe inline in chat before rendering. For 8 slides or fewer, execute directly with at most one review round. Never report an asset as used unless it was loaded, applied, and its structural motifs passed fidelity checks."
+  default_prompt: "Use $proposal-ppt-maker. Confirm requirement IDs first, then orientation. Use the built-in blue palette unless the user provides a palette or template. Treat attached images as structure and layout references only. Show asset candidates and the wireframe inline in chat before rendering. For 8 slides or fewer, execute directly with at most one review round. Never report an asset as used unless it was loaded, applied, and its structural motifs passed fidelity checks."
 
 policy:
   allow_implicit_invocation: true

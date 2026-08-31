@@ -20,9 +20,11 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
 
   assert.match(skill, /^---\s+name: proposal-ppt-maker\s+description: [^]*?---/);
   for (const trigger of ["제안서", "RFP", "PowerPoint", "PPTX", "HWPX"]) assert.ok(skill.includes(trigger), `missing trigger ${trigger}`);
-  for (const gate of ["요구사항 ID를 가장 먼저 확정한다", "방향과 색상을 승인받는다", "가로형(`landscape`)", "세로형(`portrait`)", "와이어프레임"]) {
+  for (const gate of ["요구사항 ID를 가장 먼저 확정한다", "방향을 승인받는다", "가로형(`landscape`)", "세로형(`portrait`)", "와이어프레임"]) {
     assert.ok(skill.includes(gate), `missing approval rule ${gate}`);
   }
+  assert.match(skill, /색상을 묻지 않는다/);
+  assert.match(skill, /첨부 이미지.*구조와 배치.*색상.*타이포그래피.*문구.*무시/s);
   assert.match(skill, /superpowers.*요구하거나 호출하지 않는다/);
   assert.match(skill, /governing_message.*`니다\.`/);
   assert.match(skill, /요구사항 해석은 내부 작업/);
@@ -91,11 +93,32 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(metadata, /display_name: "Proposal PPT Maker"/);
   assert.match(metadata, /default_prompt: "Use \$proposal-ppt-maker/);
   assert.match(metadata, /requirement IDs first/i);
+  assert.match(metadata, /built-in blue palette/i);
   assert.match(metadata, /one review round/i);
   for (const field of ["requirement_ids", "slide_scope", "palette", "approved_asset_mappings", "forbidden_actions", "time_budget_minutes", "max_review_rounds", "completion_criteria"]) {
     assert.ok(agentContract.includes(field), `missing agent contract field ${field}`);
   }
   assert.match(agentContract, /validate-agent-brief\.mjs/);
+});
+
+test("ingest, search, and planning stay independent with optional structure references", async () => {
+  const [ingest, search, planner, readme] = await Promise.all([
+    fs.readFile(path.join(workbenchRoot, "skills", "proposal-ppt-ingest", "SKILL.md"), "utf8"),
+    fs.readFile(path.join(workbenchRoot, "skills", "proposal-reference-search", "SKILL.md"), "utf8"),
+    fs.readFile(path.join(workbenchRoot, "skills", "proposal-slide-planner", "SKILL.md"), "utf8"),
+    fs.readFile(path.join(workbenchRoot, "README.md"), "utf8"),
+  ]);
+
+  assert.match(ingest, /독립 인제스트/);
+  assert.match(ingest, /검색이나 장표 기획을 호출하지 않는다/);
+  assert.match(search, /선택 결과를 보고하고 종료/);
+  assert.match(search, /proposal-slide-planner.*호출하지 않는다/s);
+  assert.match(planner, /레퍼런스 없이/);
+  assert.match(planner, /첨부 이미지/);
+  assert.match(planner, /구조와 배치/);
+  assert.match(planner, /색상.*타이포그래피.*문구.*무시/s);
+  assert.match(planner, /검색이나 인제스트를 호출하지 않는다/);
+  assert.match(readme, /인제스트와 검색은 각각 독립 실행/);
 });
 
 test("every catalog module declares orientation-independent reuse", async () => {

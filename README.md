@@ -43,8 +43,8 @@ proposal-workbench/
 ├─ skills/                           ──▶ Agent Skills (업무 판단 및 오케스트레이션)
 │  ├─ document-converter/            ──▶ HWP/PDF/DOCX -> Markdown 독립 변환
 │  ├─ rfp-analyzer/                  ──▶ 목표업무흐름, 13대 도메인, KPI, 역량 Gap 정밀 분석
-  │  ├─ proposal-ppt-ingest/           ──▶ 과거 제안서 PPTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
-  │  ├─ proposal-reference-search/     ──▶ SQLite lexical/vector 검색 + HitL Reference Picker 자동 오픈
+│  ├─ proposal-ppt-ingest/           ──▶ 독립 PPTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
+│  ├─ proposal-reference-search/     ──▶ 독립 SQLite lexical/vector 검색 + HitL Reference Picker
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
 │  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
 │  └─ proposal-reviewer/             ──▶ 4대 결함(요구사항누락, 수치왜곡, 과장표현, 레이아웃) QA
@@ -53,7 +53,7 @@ proposal-workbench/
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
 │  ├─ pattern-library/               ──▶ 45개 제안 도식 패턴 카탈로그 & 레시피
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
-  │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
+│  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
 │  │  ├─ bridge_server.mjs           ──▶ 세션 API 및 HTML 뷰어 서빙 서버
 │  │  ├─ hitl_launcher.mjs           ──▶ 자동 헬스체크 및 브라우저 오픈 도구
@@ -124,8 +124,11 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 ## 4. 제안 업무 수행 흐름 (End-to-End)
 
+인제스트와 검색은 각각 독립 실행하며 장표 기획의 필수 선행 단계가 아니다.
+
 1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/rfp_analysis.json` 및 `RFP_분석보고서.md` 산출.
-2. **레퍼런스 탐색**: `$proposal-reference-search` 실행 → 브라우저에 `picker.html` 자동 팝업 → 후보 슬라이드 선택 후 "골랐어".
-3. **장표 기획**: `$proposal-slide-planner` 실행 → 브라우저에 `planner.html` 자동 팝업 → 거버닝 메시지/5개 블록 확인 후 "승인했어".
-4. **PPTX 생성**: `$proposal-ppt-maker` 실행 → `deliverables/<id>.pptx` 생성.
-5. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
+2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
+3. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
+4. **장표 기획**: `$proposal-slide-planner` 실행 → 방향 선택 → RFP만 사용하거나 첨부 이미지의 구조·배치 또는 명시적으로 전달한 완료 세션을 선택적으로 참고 → `planner.html`에서 승인.
+5. **PPTX 생성**: `$proposal-ppt-maker` 실행 → 기본 파란 팔레트로 `deliverables/<id>.pptx` 생성. 사용자가 팔레트나 템플릿을 주면 그 값만 우선 적용.
+6. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
