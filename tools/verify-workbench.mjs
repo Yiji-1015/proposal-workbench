@@ -5,6 +5,8 @@
  */
 
 import fs from "node:fs/promises";
+import { readdirSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -12,6 +14,7 @@ import { DatabaseSync } from "node:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..");
+const pythonRequirementsPath = path.join(workbenchRoot, "tools", "ppt-ingest", "requirements.txt");
 
 const checks = [];
 function addCheck(name, passed, detail) {
@@ -23,6 +26,28 @@ function nodeVersionAtLeast(major, minor = 0) {
   return currentMajor > major || (currentMajor === major && currentMinor >= minor);
 }
 
+function quotePowerShell(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function pythonInstallCommand(pythonCommand) {
+  return `& ${quotePowerShell(pythonCommand)} -m pip install -r ${quotePowerShell(pythonRequirementsPath)}`;
+}
+
+function discoverBundledPythonCommands() {
+  const runtimeRoot = path.join(os.homedir(), ".cache", "codex-runtimes");
+  const pythonPath = process.platform === "win32"
+    ? path.join("dependencies", "python", "python.exe")
+    : path.join("dependencies", "python", "bin", "python");
+  try {
+    return readdirSync(runtimeRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(runtimeRoot, entry.name, pythonPath));
+  } catch {
+    return [];
+  }
+}
+
 function detectPythonCommand() {
   const localPython = process.platform === "win32"
     ? path.join(workbenchRoot, ".venv", "Scripts", "python.exe")
@@ -30,6 +55,7 @@ function detectPythonCommand() {
   const candidates = [
     process.env.PROPOSAL_WORKBENCH_PYTHON,
     localPython,
+    ...discoverBundledPythonCommands(),
     ...(process.platform === "win32" ? ["py", "python", "python3"] : ["python3", "python"]),
   ].filter(Boolean);
   for (const cmd of candidates) {
@@ -56,13 +82,29 @@ async function runDoctor() {
 
     // Check python-pptx
     const pptxCheck = spawnSync(pyCmd, ["-c", "import pptx; print(pptx.__version__)"], { encoding: "utf8" });
-    addCheck("python_pptx", pptxCheck.status === 0, pptxCheck.status === 0 ? `python-pptx ${pptxCheck.stdout.trim()}` : "python-pptx not installed");
+    addCheck(
+      "python_pptx",
+      pptxCheck.status === 0,
+      pptxCheck.status === 0
+        ? `python-pptx ${pptxCheck.stdout.trim()}`
+        : `python-pptx not installed. Run:\n${pythonInstallCommand(pyCmd)}`,
+    );
 
     // Check pywin32 COM
     const comCheck = spawnSync(pyCmd, ["-c", "import win32com.client; print('OK')"], { encoding: "utf8" });
-    addCheck("powerpoint_com", comCheck.status === 0, comCheck.status === 0 ? "win32com available (PowerPoint COM rendering enabled)" : "win32com not available (will use headless text/structure extraction)");
+    addCheck(
+      "powerpoint_com",
+      comCheck.status === 0,
+      comCheck.status === 0
+        ? "win32com available (PowerPoint COM rendering enabled)"
+        : `win32com not available. For PowerPoint COM rendering, run:\n${pythonInstallCommand(pyCmd)}\nOtherwise headless text/structure extraction will be used.`,
+    );
   } else {
-    addCheck("python_runtime", false, "Python 3 not found");
+    addCheck(
+      "python_runtime",
+      false,
+      "Python 3 not found. Install Python 3, then rerun this check; or set PROPOSAL_WORKBENCH_PYTHON to the python.exe path.",
+    );
   }
 
   // 3. SQLite Built-in Engine Check

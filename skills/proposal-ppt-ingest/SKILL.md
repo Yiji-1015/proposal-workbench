@@ -7,6 +7,22 @@ description: 기존 제안서 PPTX를 슬라이드 이미지와 구조 데이터
 
 과거 제안서 PPTX를 슬라이드 단위로 추출해 `storage/ingest_data/`와 `storage/index/slides.sqlite3`에 저장한다. PowerPoint가 있으면 COM으로 고화질 PNG를 만들고, 없으면 구조와 텍스트 추출을 계속 수행한다.
 
+## 최초 실행
+
+처음 실행하는 사용자는 먼저 WorkBench Doctor를 실행한다.
+
+```powershell
+node tools/verify-workbench.mjs
+```
+
+`python_pptx` 또는 `powerpoint_com`이 실패하면 Doctor 출력의 `Run:` 명령을 그대로 PowerShell에 붙여 넣는다. 일반 Python을 사용할 경우에도 반드시 같은 인터프리터로 다음 requirements를 설치한다.
+
+```powershell
+python -m pip install -r tools/ppt-ingest/requirements.txt
+```
+
+`python-pptx`는 구조 추출에 필요하다. 실제 PowerPoint COM 렌더링에는 `pywin32`와 데스크톱 PowerPoint가 추가로 필요하며, 없으면 구조·텍스트 추출로 폴백한다.
+
 ## 실행
 
 Python 의존성을 설치한 뒤 플러그인 루트에서 실행한다.

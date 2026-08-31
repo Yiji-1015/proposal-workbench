@@ -87,13 +87,22 @@ proposal-workbench/
 codex plugin marketplace add .
 ```
 
+### 0-1) 최초 실행 환경 점검 및 Python 의존성 설치
+플러그인 설치 후 먼저 Doctor를 실행합니다. `python_pptx` 또는 `powerpoint_com`이 실패하면 출력된 `Run:` 명령을 그대로 PowerShell에 붙여 넣고 다시 실행합니다.
+
+```powershell
+node tools/verify-workbench.mjs
+```
+
+실제 PowerPoint 렌더링·검증까지 하려면 `python-pptx`, `pywin32`, 데스크톱 PowerPoint가 필요합니다. 구조·텍스트 추출만 할 때는 `powerpoint_com` 경고를 허용할 수 있습니다.
+
 ### 1) 슬라이드 렌더러 무결성 검증 (45개 도식 패턴)
 ```powershell
 node skills/proposal-ppt-maker/scripts/verify-skill.mjs
 ```
 
 ### 2) 제안서 PPT 인제스트 (PowerPoint COM 렌더링 + python-pptx)
-개발용 Python 가상환경은 플러그인 루트 밖에 두고 활성화합니다. PATH에 Python이 없으면 `PROPOSAL_WORKBENCH_PYTHON`에 실행 파일 경로를 지정합니다.
+Doctor에서 Python 의존성 설치 안내를 확인한 뒤 실행합니다. 일반 Python을 직접 지정할 때는 `python.exe`와 같은 인터프리터로 설치합니다.
 
 ```powershell
 python -m pip install -r tools/ppt-ingest/requirements.txt
