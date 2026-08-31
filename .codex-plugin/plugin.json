@@ -1,6 +1,6 @@
 {
   "name": "proposal-workbench",
-  "version": "2.1.0+codex.20260831082932",
+  "version": "2.1.0+codex.20260831083739",
   "description": "Agent-centric proposal automation workbench with 7 specialized skills, zero-dependency SQLite search and offline HitL viewers, plus optional document and PowerPoint runtimes.",
   "author": {
     "name": "Yiji-1015",
