@@ -1,14 +1,13 @@
 # Proposal Asset Library
 
-사용자가 제공한 미리캔버스 도식 자산을 등록하는 빈 라이브러리다.
+승인된 네이티브 제안서 자산만 보관하는 라이브러리다. 원본 PPTX/POTX, 원본 파일명·경로, 회사·인명·원문 문구, 별도 미리보기는 저장하지 않는다.
 
-현재는 회사별 원본, 이미지, 미리보기, 추출 카탈로그를 포함하지 않는다. 자산이 없을 때도 렌더러는 요구사항 내용에 맞는 네이티브 PowerPoint 도형으로 폴백한다.
+## 흐름
 
-## 자산 추가
+1. `asset_curator.py discover`가 로컬 ingest 원본을 읽어 블록·도식·아이콘·사진 프레임 후보를 `storage/asset_candidates/`에 만든다.
+2. 사용자가 후보의 선별 결과와 익명화 템플릿·메타데이터를 검토한다.
+3. 승인한 후보만 `asset_curator.py promote`로 종류별 폴더에 승격한다.
 
-1. 미리캔버스에서 사용 허가된 구조 자산을 가져온다.
-2. 편집 가능한 구조 템플릿을 `templates/` 아래에 둔다.
-3. `unified-visual-module-catalog.json`에 [asset-manifest.schema.json](asset-manifest.schema.json)의 필드를 갖춘 항목을 추가한다.
-4. 원본 파일명·제공자·라이선스를 `source`에 기록한다.
+`templates/`에는 `block_shell`, `diagram_recipe`, `composite_block` 템플릿을, `icons/`에는 네이티브 아이콘, `media-frames/`에는 사진 프레임, `photos/`에는 사용 권한이 확인된 사진만 둔다. 자산 JSON은 블록 로컬 좌표와 `wide`·`compact`·`tall` 배치 규칙을 사용한다.
 
-자산별 `preview` 파일은 관리하지 않는다. 최종 장표의 `wireframe.png`와 `final-slide.png`는 렌더링 실행 산출물로 별도 생성된다.
+영구 카탈로그 계약은 [asset-manifest.schema.json](asset-manifest.schema.json)에 있다. 사진은 `license_status: user_confirmed` 또는 허용된 라이선스 상태가 있어야 하며, 구조 자산은 현재 장표 테마로 재색상된다.
