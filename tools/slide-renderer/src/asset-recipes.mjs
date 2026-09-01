@@ -7,6 +7,12 @@ const SUPPORTED_RENDERERS = new Set([
   "hub_spoke",
   "swimlane",
   "architecture",
+  "matrix_table",
+  "metric_dashboard",
+  "scope_outcome_mapping",
+  "blueprint_flow",
+  "chevron_pipeline",
+  "gantt_roadmap",
 ]);
 
 const REQUIRED_MOTIFS = {
@@ -18,6 +24,12 @@ const REQUIRED_MOTIFS = {
   hub_spoke: ["central_hub", "radial_nodes", "radial_spokes"],
   swimlane: ["parallel_lanes", "lane_headers", "handoff_connector"],
   architecture: ["layered_architecture", "gateway", "control_loop"],
+  matrix_table: ["table_header", "table_cells", "row_labels"],
+  metric_dashboard: ["metric_tiles", "metric_values", "metric_labels"],
+  scope_outcome_mapping: ["scope_nodes", "outcome_nodes", "mapping_connectors"],
+  blueprint_flow: ["input_band", "process_steps", "output_band"],
+  chevron_pipeline: ["chevron_steps", "validation_row"],
+  gantt_roadmap: ["timeline_header", "schedule_bars", "milestones"],
 };
 
 export function resolveRendererKey(mapping, catalogItem) {
@@ -29,6 +41,12 @@ export function resolveRendererKey(mapping, catalogItem) {
   if (moduleType === "hub_spoke" || tags.some((tag) => tag.includes("wheel"))) return "hub_spoke";
   if (moduleType === "swimlane" && tags.some((tag) => tag.includes("quality-gate"))) return "quality_gate";
   if (moduleType === "swimlane") return "swimlane";
+  if (moduleType === "metric_bars") return "metric_dashboard";
+  if (moduleType === "before_after_metric_table") return "matrix_table";
+  if (moduleType === "parallel_rows" || moduleType === "comparison_flow") return "scope_outcome_mapping";
+  if (moduleType === "system_flow") return "blueprint_flow";
+  if (moduleType === "chevron_process") return "chevron_pipeline";
+  if (moduleType === "gantt") return "gantt_roadmap";
   if (moduleType.includes("comparison")) return "comparison";
   if (moduleType.includes("mapping")) return "mapping";
   if (moduleType.includes("architecture")) return "architecture";
@@ -148,6 +166,188 @@ function mappingRecipe(block, frame, theme) {
   return primitives;
 }
 
+function itemLabel(item) {
+  return typeof item === "string" ? item : item?.label ?? item?.name ?? "";
+}
+
+function matrixTableRecipe(block, frame, theme) {
+  const columns = block.content?.columns ?? ["구분", "내용"];
+  const rows = block.content?.rows ?? [];
+  const primitives = [titlePrimitive(block, frame, theme)];
+  const inner = { left: frame.left + 12, top: frame.top + 42, width: frame.width - 24, height: frame.height - 54 };
+  const headerHeight = Math.min(30, inner.height * 0.25);
+  const rowHeight = Math.max(8, (inner.height - headerHeight) / Math.max(1, rows.length));
+  const columnWidth = inner.width / columns.length;
+  columns.forEach((column, index) => {
+    const cell = { left: inner.left + index * columnWidth, top: inner.top, width: columnWidth, height: headerHeight };
+    primitives.push(primitive("rect", `table-header:${index + 1}`, cell, { fill: theme.navy, stroke: theme.white }));
+    primitives.push(primitive("text", `table-header-label:${index + 1}`, { left: cell.left + 5, top: cell.top + 5, width: cell.width - 10, height: Math.max(6, cell.height - 8) }, { color: theme.white, fontSize: 11, bold: true, alignment: "center" }, column));
+  });
+  rows.forEach((row, rowIndex) => {
+    const values = [row.label, ...(row.cells ?? [])];
+    values.slice(0, columns.length).forEach((value, columnIndex) => {
+      const cell = { left: inner.left + columnIndex * columnWidth, top: inner.top + headerHeight + rowIndex * rowHeight, width: columnWidth, height: rowHeight };
+      primitives.push(primitive("rect", `table-cell:${rowIndex + 1}:${columnIndex + 1}`, cell, { fill: columnIndex === 0 ? theme.pale : rowIndex % 2 ? theme.surface : theme.white, stroke: theme.line }));
+      primitives.push(primitive("text", `table-cell-label:${rowIndex + 1}:${columnIndex + 1}`, { left: cell.left + 5, top: cell.top + 3, width: cell.width - 10, height: Math.max(6, cell.height - 5) }, { color: theme.navy, fontSize: 10, bold: columnIndex === 0, alignment: columnIndex === 0 ? "center" : "left" }, value));
+    });
+  });
+  if (block.content?.conclusion) {
+    primitives.push(primitive("text", "table-conclusion", { left: frame.left + 14, top: frame.top + frame.height - 20, width: frame.width - 28, height: 14 }, { color: theme.gray, fontSize: 9, bold: true }, block.content.conclusion));
+  }
+  return primitives;
+}
+
+function metricDashboardRecipe(block, frame, theme) {
+  const metrics = block.content?.metrics ?? [];
+  const primitives = [titlePrimitive(block, frame, theme)];
+  const columns = metrics.length > 4 ? 3 : 2;
+  const rows = Math.ceil(metrics.length / columns);
+  const gap = 10;
+  const inner = { left: frame.left + 12, top: frame.top + 42, width: frame.width - 24, height: frame.height - 54 };
+  const tileWidth = (inner.width - gap * (columns - 1)) / columns;
+  const tileHeight = Math.max(18, (inner.height - gap * (rows - 1)) / Math.max(1, rows));
+  metrics.forEach((metric, index) => {
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const tile = { left: inner.left + column * (tileWidth + gap), top: inner.top + row * (tileHeight + gap), width: tileWidth, height: tileHeight };
+    primitives.push(primitive("roundRect", `metric-tile:${index + 1}`, tile, { fill: index === 0 ? theme.pale : theme.surface, stroke: theme.accent }));
+    primitives.push(primitive("text", `metric-label:${index + 1}`, { left: tile.left + 8, top: tile.top + 6, width: tile.width - 16, height: 16 }, { color: theme.gray, fontSize: 10, bold: true }, metric.label));
+    primitives.push(primitive("text", `metric-value:${index + 1}`, { left: tile.left + 8, top: tile.top + 23, width: tile.width - 16, height: Math.max(8, tile.height - 42) }, { color: theme.navy, fontSize: 18, bold: true }, metric.value_text));
+    const detail = [metric.delta_text, metric.target_text].filter(Boolean).join(" · ");
+    if (detail) primitives.push(primitive("text", `metric-detail:${index + 1}`, { left: tile.left + 8, top: tile.top + tile.height - 16, width: tile.width - 16, height: 12 }, { color: theme.blue ?? theme.primary, fontSize: 9, bold: true }, detail));
+  });
+  return primitives;
+}
+
+function scopeOutcomeMappingRecipe(block, frame, theme) {
+  const left = block.content?.left ?? [];
+  const right = block.content?.right ?? [];
+  const links = block.content?.links?.length ? block.content.links : left.map((_, index) => ({ from: index, to: Math.min(index, right.length - 1) }));
+  const primitives = [titlePrimitive(block, frame, theme)];
+  const gap = 6;
+  const nodeHeight = (height, count) => Math.max(10, (height - gap * Math.max(0, count - 1)) / Math.max(1, count));
+  const nodeTop = frame.top + 44;
+  const nodeAreaHeight = frame.height - 58;
+  const leftWidth = frame.width * 0.31;
+  const rightWidth = frame.width * 0.31;
+  const leftX = frame.left + 12;
+  const rightX = frame.left + frame.width - rightWidth - 12;
+  const leftHeight = nodeHeight(nodeAreaHeight, left.length);
+  const rightHeight = nodeHeight(nodeAreaHeight, right.length);
+  const leftCenters = left.map((_, index) => nodeTop + index * (leftHeight + gap) + leftHeight / 2);
+  const rightCenters = right.map((_, index) => nodeTop + index * (rightHeight + gap) + rightHeight / 2);
+  links.forEach((link, index) => {
+    const from = leftCenters[link.from];
+    const to = rightCenters[link.to];
+    if (from == null || to == null) return;
+    const centerX = (leftX + leftWidth + rightX) / 2;
+    primitives.push(primitive("rect", `mapping-connector:${index + 1}`, { left: leftX + leftWidth, top: (from + to) / 2 - 1, width: rightX - leftX - leftWidth, height: 2 }, { fill: theme.accent, stroke: theme.accent }));
+    if (Math.abs(from - to) > 1) primitives.push(primitive("rect", `mapping-connector-vertical:${index + 1}`, { left: centerX - 1, top: Math.min(from, to), width: 2, height: Math.abs(from - to) }, { fill: theme.accent, stroke: theme.accent }));
+  });
+  left.forEach((item, index) => {
+    const node = { left: leftX, top: nodeTop + index * (leftHeight + gap), width: leftWidth, height: leftHeight };
+    primitives.push(primitive("roundRect", `scope-node:${index + 1}`, node, { fill: theme.primary, stroke: theme.primary }));
+    primitives.push(primitive("text", `scope-node-label:${index + 1}`, { left: node.left + 6, top: node.top + 4, width: node.width - 12, height: Math.max(6, node.height - 8) }, { color: theme.white, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
+  });
+  right.forEach((item, index) => {
+    const node = { left: rightX, top: nodeTop + index * (rightHeight + gap), width: rightWidth, height: rightHeight };
+    primitives.push(primitive("roundRect", `outcome-node:${index + 1}`, node, { fill: theme.pale, stroke: theme.primary }));
+    primitives.push(primitive("text", `outcome-node-label:${index + 1}`, { left: node.left + 6, top: node.top + 4, width: node.width - 12, height: Math.max(6, node.height - 8) }, { color: theme.navy, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
+  });
+  return primitives;
+}
+
+function bandPrimitive(primitives, name, label, value, frame, top, theme, fill) {
+  const box = { left: frame.left + 12, top, width: frame.width - 24, height: 22 };
+  primitives.push(primitive("roundRect", `${name}-band`, box, { fill, stroke: theme.line }));
+  primitives.push(primitive("text", `${name}-band-label`, { left: box.left + 8, top: box.top + 5, width: 76, height: 12 }, { color: theme.navy, fontSize: 9, bold: true }, label));
+  primitives.push(primitive("text", `${name}-band-value`, { left: box.left + 84, top: box.top + 5, width: box.width - 92, height: 12 }, { color: theme.ink, fontSize: 9 }, value));
+}
+
+function blueprintFlowRecipe(block, frame, theme) {
+  const inputs = block.content?.inputs ?? [];
+  const steps = block.content?.steps ?? [];
+  const tools = block.content?.tools ?? [];
+  const outputs = block.content?.outputs ?? [];
+  const fallbacks = block.content?.fallbacks ?? [];
+  const primitives = [titlePrimitive(block, frame, theme)];
+  bandPrimitive(primitives, "input", "입력", inputs.map(itemLabel).join(" · "), frame, frame.top + 40, theme, theme.pale);
+  bandPrimitive(primitives, "tool", "도구·모델", tools.map(itemLabel).join(" · ") || "분석 엔진", frame, frame.top + 66, theme, theme.surface);
+  const columns = Math.min(4, Math.max(1, steps.length));
+  const rows = Math.ceil(steps.length / columns);
+  const gap = 7;
+  const stepTop = frame.top + 96;
+  const outputTop = frame.top + frame.height - 30;
+  const stepHeight = Math.max(12, (outputTop - stepTop - gap * (rows - 1)) / Math.max(1, rows));
+  const innerWidth = frame.width - 24;
+  const stepWidth = (innerWidth - gap * (columns - 1)) / columns;
+  steps.forEach((step, index) => {
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const box = { left: frame.left + 12 + column * (stepWidth + gap), top: stepTop + row * (stepHeight + gap), width: stepWidth, height: stepHeight };
+    primitives.push(primitive("roundRect", `process-step:${index + 1}`, box, { fill: index === 0 ? theme.primary : theme.pale, stroke: theme.accent }));
+    primitives.push(primitive("text", `process-step-label:${index + 1}`, { left: box.left + 6, top: box.top + 4, width: box.width - 12, height: Math.max(6, box.height - 8) }, { color: index === 0 ? theme.white : theme.navy, fontSize: 10, bold: true, alignment: "center" }, `${index + 1}. ${itemLabel(step)}`));
+  });
+  const output = [...outputs.map(itemLabel), ...fallbacks.map((item) => `Fallback: ${itemLabel(item)}`)].join(" · ");
+  bandPrimitive(primitives, "output", "결과", output, frame, outputTop, theme, theme.pale);
+  return primitives;
+}
+
+function chevronPipelineRecipe(block, frame, theme) {
+  const steps = block.content?.steps ?? [];
+  const criteria = block.content?.criteria ?? [];
+  const gates = block.content?.gates ?? [];
+  const primitives = [titlePrimitive(block, frame, theme)];
+  const gap = 4;
+  const inner = { left: frame.left + 12, top: frame.top + 44, width: frame.width - 24, height: Math.max(20, frame.height - 76) };
+  const width = (inner.width - gap * (steps.length - 1)) / Math.max(1, steps.length);
+  const height = Math.max(18, inner.height);
+  steps.forEach((step, index) => {
+    const box = { left: inner.left + index * (width + gap), top: inner.top, width, height };
+    const fill = index === 0 ? theme.primary : index % 2 ? theme.pale : theme.surface;
+    primitives.push(primitive("chevron", `chevron-step:${index + 1}`, box, { fill, stroke: theme.accent }));
+    primitives.push(primitive("text", `chevron-step-label:${index + 1}`, { left: box.left + 5, top: box.top + height / 2 - 9, width: box.width - 10, height: 18 }, { color: index === 0 ? theme.white : theme.navy, fontSize: Math.min(12, Math.max(8, width / 18)), bold: true, alignment: "center" }, `${index + 1}. ${itemLabel(step)}`));
+  });
+  const validation = [...criteria.map((item) => `기준 ${itemLabel(item)}`), ...gates.map((item) => `Gate ${itemLabel(item)}`)].join(" · ");
+  if (validation) primitives.push(primitive("text", "validation-row", { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, { color: theme.gray, fontSize: 9, bold: true }, validation));
+  else primitives.push(primitive("text", "validation-row", { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, { color: theme.gray, fontSize: 9, bold: true }, "검증 기준: 단계별 인수 조건 확인"));
+  return primitives;
+}
+
+function ganttRoadmapRecipe(block, frame, theme) {
+  const timeUnits = block.content?.time_units ?? [];
+  const rows = block.content?.rows ?? [];
+  const milestones = block.content?.milestones ?? [];
+  const primitives = [titlePrimitive(block, frame, theme)];
+  const labelWidth = Math.min(150, frame.width * 0.25);
+  const gridLeft = frame.left + 12 + labelWidth;
+  const gridWidth = frame.width - labelWidth - 24;
+  const headerTop = frame.top + 42;
+  const headerHeight = 22;
+  const rowGap = 4;
+  const rowHeight = Math.max(10, (frame.height - 78 - rowGap * Math.max(0, rows.length - 1)) / Math.max(1, rows.length));
+  primitives.push(primitive("rect", "timeline-label-header", { left: frame.left + 12, top: headerTop, width: labelWidth, height: headerHeight }, { fill: theme.navy, stroke: theme.white }));
+  primitives.push(primitive("text", "timeline-label-header-text", { left: frame.left + 18, top: headerTop + 5, width: labelWidth - 12, height: 12 }, { color: theme.white, fontSize: 10, bold: true }, "작업"));
+  timeUnits.forEach((unit, index) => {
+    const width = gridWidth / Math.max(1, timeUnits.length);
+    const cell = { left: gridLeft + index * width, top: headerTop, width, height: headerHeight };
+    primitives.push(primitive("rect", `timeline-header:${index + 1}`, cell, { fill: theme.navy, stroke: theme.white }));
+    primitives.push(primitive("text", `timeline-header-label:${index + 1}`, { left: cell.left + 3, top: cell.top + 5, width: cell.width - 6, height: 12 }, { color: theme.white, fontSize: 9, bold: true, alignment: "center" }, unit));
+  });
+  rows.forEach((row, index) => {
+    const top = headerTop + headerHeight + rowGap + index * (rowHeight + rowGap);
+    primitives.push(primitive("text", `schedule-row-label:${index + 1}`, { left: frame.left + 16, top: top + 4, width: labelWidth - 16, height: Math.max(6, rowHeight - 8) }, { color: theme.navy, fontSize: 10, bold: true }, row.label));
+    const bar = { left: gridLeft + (row.start / timeUnits.length) * gridWidth, top: top + Math.max(1, rowHeight * 0.2), width: ((row.end - row.start) / timeUnits.length) * gridWidth, height: Math.max(8, rowHeight * 0.6) };
+    primitives.push(primitive("roundRect", `schedule-bar:${index + 1}`, bar, { fill: index === 0 ? theme.primary : theme.accent, stroke: theme.primary }));
+  });
+  milestones.forEach((milestone, index) => {
+    const at = milestone.at ?? milestone.index;
+    const x = gridLeft + (at / timeUnits.length) * gridWidth;
+    primitives.push(primitive("diamond", `milestone:${index + 1}`, { left: x - 8, top: frame.top + 34, width: 16, height: 16 }, { fill: theme.primary, stroke: theme.primary }));
+  });
+  return primitives;
+}
+
 function comparisonRecipe(block, frame, theme) {
   const options = block.options?.length >= 2 ? block.options : labelsFor(block, 2).map((label) => ({ label, summary: "" }));
   const primitives = [titlePrimitive(block, frame, theme)];
@@ -189,6 +389,12 @@ export function createAssetRecipe({ rendererKey, block, frame, theme }) {
     swimlane: (currentBlock, currentFrame, currentTheme) => gateRecipe(currentBlock, currentFrame, currentTheme, true),
     hub_spoke: hubRecipe,
     architecture: architectureRecipe,
+    matrix_table: matrixTableRecipe,
+    metric_dashboard: metricDashboardRecipe,
+    scope_outcome_mapping: scopeOutcomeMappingRecipe,
+    blueprint_flow: blueprintFlowRecipe,
+    chevron_pipeline: chevronPipelineRecipe,
+    gantt_roadmap: ganttRoadmapRecipe,
   };
   const primitives = builders[rendererKey](block, frame, theme);
   const requiredMotifs = REQUIRED_MOTIFS[rendererKey];
