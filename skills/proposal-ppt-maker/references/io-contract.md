@@ -117,7 +117,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 | `matrix_table` | 표·기준·검증·역할 | `columns[]`, `rows[]` (`label`, `cells[]`) |
 | `metric_dashboard` | 숫자·목표·증감·성능 | `metrics[]` (`label`, `value_text`) |
 | `scope_outcome_mapping` | 범위와 효과의 대응 | `left[]`, `right[]`, 선택 `links[]` (`from`, `to`) |
-| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `outputs[]`; 선택 `tools[]`, `fallbacks[]`, `explanation` |
+| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `step_details[]`(steps와 동일 길이), `outputs[]`; 선택 `tools[]`, `fallbacks[]`, `explanation` |
 | `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
 | `gantt_roadmap` | 기간·작업·마일스톤 | `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
 

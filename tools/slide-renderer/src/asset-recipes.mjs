@@ -29,7 +29,7 @@ const REQUIRED_MOTIFS = {
   matrix_table: ["table_header", "table_cells", "row_labels"],
   metric_dashboard: ["metric_tiles", "metric_values", "metric_labels"],
   scope_outcome_mapping: ["scope_nodes", "outcome_nodes", "mapping_connectors"],
-  blueprint_flow: ["input_band", "process_steps", "output_band"],
+  blueprint_flow: ["input_band", "process_steps", "directional_connectors", "output_band"],
   chevron_pipeline: ["chevron_steps", "validation_row"],
   gantt_roadmap: ["timeline_header", "schedule_bars", "milestones"],
 };
@@ -193,6 +193,24 @@ function itemLabel(item) {
   return typeof item === "string" ? item : item?.label ?? item?.name ?? "";
 }
 
+function listText(items, prefix = "· ") {
+  return items.map(itemLabel).filter(Boolean).map((item) => `${prefix}${item}`).join("\n");
+}
+
+function detailText(value) {
+  return String(value ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => /^[•·]/.test(line) ? line : `· ${line}`)
+    .join("\n");
+}
+
+function multilineHeight(value) {
+  const lineCount = Math.max(1, String(value ?? "").split(/\r?\n/).length);
+  return Math.max(24, 10 + lineCount * 12);
+}
+
 function matrixTableRecipe(block, frame, theme) {
   const columns = block.content?.columns ?? ["구분", "내용"];
   const rows = block.content?.rows ?? [];
@@ -282,27 +300,36 @@ function scopeOutcomeMappingRecipe(block, frame, theme) {
 }
 
 function bandPrimitive(primitives, name, label, value, frame, top, theme, fill) {
-  const box = { left: frame.left + 12, top, width: frame.width - 24, height: 22 };
+  const box = { left: frame.left + 12, top, width: frame.width - 24, height: multilineHeight(value) };
   primitives.push(primitive("roundRect", `${name}-band`, box, { fill, stroke: theme.line }));
-  primitives.push(primitive("text", `${name}-band-label`, { left: box.left + 8, top: box.top + 5, width: 76, height: 12 }, { color: theme.navy, fontSize: 9, bold: true }, label));
-  primitives.push(primitive("text", `${name}-band-value`, { left: box.left + 84, top: box.top + 5, width: box.width - 92, height: 12 }, { color: theme.ink, fontSize: 9 }, value));
+  primitives.push(primitive("text", `${name}-band-label`, { left: box.left + 8, top: box.top + Math.max(5, (box.height - 12) / 2), width: 76, height: 12 }, { color: theme.navy, fontSize: 9, bold: true }, label));
+  primitives.push(primitive("text", `${name}-band-value`, { left: box.left + 84, top: box.top + 5, width: box.width - 92, height: box.height - 8 }, { color: theme.ink, fontSize: 9 }, value));
+  return box.height;
 }
 
 function blueprintFlowRecipe(block, frame, theme) {
   const inputs = block.content?.inputs ?? [];
   const steps = block.content?.steps ?? [];
+  const stepDetails = block.content?.step_details ?? [];
   const tools = block.content?.tools ?? [];
   const outputs = block.content?.outputs ?? [];
   const fallbacks = block.content?.fallbacks ?? [];
   const primitives = [titlePrimitive(block, frame, theme)];
-  bandPrimitive(primitives, "input", "입력", inputs.map(itemLabel).join(" · "), frame, frame.top + 40, theme, theme.pale);
-  bandPrimitive(primitives, "tool", "도구·모델", tools.map(itemLabel).join(" · ") || "분석 엔진", frame, frame.top + 66, theme, theme.surface);
+  const inputValue = listText(inputs);
+  const inputTop = frame.top + 40;
+  const inputHeight = bandPrimitive(primitives, "input", "입력", inputValue, frame, inputTop, theme, theme.pale);
+  const toolValue = listText(tools.length ? tools : ["분석 엔진"]);
+  const toolTop = inputTop + inputHeight + 4;
+  const toolHeight = bandPrimitive(primitives, "tool", "도구·모델", toolValue, frame, toolTop, theme, theme.surface);
   const columns = Math.min(4, Math.max(1, steps.length));
   const rows = Math.ceil(steps.length / columns);
   const gap = 7;
-  const stepTop = frame.top + 96;
-  const outputTop = frame.top + frame.height - 30;
-  const stepHeight = Math.max(12, (outputTop - stepTop - gap * (rows - 1)) / Math.max(1, rows));
+  const stepTop = toolTop + toolHeight + 8;
+  const outputItems = [...outputs, ...fallbacks.map((item) => ({ label: `장애 대응: ${itemLabel(item)}` }))];
+  const outputValue = listText(outputItems);
+  const outputHeight = multilineHeight(outputValue);
+  const outputTop = frame.top + frame.height - outputHeight - 4;
+  const stepHeight = Math.max(24, (outputTop - stepTop - gap * (rows - 1)) / Math.max(1, rows));
   const innerWidth = frame.width - 24;
   const stepWidth = (innerWidth - gap * (columns - 1)) / columns;
   steps.forEach((step, index) => {
@@ -310,10 +337,16 @@ function blueprintFlowRecipe(block, frame, theme) {
     const column = index % columns;
     const box = { left: frame.left + 12 + column * (stepWidth + gap), top: stepTop + row * (stepHeight + gap), width: stepWidth, height: stepHeight };
     primitives.push(primitive("roundRect", `process-step:${index + 1}`, box, { fill: index === 0 ? theme.primary : theme.pale, stroke: theme.accent }));
-    primitives.push(primitive("text", `process-step-label:${index + 1}`, { left: box.left + 6, top: box.top + 4, width: box.width - 12, height: Math.max(6, box.height - 8) }, { color: index === 0 ? theme.white : theme.navy, fontSize: 10, bold: true, alignment: "center" }, `${index + 1}. ${itemLabel(step)}`));
+    const labelColor = index === 0 ? theme.white : theme.navy;
+    const detailColor = index === 0 ? theme.white : theme.ink;
+    const detail = detailText(stepDetails[index]);
+    primitives.push(primitive("text", `process-step-label:${index + 1}`, { left: box.left + 8, top: box.top + 8, width: box.width - 16, height: detail ? 18 : Math.max(18, box.height - 16) }, { color: labelColor, fontSize: 10, bold: true, alignment: detail ? "left" : "center" }, `${index + 1}. ${itemLabel(step)}`));
+    if (detail) primitives.push(primitive("text", `process-step-detail:${index + 1}`, { left: box.left + 8, top: box.top + 30, width: box.width - 16, height: Math.max(12, box.height - 38) }, { color: detailColor, fontSize: 9 }, detail));
+    if (column < columns - 1) {
+      primitives.push(primitive("rect", `process-connector:${index + 1}`, { left: box.left + box.width + 1, top: box.top + box.height / 2 - 1, width: gap - 2, height: 2 }, { fill: theme.accent, stroke: theme.accent }));
+    }
   });
-  const output = [...outputs.map(itemLabel), ...fallbacks.map((item) => `Fallback: ${itemLabel(item)}`)].join(" · ");
-  bandPrimitive(primitives, "output", "결과", output, frame, outputTop, theme, theme.pale);
+  bandPrimitive(primitives, "output", "결과·대응", outputValue, frame, outputTop, theme, theme.pale);
   return primitives;
 }
 

@@ -27,3 +27,22 @@ test("validates a table row against its columns", () => {
 test("returns null for legacy visual categories", () => {
   assert.equal(getBlockTypeDefinition("card_grid"), null);
 });
+
+test("preserves matched blueprint flow step details", () => {
+  const content = validateBlockTypeContent("blueprint_flow", {
+    inputs: ["로그"],
+    steps: ["정제", "분석"],
+    step_details: ["필드 정합성 확인", "실시간·Batch 분석"],
+    outputs: ["알림"],
+  });
+  assert.deepEqual(content.step_details, ["필드 정합성 확인", "실시간·Batch 분석"]);
+  assert.throws(
+    () => validateBlockTypeContent("blueprint_flow", {
+      inputs: ["로그"],
+      steps: ["정제", "분석"],
+      step_details: ["필드 정합성 확인"],
+      outputs: ["알림"],
+    }),
+    /step_details.*steps/i,
+  );
+});

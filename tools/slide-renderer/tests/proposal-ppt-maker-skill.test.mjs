@@ -50,6 +50,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /가독성 한도까지 정보량/s);
   assert.match(skill, /큰 빈 패널.*금지/s);
   assert.match(skill, /네이티브 도식.*끝까지 구성/s);
+  assert.match(skill, /steps\[\].*step_details\[\]/s);
   for (const blockType of [
     "matrix_table",
     "metric_dashboard",
@@ -60,6 +61,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   ]) assert.ok(io.includes(blockType), `missing block type ${blockType}`);
   assert.match(io, /block_pool_auto/);
   assert.match(io, /content\.explanation.*부연설명/s);
+  assert.match(io, /step_details\[\].*동일 길이/s);
   assert.match(skill, /선택 가능한 블록 풀/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);

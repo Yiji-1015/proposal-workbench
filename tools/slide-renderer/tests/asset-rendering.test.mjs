@@ -100,3 +100,29 @@ test("expands the editable explanation area for detailed native-diagram copy", (
   const explanation = recipe.primitives.find((item) => item.name === "explanation:detailed-flow");
   assert.ok(explanation.position.height > 30);
 });
+
+test("renders detailed copy inside blueprint flow nodes and bands", () => {
+  const recipe = createAssetRecipe({
+    rendererKey: "blueprint_flow",
+    block: {
+      blockId: "dense-flow",
+      content: {
+        headline: "분석 처리 흐름",
+        inputs: ["웹 로그", "앱 행동 데이터"],
+        steps: ["표준화·비식별", "실시간·Batch 분석"],
+        step_details: ["공통 스키마 정리\n개인정보 비식별 처리", "행동모델링·통계 생성\nJob 결과를 운영에 반영"],
+        tools: ["행동모델링", "통계·AI 분석"],
+        outputs: ["대시보드", "운영 알림"],
+      },
+      steps: [],
+      options: [],
+    },
+    frame,
+    theme,
+  });
+  const firstDetail = recipe.primitives.find((item) => item.name === "process-step-detail:1");
+  const inputBand = recipe.primitives.find((item) => item.name === "input-band-value");
+  assert.equal(firstDetail.text, "· 공통 스키마 정리\n· 개인정보 비식별 처리");
+  assert.equal(inputBand.text, "· 웹 로그\n· 앱 행동 데이터");
+  assert.ok(inputBand.position.height > 22);
+});

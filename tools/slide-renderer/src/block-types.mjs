@@ -172,10 +172,14 @@ function validateScopeOutcomeMapping(content) {
 function validateBlueprintFlow(content) {
   const inputs = stringArray(content, "blueprint_flow", "inputs", 1, 3);
   const steps = stringArray(content, "blueprint_flow", "steps", 2, 8);
+  const stepDetails = optionalStringArray(content, "blueprint_flow", "step_details", steps.length);
+  if (stepDetails.length && stepDetails.length !== steps.length) {
+    throw new RangeError(`blueprint_flow step_details must contain exactly ${steps.length} items to match steps`);
+  }
   const outputs = stringArray(content, "blueprint_flow", "outputs", 1, 3);
   const tools = optionalStringArray(content, "blueprint_flow", "tools", 6);
   const fallbacks = optionalStringArray(content, "blueprint_flow", "fallbacks", 6);
-  return { ...structuredClone(content), inputs, steps, tools, outputs, fallbacks };
+  return { ...structuredClone(content), inputs, steps, step_details: stepDetails, tools, outputs, fallbacks };
 }
 
 function validateChevronPipeline(content) {
