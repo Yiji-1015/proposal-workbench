@@ -42,6 +42,55 @@ function fixture(overrides = {}) {
   return { requirement, blueprint, mapping, catalog, ...overrides };
 }
 
+function poolFixture() {
+  const inputs = fixture();
+  inputs.blueprint.layout_family = "block_pool_auto";
+  inputs.blueprint.blocks = [
+    {
+      block_id: "pool_metrics",
+      role: "pool_block",
+      slot: "auto",
+      visual_category: "metric_dashboard",
+      importance: "mandatory",
+      content: { headline: "핵심 지표", metrics: [{ label: "응답시간", value_text: "30초" }, { label: "수집범위", value_text: "3개 접점" }] },
+    },
+    {
+      block_id: "pool_mapping",
+      role: "pool_block",
+      slot: "auto",
+      visual_category: "scope_outcome_mapping",
+      importance: "mandatory",
+      content: { headline: "범위와 효과", left: [{ label: "웹 로그" }], right: [{ label: "운영 대시보드" }], links: [{ from: 0, to: 0 }] },
+    },
+    {
+      block_id: "pool_table",
+      role: "pool_block",
+      slot: "auto",
+      visual_category: "matrix_table",
+      importance: "mandatory",
+      content: { headline: "대응 기준", columns: ["구분", "제안", "검증"], rows: [{ label: "수집", cells: ["표준화", "로그 확인"] }] },
+    },
+    {
+      block_id: "pool_flow",
+      role: "pool_block",
+      slot: "auto",
+      visual_category: "blueprint_flow",
+      importance: "mandatory",
+      content: { headline: "처리 흐름", inputs: ["접점 로그"], steps: ["정제", "분석"], outputs: ["알림"], tools: ["분석 엔진"] },
+    },
+    {
+      block_id: "pool_chevron",
+      role: "pool_block",
+      slot: "auto",
+      visual_category: "chevron_pipeline",
+      importance: "mandatory",
+      content: { headline: "추진 단계", steps: ["구축", "검증"], criteria: ["단위 테스트", "인수 테스트"] },
+    },
+  ];
+  inputs.mapping.mappings = inputs.blueprint.blocks.map((block) => ({ block_id: block.block_id, status: "fallback_native_shapes", fallback: "native_shapes" }));
+  return inputs;
+}
+
 test("compiles an arbitrary requirement without DAR-specific defaults", () => {
   const model = compileRenderModel(fixture());
   assert.equal(model.requirementId, "SEC-204");
@@ -60,6 +109,33 @@ test("compiles an arbitrary requirement without DAR-specific defaults", () => {
   assert.equal(model.theme.navy, "#123B78");
   assert.deepEqual(model.fallbackBlocks.map((block) => block.blockId), ["requirement_summary", "metric_highlight", "control_policy", "expected_effect"]);
   assert.equal(JSON.stringify(model).includes("DAR-010"), false);
+});
+
+test("normalizes block pool types and their content contracts", () => {
+  const model = compileRenderModel(poolFixture());
+  assert.deepEqual(model.blocks.map((block) => block.blockType), [
+    "metric_dashboard",
+    "scope_outcome_mapping",
+    "matrix_table",
+    "blueprint_flow",
+    "chevron_pipeline",
+  ]);
+  assert.equal(model.blocks[0].blockTypeDefinition.rendererKey, "metric_dashboard");
+  assert.deepEqual(model.blocks[2].content.rows[0].cells, ["표준화", "로그 확인"]);
+});
+
+test("rejects invalid block pool content, type, and slot", () => {
+  const invalidContent = poolFixture();
+  invalidContent.blueprint.blocks[2].content.rows[0].cells = [];
+  assert.throws(() => compileRenderModel(invalidContent), /matrix_table.*cells.*columns/i);
+
+  const invalidType = poolFixture();
+  invalidType.blueprint.blocks[0].visual_category = "card_grid";
+  assert.throws(() => compileRenderModel(invalidType), /block_pool_auto does not support visual_category card_grid/i);
+
+  const invalidSlot = poolFixture();
+  invalidSlot.blueprint.blocks[0].slot = "top";
+  assert.throws(() => compileRenderModel(invalidSlot), /block_pool_auto requires slot auto.*pool_metrics/i);
 });
 
 test("allows an overview blueprint to group multiple requirements", () => {

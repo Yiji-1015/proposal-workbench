@@ -1,3 +1,6 @@
+import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
+import { resolveRendererKey } from "./asset-recipes.mjs";
+
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
 }
@@ -22,14 +25,17 @@ const ARCHITECTURE_TREATMENTS = new Set(["native_diagram", "text_explainer", "ge
 function normalizeBlock(block) {
   requireObject(block, "blueprint block");
   const blockId = ownString(block, "block_id", "block_id");
-  const steps = Array.isArray(block.content?.steps) ? block.content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
-  const flowSteps = Array.isArray(block.content?.flow_steps) ? block.content.flow_steps.map((step) => String(step).trim()).filter(Boolean) : [];
-  const options = Array.isArray(block.content?.options) ? structuredClone(block.content.options) : [];
+  const visualCategory = ownString(block, "visual_category");
+  const blockTypeDefinition = getBlockTypeDefinition(visualCategory);
+  const content = blockTypeDefinition ? validateBlockTypeContent(visualCategory, block.content) : structuredClone(block.content ?? {});
+  const steps = Array.isArray(content.steps) ? content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
+  const flowSteps = Array.isArray(content.flow_steps) ? content.flow_steps.map((step) => String(step).trim()).filter(Boolean) : [];
+  const options = Array.isArray(content.options) ? structuredClone(content.options) : [];
   const architectureTreatment = block.architecture_treatment ?? "native_diagram";
   if (!ARCHITECTURE_TREATMENTS.has(architectureTreatment)) {
     throw new Error(`architecture_treatment for ${blockId} must be native_diagram, text_explainer, or generated_visual_with_text`);
   }
-  const explanation = typeof block.content?.explanation === "string" ? block.content.explanation.trim() : "";
+  const explanation = typeof content.explanation === "string" ? content.explanation.trim() : "";
   if (architectureTreatment !== "native_diagram" && !explanation) {
     throw new Error(`architecture_treatment ${architectureTreatment} for ${blockId} requires content.explanation`);
   }
@@ -45,10 +51,12 @@ function normalizeBlock(block) {
     direction: typeof block.direction === "string" ? block.direction : "none",
     importance: typeof block.importance === "string" ? block.importance : "optional",
     architectureTreatment,
-    content: structuredClone(block.content ?? {}),
+    content,
     steps,
     flowSteps,
     options,
+    blockType: blockTypeDefinition ? visualCategory : null,
+    blockTypeDefinition,
     sourceRefs: Array.isArray(block.source_refs) ? [...block.source_refs] : [],
   };
 }
@@ -105,9 +113,17 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
   }
   const density = blueprint.density ?? "high";
   if (density !== "high") throw new Error(`blueprint.density must be high for proposal slides; received ${density}`);
+  const layoutFamily = ownString(blueprint, "layout_family", "blueprint.layout_family");
   if (!Array.isArray(mapping.mappings)) throw new Error("mapping.mappings must be an array");
 
   const blocks = blueprint.blocks.map(normalizeBlock);
+  if (layoutFamily === "block_pool_auto") {
+    if (blocks.length < 5 || blocks.length > 6) throw new Error("block_pool_auto requires 5 to 6 blocks");
+    for (const block of blocks) {
+      if (!block.blockTypeDefinition) throw new Error(`block_pool_auto does not support visual_category ${block.visualCategory}`);
+      if (block.slot !== "auto") throw new Error(`block_pool_auto requires slot auto for ${block.blockId}`);
+    }
+  }
   for (const block of blocks) {
     if (block.role === "technology_comparison") {
       const conclusion = block.content?.conclusion;
@@ -181,7 +197,7 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
     requirementSummary: requirement.requirement_summary ?? "",
     governingMessage,
     title: ownString(blueprint, "slide_title", "blueprint.slide_title"),
-    layoutFamily: ownString(blueprint, "layout_family", "blueprint.layout_family"),
+    layoutFamily,
     density,
     canvas: orientation === "portrait" ? { width: 720, height: 1280, orientation } : { width: 1280, height: 720, orientation },
     protectedMetrics,
@@ -193,7 +209,6 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
     fallbackBlocks,
   };
 }
-import { resolveRendererKey } from "./asset-recipes.mjs";
 
 const DEFAULT_THEME = {
   primary: "#1769E0",
