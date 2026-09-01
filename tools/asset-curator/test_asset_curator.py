@@ -3,6 +3,7 @@
 
 import sys
 import json
+import importlib.util
 import unittest
 import zipfile
 from pathlib import Path
@@ -315,6 +316,50 @@ class AssetCuratorDiscoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source text"):
             promote_asset(candidate["candidate_id"], request, self.data_dir, self.root / "pattern-library")
         self.assertFalse((self.root / "pattern-library" / "unified-visual-module-catalog.json").exists())
+
+
+class AssetCuratorIngestContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        ingest_dir = Path(__file__).resolve().parents[1] / "ppt-ingest"
+        sys.path.insert(0, str(ingest_dir))
+        spec = importlib.util.spec_from_file_location("asset_curator_extract_contract", ingest_dir / "extract_slide_structure.py")
+        cls.extract_module = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(cls.extract_module)
+        pipeline_spec = importlib.util.spec_from_file_location("asset_curator_ingest_contract", ingest_dir / "ingest_pipeline.py")
+        cls.pipeline_module = importlib.util.module_from_spec(pipeline_spec)
+        assert pipeline_spec and pipeline_spec.loader
+        pipeline_spec.loader.exec_module(cls.pipeline_module)
+
+    def setUp(self) -> None:
+        self.temp = TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.pptx = write_fixture(self.root / "deck.pptx", rich=False)
+        self.potx = write_fixture(self.root / "deck.potx", source_type="potx", rich=False)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def test_pptx_and_potx_are_accepted_and_other_suffix_rejected(self):
+        pptx_slides = self.extract_module.extract_slides(str(self.pptx))
+        potx_slides = self.extract_module.extract_slides(str(self.potx))
+        self.assertEqual(pptx_slides[0]["source_type"], "pptx")
+        self.assertEqual(potx_slides[0]["source_type"], "potx")
+        self.assertIn("마스터 제목", potx_slides[0]["raw_text"])
+        self.assertTrue(potx_slides[0]["layout_id"])
+        self.assertTrue(potx_slides[0]["master_id"])
+        bad = self.root / "deck.txt"
+        bad.write_text("not a deck", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "pptx.*potx"):
+            self.extract_module.extract_slides(str(bad))
+
+    def test_pipeline_manifest_keeps_source_and_scope_fields(self):
+        manifest = self.pipeline_module.run_ingest_pipeline(str(self.potx), str(self.root / "storage"), skip_com_render=True)
+        self.assertEqual(manifest["source_type"], "potx")
+        self.assertEqual(manifest["slides"][0]["source_type"], "potx")
+        self.assertTrue(manifest["slides"][0]["layout_id"])
+        self.assertTrue(manifest["slides"][0]["master_id"])
 
 
 if __name__ == "__main__":
