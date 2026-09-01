@@ -294,3 +294,40 @@ test("reflows a selected process asset when the content has a different supporte
   assert.deepEqual(model.selectedAssets[0].adaptations, [{ type: "node_count_reflow", from: 6, to: 4 }]);
   assert.equal(model.fallbackBlocks.some((block) => block.blockId === "main_process"), false);
 });
+
+test("loads a responsive native asset and validates an optional approved photo mapping", () => {
+  const inputs = fixture();
+  inputs.catalog = [
+    { module_id: "native-process", asset_kind: "composite_block", module_type: "process_chain", renderer_key: "responsive_native_template", template: "templates/native-process.json" },
+    { module_id: "approved-photo", asset_kind: "photo_asset", module_type: "photo", renderer_key: "photo_asset_reference", template: "photos/photo.png", license_status: "user_confirmed" },
+  ];
+  inputs.mapping.mappings[0] = {
+    block_id: "main_process",
+    status: "selected_candidate",
+    asset_id: "native-process",
+    renderer_key: "responsive_native_template",
+    photo_id: "approved-photo",
+    usage_mode: "structural",
+  };
+  const model = compileRenderModel(inputs);
+  assert.equal(model.selectedAssets[0].rendererKey, "responsive_native_template");
+  assert.equal(model.selectedAssets[0].photoId, "approved-photo");
+  assert.equal(model.selectedAssets[0].photoCatalog.asset_kind, "photo_asset");
+});
+
+test("rejects direct photo mappings and fixed hub node mismatches", () => {
+  const directPhoto = fixture();
+  directPhoto.catalog = [{ module_id: "photo", asset_kind: "photo_asset", module_type: "photo", renderer_key: "photo_asset_reference", template: "photos/photo.png", license_status: "user_confirmed" }];
+  directPhoto.mapping.mappings[0] = { block_id: "main_process", status: "selected_candidate", asset_id: "photo" };
+  assert.throws(() => compileRenderModel(directPhoto), /photo_asset.*mapped directly/i);
+
+  const missingPhoto = fixture();
+  missingPhoto.catalog[0] = { module_id: "media", asset_kind: "media_frame", module_type: "media_frame", renderer_key: "responsive_native_template", template: "templates/media.json" };
+  missingPhoto.mapping.mappings[0] = { block_id: "main_process", status: "selected_candidate", asset_id: "media", renderer_key: "responsive_native_template" };
+  assert.throws(() => compileRenderModel(missingPhoto), /requires photo_id/i);
+
+  const fixed = fixture();
+  fixed.catalog[0] = { module_id: "hub", asset_kind: "composite_block", module_type: "hub_spoke", renderer_key: "responsive_native_template", template: "templates/hub.json", approved_node_count: 2 };
+  fixed.mapping.mappings[0] = { block_id: "main_process", status: "selected_candidate", asset_id: "hub", renderer_key: "responsive_native_template" };
+  assert.throws(() => compileRenderModel(fixed), /fixed.*requires 2 nodes.*received 4/i);
+});

@@ -51,3 +51,62 @@ test("builds a portrait block-pool proposal with native pool renderers", async (
   assert.equal(report.fallback_blocks.length, 5);
   assert.equal((await fs.readFile(path.join(temp, "final-slide.png"))).subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
 });
+
+test("builds approved responsive assets and counts only explicitly mapped photos", async (t) => {
+  const rendererRoot = path.resolve(import.meta.dirname, "..");
+  const project = path.join(rendererRoot, "tests", "fixtures", "block-pool-project");
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-responsive-"));
+  const patternRoot = path.join(temp, "pattern-library");
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  await fs.cp(project, path.join(temp, "project"), { recursive: true });
+  const projectCopy = path.join(temp, "project");
+  await fs.mkdir(path.join(patternRoot, "templates"), { recursive: true });
+  await fs.mkdir(path.join(patternRoot, "photos"), { recursive: true });
+  const template = {
+    version: 1,
+    module_id: "approved-process",
+    asset_kind: "composite_block",
+    module_type: "process_chain",
+    renderer_key: "responsive_native_template",
+    shell: { container: { kind: "roundRect", fill: "white", stroke: "line" }, header_zone: { x: 0.04, y: 0.03, w: 0.92, h: 0.12 }, body_zone: { x: 0.04, y: 0.2, w: 0.92, h: 0.72 } },
+    diagram: { topology: { kind: "process_chain", repeat_source: "steps", nodes: [{ id: "step", kind: "roundRect", repeat: true, text_slot: "steps[]" }], edges: [{ from: "step[n]", to: "step[n+1]", kind: "connector" }] }, variants: { wide: { layout: "row", columns: "all" }, compact: { layout: "grid", columns: 2 }, tall: { layout: "column", columns: 1 } } },
+    style: { node_fill: "pale", node_stroke: "primary", text_color: "navy" },
+    constraints: { min_nodes: 2, max_nodes: 8, min_font_size: 9, padding_ratio: 0.05, gap_ratio: 0.03 },
+    primitives: [],
+  };
+  await fs.writeFile(path.join(patternRoot, "templates", "approved-process.json"), JSON.stringify(template), "utf8");
+  await fs.writeFile(path.join(patternRoot, "unified-visual-module-catalog.json"), JSON.stringify([{
+    module_id: "approved-process", display_name: "승인 프로세스", asset_kind: "composite_block", module_type: "process_chain", description: "단계형 흐름", design_traits: ["라운드 카드"], use_cases: ["업무 흐름"], search_tags: ["프로세스"], renderer_key: "responsive_native_template", template: "templates/approved-process.json", usage_mode: "structural", render_mode: "native_powerpoint_shapes", provenance_ref: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", license: "user-provided", license_status: "user_confirmed", approved_at: "2026-09-01T00:00:00Z",
+  }], null, 2), "utf8");
+  const mappingPath = path.join(projectCopy, "mapping", "asset-mapping.json");
+  const mapping = JSON.parse(await fs.readFile(mappingPath, "utf8"));
+  mapping.mappings[3] = { block_id: "pool_flow", status: "selected_candidate", asset_id: "approved-process", renderer_key: "responsive_native_template" };
+  await fs.writeFile(mappingPath, JSON.stringify(mapping), "utf8");
+  const output = path.join(temp, "responsive.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", projectCopy, "--pattern-library", patternRoot, "--output", output], { encoding: "utf8" });
+  assert.equal(result.status, 0, `stderr=${result.stderr}\nstdout=${result.stdout}`);
+  let report = JSON.parse(await fs.readFile(path.join(temp, "verification-report.json"), "utf8"));
+  assert.equal(report.selected_assets[0].renderer_key, "responsive_native_template");
+  assert.equal(report.selected_assets[0].loaded, true);
+  assert.equal(report.selected_assets[0].applied, true);
+  assert.equal(report.selected_assets[0].fidelity_passed, true);
+  assert.equal(report.picture_shape_count, 0);
+  assert.deepEqual(report.runtime_fallbacks, []);
+
+  const photoTemplate = { ...template, module_id: "approved-media", asset_kind: "media_frame", module_type: "media_frame", diagram: { topology: { kind: "media_frame", repeat_source: "items", nodes: [], edges: [] }, variants: { wide: {}, compact: {}, tall: {} } }, primitives: [{ kind: "media_slot", bounds: { x: 0.12, y: 0.28, w: 0.76, h: 0.58 }, crop_mode: "cover" }] };
+  await fs.writeFile(path.join(patternRoot, "templates", "approved-media.json"), JSON.stringify(photoTemplate), "utf8");
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+  await fs.writeFile(path.join(patternRoot, "photos", "approved.png"), png);
+  const catalog = JSON.parse(await fs.readFile(path.join(patternRoot, "unified-visual-module-catalog.json"), "utf8"));
+  catalog.push({ module_id: "approved-media", display_name: "승인 사진 프레임", asset_kind: "media_frame", module_type: "media_frame", description: "사진을 배치하는 프레임", design_traits: ["사진 프레임"], use_cases: ["사례"], search_tags: ["사진"], renderer_key: "responsive_native_template", template: "templates/approved-media.json", usage_mode: "decorative", render_mode: "native_powerpoint_shapes", provenance_ref: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", license: "user-provided", license_status: "user_confirmed", approved_at: "2026-09-01T00:00:00Z" });
+  catalog.push({ module_id: "approved-photo", display_name: "승인 사진", asset_kind: "photo_asset", module_type: "photo", renderer_key: "photo_asset_reference", template: "photos/approved.png", usage_mode: "decorative", render_mode: "native_powerpoint_shapes", provenance_ref: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", license: "user-provided", license_status: "user_confirmed", approved_at: "2026-09-01T00:00:00Z", mime_type: "image/png", width_px: 1, height_px: 1, aspect_ratio: 1, transparent: false, content_sha256: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" });
+  await fs.writeFile(path.join(patternRoot, "unified-visual-module-catalog.json"), JSON.stringify(catalog, null, 2), "utf8");
+  mapping.mappings[3] = { block_id: "pool_flow", status: "selected_candidate", asset_id: "approved-media", renderer_key: "responsive_native_template", photo_id: "approved-photo" };
+  await fs.writeFile(mappingPath, JSON.stringify(mapping), "utf8");
+  const photoOutput = path.join(temp, "responsive-photo.pptx");
+  const photoResult = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", projectCopy, "--pattern-library", patternRoot, "--output", photoOutput], { encoding: "utf8" });
+  assert.equal(photoResult.status, 0, `stderr=${photoResult.stderr}\nstdout=${photoResult.stdout}`);
+  report = JSON.parse(await fs.readFile(path.join(temp, "verification-report.json"), "utf8"));
+  assert.equal(report.picture_shape_count, 1);
+  assert.equal(report.selected_assets[0].applied, true);
+});

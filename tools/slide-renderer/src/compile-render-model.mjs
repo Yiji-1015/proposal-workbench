@@ -70,6 +70,27 @@ function inferAssetStepCount(catalogItem) {
   return match ? words[match[1]] : null;
 }
 
+const APPROVED_PHOTO_LICENSES = new Set(["user_confirmed", "cc0", "cc-by", "cc-by-sa", "public-domain", "royalty-free"]);
+
+function contentItemCount(block) {
+  return block.steps.length
+    || block.options.length
+    || (Array.isArray(block.content?.items) ? block.content.items.length : 0)
+    || (Array.isArray(block.content?.diagram_labels) ? block.content.diagram_labels.length : 0)
+    || (Array.isArray(block.content?.bullets) ? block.content.bullets.length : 0)
+    || (Array.isArray(block.content?.left) ? block.content.left.length : 0)
+    || (Array.isArray(block.content?.right) ? block.content.right.length : 0);
+}
+
+function validateFixedNodeCount(item, catalogItem, block, rendererKey) {
+  if (!new Set(["hub_spoke", "mapping"]).has(catalogItem.module_type) && !["hub_spoke", "mapping"].includes(item.module_type)) return;
+  const fixed = item.approved_node_count ?? catalogItem.approved_node_count ?? catalogItem.fixed_node_count;
+  if (fixed == null) return;
+  if (!Number.isInteger(fixed) || fixed < 1) throw new Error(`Fixed node count for ${catalogItem.module_id} is invalid`);
+  const actual = contentItemCount(block);
+  if (actual && actual !== fixed) throw new Error(`Fixed ${rendererKey} asset ${catalogItem.module_id} requires ${fixed} nodes; received ${actual}`);
+}
+
 function normalizeTheme(theme = {}) {
   requireObject(theme, "blueprint.theme");
   const normalized = { ...DEFAULT_THEME };
@@ -152,15 +173,36 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
       const assetId = ownString(item, "asset_id", "mapping.asset_id");
       const catalogItem = catalogById.get(assetId);
       if (!catalogItem) throw new Error(`Unknown asset ${assetId} selected for ${blockId}`);
+      if (catalogItem.asset_kind === "photo_asset" || catalogItem.renderer_key === "photo_asset_reference") {
+        throw new Error(`photo_asset ${assetId} cannot be mapped directly; use photo_id on a native asset`);
+      }
       const rendererKey = resolveRendererKey(item, catalogItem);
       if (!rendererKey) throw new Error(`Unsupported renderer for selected asset ${assetId}; declare a supported renderer_key or choose no_suitable_asset`);
       const block = blocks.find((candidate) => candidate.blockId === blockId);
+      const requiresPhoto = catalogItem.asset_kind === "media_frame"
+        || catalogItem.requires_photo === true
+        || catalogItem.media_required === true
+        || Number(catalogItem.media_slots) > 0;
+      if (requiresPhoto && item.photo_id == null) throw new Error(`Selected asset ${assetId} requires photo_id`);
       const actualStepCount = block.steps.length || block.options.length;
       const assetStepCount = inferAssetStepCount(catalogItem);
       const adaptations = [];
       if (rendererKey === "process_grid" && actualStepCount && assetStepCount && actualStepCount !== assetStepCount) {
         if (actualStepCount < 2 || actualStepCount > 12) throw new Error(`Process asset ${assetId} cannot reflow ${actualStepCount} steps; supported range is 2-12`);
         adaptations.push({ type: "node_count_reflow", from: assetStepCount, to: actualStepCount });
+      }
+      validateFixedNodeCount(item, catalogItem, block, rendererKey);
+      let photoId = null;
+      let photoCatalog = null;
+      if (item.photo_id != null) {
+        photoId = ownString(item, "photo_id", "mapping.photo_id");
+        photoCatalog = catalogById.get(photoId);
+        if (!photoCatalog || photoCatalog.asset_kind !== "photo_asset" || photoCatalog.renderer_key !== "photo_asset_reference") {
+          throw new Error(`photo_id ${photoId} must reference a catalog photo_asset`);
+        }
+        if (!APPROVED_PHOTO_LICENSES.has(photoCatalog.license_status)) {
+          throw new Error(`photo_id ${photoId} does not have an approved license status`);
+        }
       }
       selectedAssets.push({
         blockId,
@@ -169,6 +211,8 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
         usageMode: item.usage_mode ?? "semantic",
         rendererKey,
         adaptations,
+        photoId,
+        photoCatalog: photoCatalog ? structuredClone(photoCatalog) : null,
         mapping: structuredClone(item),
         catalog: structuredClone(catalogItem),
       });

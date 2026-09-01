@@ -15,6 +15,7 @@ const SUPPORTED_RENDERERS = new Set([
   "blueprint_flow",
   "chevron_pipeline",
   "gantt_roadmap",
+  "responsive_native_template",
 ]);
 
 const REQUIRED_MOTIFS = {
@@ -32,11 +33,20 @@ const REQUIRED_MOTIFS = {
   blueprint_flow: ["input_band", "process_steps", "directional_connectors", "output_band"],
   chevron_pipeline: ["chevron_steps", "validation_row"],
   gantt_roadmap: ["timeline_header", "schedule_bars", "milestones"],
+  responsive_native_template: ["responsive_native_primitives"],
 };
+
+export class AssetLayoutError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AssetLayoutError";
+  }
+}
 
 export function resolveRendererKey(mapping, catalogItem) {
   const explicit = typeof mapping?.renderer_key === "string" ? mapping.renderer_key.trim() : "";
   if (explicit) return SUPPORTED_RENDERERS.has(explicit) ? explicit : null;
+  if (catalogItem?.renderer_key === "responsive_native_template") return "responsive_native_template";
   const moduleType = String(catalogItem?.module_type ?? "").toLowerCase();
   const tags = [...(catalogItem?.visual_tags ?? []), ...(catalogItem?.semantic_tags ?? [])].map((tag) => String(tag).toLowerCase());
   if (moduleType === "feedback_loop" || tags.includes("circular-flow")) return "feedback_loop";
@@ -435,8 +445,308 @@ function architectureRecipe(block, frame, theme) {
   return primitives;
 }
 
-export function createAssetRecipe({ rendererKey, block, frame, theme }) {
+function number(value, fallback = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+}
+
+function tokenColor(value, theme, fallback) {
+  const token = String(value ?? "").trim();
+  if (!token) return fallback;
+  return theme[token] ?? token;
+}
+
+function normalizedBox(value = {}, fallback = { x: 0, y: 0, w: 1, h: 1 }) {
+  const x = number(value.x ?? value.left, fallback.x);
+  const y = number(value.y ?? value.top, fallback.y);
+  const w = number(value.w ?? value.width, fallback.w);
+  const h = number(value.h ?? value.height, fallback.h);
+  return { x, y, w, h };
+}
+
+function localBox(value, frame, fallback) {
+  const box = normalizedBox(value, fallback);
+  const position = {
+    left: frame.left + box.x * frame.width,
+    top: frame.top + box.y * frame.height,
+    width: box.w * frame.width,
+    height: box.h * frame.height,
+  };
+  if (position.width <= 0 || position.height <= 0) throw new AssetLayoutError("Responsive asset contains an empty primitive");
+  return position;
+}
+
+function assertInside(position, frame) {
+  const epsilon = 0.01;
+  if (position.left < frame.left - epsilon
+    || position.top < frame.top - epsilon
+    || position.left + position.width > frame.left + frame.width + epsilon
+    || position.top + position.height > frame.top + frame.height + epsilon
+    || position.width <= 0 || position.height <= 0) {
+    throw new AssetLayoutError("Responsive asset primitive falls outside its block frame");
+  }
+  return position;
+}
+
+function zoneBox(zone, fallback) {
+  if (!zone || typeof zone !== "object") return fallback;
+  const hasXYWH = ["x", "y", "w", "h"].every((key) => zone[key] != null);
+  if (hasXYWH) return normalizedBox(zone, fallback);
+  const result = { ...fallback };
+  if (zone.x != null) result.x = number(zone.x, result.x);
+  if (zone.y != null) result.y = number(zone.y, result.y);
+  if (zone.w != null) result.w = number(zone.w, result.w);
+  if (zone.h != null) result.h = number(zone.h, result.h);
+  if (zone.width_ratio != null) result.w = number(zone.width_ratio, result.w);
+  if (zone.height_ratio != null) result.h = number(zone.height_ratio, result.h);
+  return result;
+}
+
+function contentValues(block, slot) {
+  const content = block.content ?? {};
+  if (slot === "title") return [content.headline ?? content.title ?? "제목"];
+  if (slot === "steps[]") return (block.steps?.length ? block.steps : content.steps ?? []).map((item) => itemLabel(item)).filter(Boolean);
+  if (slot === "items[]") {
+    const values = content.items ?? content.diagram_labels ?? content.bullets ?? block.options?.map(itemLabel) ?? [];
+    return values.map((item) => itemLabel(item)).filter(Boolean);
+  }
+  if (slot === "metrics[]") {
+    return (content.metrics ?? []).map((item) => {
+      if (typeof item === "string") return item;
+      return [item?.label, item?.value_text ?? item?.value].filter(Boolean).join(" · ");
+    }).filter(Boolean);
+  }
+  if (slot === "conclusion") return [content.conclusion ?? content.explanation ?? ""].filter(Boolean).map(String);
+  return [];
+}
+
+function slotText(block, slot, index) {
+  const values = contentValues(block, slot);
+  return values[index] ?? (slot === "title" ? values[0] ?? "제목" : "");
+}
+
+function ratioVariant(frame, constraints = {}) {
+  const ratio = frame.width / Math.max(1, frame.height);
+  const wide = number(constraints.wide_min_ratio ?? constraints.wide_ratio, 1.35);
+  const tall = number(constraints.tall_max_ratio ?? constraints.tall_ratio, 0.8);
+  return ratio >= wide ? "wide" : ratio <= tall ? "tall" : "compact";
+}
+
+function variantOrder(preferred, variants) {
+  return [preferred, "wide", "compact", "tall"].filter((value, index, all) => variants?.[value] && all.indexOf(value) === index);
+}
+
+function repeatValues(block, topology) {
+  const source = topology?.repeat_source === "items" ? "items[]" : "steps[]";
+  return { slot: source, values: contentValues(block, source) };
+}
+
+function textPosition(position) {
+  const inset = Math.min(10, Math.max(4, Math.min(position.width, position.height) * 0.12));
+  return {
+    left: position.left + inset,
+    top: position.top + inset,
+    width: Math.max(1, position.width - inset * 2),
+    height: Math.max(1, position.height - inset * 2),
+  };
+}
+
+function assertTextFits(value, position, fontSize, minFontSize) {
+  const textValue = String(value ?? "");
+  if (!textValue) return;
+  const charsPerLine = Math.max(1, Math.floor(position.width / Math.max(1, fontSize * 0.9)));
+  const lines = textValue.split(/\r?\n/).reduce((total, line) => total + Math.max(1, Math.ceil([...line].length / charsPerLine)), 0);
+  if (fontSize < minFontSize || lines * fontSize * 1.2 > position.height) {
+    throw new AssetLayoutError("Responsive asset text does not fit without clipping");
+  }
+}
+
+function appendStaticPrimitive(primitives, templatePrimitive, frame, theme, block, slotIndexes) {
+  const kind = templatePrimitive.kind;
+  if (["media_slot", "picture_placeholder", "picture"].includes(kind)) return;
+  const position = assertInside(localBox(templatePrimitive.bounds ?? templatePrimitive.position, frame), frame);
+  const base = {
+    fill: tokenColor(templatePrimitive.fill, theme, "none"),
+    stroke: tokenColor(templatePrimitive.stroke, theme, theme.line),
+    lineWidth: number(templatePrimitive.lineWidth, 1),
+  };
+  if (kind === "text") {
+    const slot = templatePrimitive.text_slot ?? "conclusion";
+    const index = slotIndexes[slot] ?? 0;
+    slotIndexes[slot] = index + 1;
+    const value = slotText(block, slot, index);
+    const fontSize = Math.max(9, number(templatePrimitive.fontSize, 11));
+    const textBox = textPosition(position);
+    assertTextFits(value, textBox, fontSize, 9);
+    primitives.push(primitive("text", templatePrimitive.name ?? `asset-text:${primitives.length}`, textBox, {
+      color: tokenColor(templatePrimitive.color, theme, theme.ink),
+      fontSize,
+      bold: Boolean(templatePrimitive.bold),
+      alignment: templatePrimitive.alignment ?? "left",
+    }, value));
+    return;
+  }
+  const geometry = kind === "shape" || kind === "group" ? "roundRect"
+    : kind === "icon_slot" ? (templatePrimitive.custom_geometry ? "custom" : "ellipse")
+      : kind === "line" || kind === "connector" ? "line" : kind;
+  const native = primitive(geometry, templatePrimitive.name ?? `asset-primitive:${primitives.length}`, position, base);
+  if (templatePrimitive.custom_geometry) native.custom_geometry = templatePrimitive.custom_geometry;
+  primitives.push(native);
+  if (templatePrimitive.text_slot) {
+    const slot = templatePrimitive.text_slot;
+    const index = slotIndexes[slot] ?? 0;
+    slotIndexes[slot] = index + 1;
+    const value = slotText(block, slot, index);
+    const fontSize = Math.max(9, number(templatePrimitive.fontSize, 11));
+    const textBox = textPosition(position);
+    assertTextFits(value, textBox, fontSize, 9);
+    primitives.push(primitive("text", `${native.name}:text`, textBox, {
+      color: tokenColor(templatePrimitive.color, theme, theme.ink),
+      fontSize,
+      bold: Boolean(templatePrimitive.bold),
+      alignment: templatePrimitive.alignment ?? "center",
+    }, value));
+  }
+}
+
+function processVariant(template, block, frame, theme, variantName, bodyFrame, prototype, values) {
+  const variant = template.diagram?.variants?.[variantName] ?? {};
+  const constraints = template.constraints ?? {};
+  const padding = Math.max(0, number(constraints.padding_ratio, 0.05));
+  const gapRatio = Math.max(0, number(constraints.gap_ratio, 0.03));
+  const layout = variant.layout ?? (variantName === "wide" ? "row" : variantName === "tall" ? "column" : "grid");
+  const requestedColumns = variant.columns === "all" ? values.length : number(variant.columns, layout === "column" ? 1 : layout === "row" ? values.length : 2);
+  const columns = Math.max(1, Math.min(values.length, Math.floor(requestedColumns)));
+  const rows = Math.ceil(values.length / columns);
+  const inner = {
+    left: bodyFrame.left + bodyFrame.width * padding,
+    top: bodyFrame.top + bodyFrame.height * padding,
+    width: bodyFrame.width * (1 - padding * 2),
+    height: bodyFrame.height * (1 - padding * 2),
+  };
+  const gapX = inner.width * gapRatio;
+  const gapY = inner.height * gapRatio;
+  const width = (inner.width - gapX * (columns - 1)) / columns;
+  const height = (inner.height - gapY * (rows - 1)) / rows;
+  const minWidth = Math.max(32, number(constraints.min_node_width, 32));
+  const minHeight = Math.max(20, number(constraints.min_node_height, 20));
+  if (width < minWidth || height < minHeight) throw new AssetLayoutError(`Responsive ${variantName} variant cannot fit ${values.length} nodes`);
+  const minFont = Math.max(9, number(constraints.min_font_size, 9));
+  const nodePositions = values.map((value, index) => {
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const position = assertInside({
+      left: inner.left + column * (width + gapX),
+      top: inner.top + row * (height + gapY),
+      width,
+      height,
+    }, frame);
+    const fontSize = Math.max(minFont, Math.min(15, Math.floor(Math.min(position.width / 9, position.height / 3))));
+    assertTextFits(`${index + 1}. ${value}`, textPosition(position), fontSize, minFont);
+    return { position, fontSize };
+  });
+  const primitives = [];
+  nodePositions.forEach(({ position, fontSize }, index) => {
+    const fill = tokenColor(prototype?.fill, theme, theme.pale);
+    const stroke = tokenColor(prototype?.stroke, theme, theme.primary);
+    const geometry = prototype?.kind && !["shape", "group", "connector"].includes(prototype.kind) ? prototype.kind : "roundRect";
+    const node = primitive(geometry, `asset-node:${index + 1}`, position, { fill, stroke, lineWidth: number(prototype?.lineWidth, 1) });
+    if (prototype?.custom_geometry) node.custom_geometry = prototype.custom_geometry;
+    primitives.push(node);
+    primitives.push(primitive("text", `asset-node-label:${index + 1}`, textPosition(position), { color: tokenColor(template.style?.text_color, theme, theme.navy), fontSize, bold: true, alignment: "center" }, `${index + 1}. ${values[index]}`));
+  });
+  for (let index = 1; index < nodePositions.length; index += 1) {
+    const from = nodePositions[index - 1].position;
+    const to = nodePositions[index].position;
+    const sameRow = Math.abs(from.top - to.top) < 0.5;
+    const position = sameRow
+      ? { left: from.left + from.width, top: from.top + from.height / 2 - 1, width: Math.max(2, to.left - (from.left + from.width)), height: 2 }
+      : { left: to.left + to.width / 2 - 1, top: from.top + from.height, width: 2, height: Math.max(2, to.top - (from.top + from.height)) };
+    primitives.push(primitive("connector", `asset-connector:${index}`, assertInside(position, frame), {
+      stroke: tokenColor(template.style?.connector_stroke, theme, theme.accent),
+      lineWidth: number(template.style?.connector_width, 2),
+      from: `asset-node:${index}`,
+      to: `asset-node:${index + 1}`,
+      fromSide: sameRow ? "right" : "bottom",
+      toSide: sameRow ? "left" : "top",
+      connectorKind: "straight",
+    }));
+  }
+  return { primitives, variant: variantName };
+}
+
+function responsiveTemplateRecipe(block, frame, theme, template, photo) {
+  if (!template || typeof template !== "object" || template.renderer_key !== "responsive_native_template") {
+    throw new Error("responsive_native_template requires a valid template");
+  }
+  const constraints = template.constraints ?? {};
+  const diagram = template.diagram ?? {};
+  const topology = diagram.topology ?? {};
+  const repeat = topology.nodes?.find((node) => node.repeat) ?? null;
+  const repeated = repeatValues(block, topology);
+  const minNodes = Math.max(0, number(constraints.min_nodes, 2));
+  const maxNodes = Math.max(minNodes, number(constraints.max_nodes, 8));
+  if (repeat && (repeated.values.length < minNodes || repeated.values.length > maxNodes)) {
+    throw new AssetLayoutError(`Responsive asset supports ${minNodes}-${maxNodes} nodes, received ${repeated.values.length}`);
+  }
+  const primitives = [];
+  const shell = template.shell;
+  const assetKind = template.asset_kind;
+  if (shell && assetKind !== "diagram_recipe") {
+    const container = shell.container ?? { kind: "roundRect", fill: "white", stroke: "line" };
+    primitives.push(primitive(container.kind ?? "roundRect", `asset-shell:${block.blockId}`, frame, {
+      fill: tokenColor(container.fill, theme, theme.white),
+      stroke: tokenColor(container.stroke, theme, theme.line),
+      lineWidth: number(container.lineWidth, 1),
+    }));
+    const header = zoneBox(shell.header_zone, { x: 0.04, y: 0.03, w: 0.92, h: 0.12 });
+    const headerPosition = assertInside(localBox(header, frame), frame);
+    const title = slotText(block, "title", 0);
+    const titleFont = Math.max(9, number(shell.header_zone?.font_size, 15));
+    assertTextFits(title, textPosition(headerPosition), titleFont, 9);
+    primitives.push(primitive("text", `asset-title:${block.blockId}`, textPosition(headerPosition), { color: tokenColor(shell.header_zone?.color, theme, theme.navy), fontSize: titleFont, bold: true }, title));
+  }
+  const body = zoneBox(shell?.body_zone, { x: 0.04, y: 0.2, w: 0.92, h: 0.72 });
+  const bodyFrame = assertInside(localBox(body, frame), frame);
+  const slotIndexes = {};
+  const templatePrimitives = Array.isArray(template.primitives) ? template.primitives : [];
+  const prototype = templatePrimitives.find((item) => item.text_slot === repeated.slot && !["media_slot", "picture_placeholder", "picture"].includes(item.kind));
+  const preferred = ratioVariant(bodyFrame, constraints);
+  let selectedVariant = preferred;
+  if (repeat) {
+    let selected;
+    for (const variantName of variantOrder(preferred, diagram.variants ?? { wide: {}, compact: {}, tall: {} })) {
+      try {
+        selected = processVariant(template, block, frame, theme, variantName, bodyFrame, prototype ?? repeat, repeated.values);
+        break;
+      } catch (error) {
+        if (!(error instanceof AssetLayoutError)) throw error;
+      }
+    }
+    if (!selected) throw new AssetLayoutError("No responsive variant satisfies node and text constraints");
+    selectedVariant = selected.variant;
+    primitives.push(...selected.primitives);
+  }
+  for (const item of templatePrimitives) {
+    if (repeat && (item.text_slot === repeated.slot || item.kind === "connector")) continue;
+    if (["media_slot", "picture_placeholder", "picture"].includes(item.kind)) {
+      if (!photo?.path) throw new AssetLayoutError("Responsive media frame requires an approved photo mapping");
+      const position = assertInside(localBox(item.bounds ?? item.position, frame), frame);
+      primitives.push(primitive("image", item.name ?? `asset-photo:${primitives.length}`, position, { photoId: photo.id, fit: item.crop_mode ?? "cover" }));
+      continue;
+    }
+    appendStaticPrimitive(primitives, item, frame, theme, block, slotIndexes);
+  }
+  const requiredMotifs = [...REQUIRED_MOTIFS.responsive_native_template];
+  if (shell && assetKind !== "diagram_recipe") requiredMotifs.push("responsive_shell");
+  if (repeat) requiredMotifs.push("responsive_nodes", "responsive_connectors");
+  const producedMotifs = [...requiredMotifs];
+  const structureFingerprint = `responsive_native_template:${template.module_type ?? "unknown"}:${selectedVariant}|${primitives.map((item) => `${item.kind}:${item.name.split(":")[0]}`).join(";")}`;
+  return { rendererKey: "responsive_native_template", variant: selectedVariant, requiredMotifs, producedMotifs, structureFingerprint, primitives };
+}
+
+export function createAssetRecipe({ rendererKey, block, frame, theme, template, photo }) {
   if (!SUPPORTED_RENDERERS.has(rendererKey)) throw new Error(`Unsupported asset renderer: ${rendererKey}`);
+  if (rendererKey === "responsive_native_template") return responsiveTemplateRecipe(block, frame, theme, template, photo);
   const builders = {
     process_grid: processRecipe,
     comparison: comparisonRecipe,
