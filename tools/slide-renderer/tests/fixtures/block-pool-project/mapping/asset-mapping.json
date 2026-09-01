@@ -1,0 +1,10 @@
+{
+  "requirement_id": "POOL-001",
+  "mappings": [
+    { "block_id": "pool_metrics", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "선택 자산 없이 타입 recipe 사용" },
+    { "block_id": "pool_mapping", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "선택 자산 없이 타입 recipe 사용" },
+    { "block_id": "pool_table", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "선택 자산 없이 타입 recipe 사용" },
+    { "block_id": "pool_flow", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "선택 자산 없이 타입 recipe 사용" },
+    { "block_id": "pool_chevron", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "선택 자산 없이 타입 recipe 사용" }
+  ]
+}

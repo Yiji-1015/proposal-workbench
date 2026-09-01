@@ -1,0 +1,11 @@
+{
+  "requirement_id": "POOL-001",
+  "requirement_name": "고객행동 데이터 분석·활용",
+  "requirement_summary": "고객 접점 데이터를 안전하게 연결하고 분석 결과를 운영과 마케팅에 반영한다.",
+  "rfp_facts": {
+    "quantitative_metrics": [
+      { "id": "POOL-001-M1", "name": "분석 응답시간", "value_text": "30초 이내", "source_refs": ["rfp-pool-1"] },
+      { "id": "POOL-001-M2", "name": "데이터 접점", "value_text": "3개 채널", "source_refs": ["rfp-pool-2"] }
+    ]
+  }
+}

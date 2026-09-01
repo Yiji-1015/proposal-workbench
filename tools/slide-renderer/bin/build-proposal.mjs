@@ -80,6 +80,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     density: model.density,
     content_box_count: model.contentBoxCount,
     meaningful_area_count: model.meaningfulAreaCount,
+    picture_shape_count: 0,
     selected_assets: rendered.assets.map((asset) => ({
       block_id: asset.blockId,
       asset_id: asset.assetId,

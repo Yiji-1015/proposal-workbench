@@ -36,3 +36,21 @@ test("builds a non-DAR portrait proposal from project JSON without DAR leakage",
   assert.equal(wireframe.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   assert.equal(finalSlide.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
 });
+
+test("builds a portrait block-pool proposal with native pool renderers", async (t) => {
+  const rendererRoot = path.resolve(import.meta.dirname, "..");
+  const project = path.join(rendererRoot, "tests", "fixtures", "block-pool-project");
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-pool-"));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const output = path.join(temp, "POOL-001.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output], { encoding: "utf8" });
+  assert.equal(result.status, 0, `stderr=${result.stderr}\nstdout=${result.stdout}`);
+  const report = JSON.parse(await fs.readFile(path.join(temp, "verification-report.json"), "utf8"));
+  assert.equal(report.layout_family, "block_pool_auto");
+  assert.equal(report.orientation, "portrait");
+  assert.ok(report.content_box_count >= 5);
+  assert.equal(report.picture_shape_count, 0);
+  assert.equal(report.selected_assets.length, 0);
+  assert.equal(report.fallback_blocks.length, 5);
+  assert.equal((await fs.readFile(path.join(temp, "final-slide.png"))).subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+});

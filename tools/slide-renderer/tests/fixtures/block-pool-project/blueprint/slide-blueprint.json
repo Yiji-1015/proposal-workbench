@@ -1,0 +1,105 @@
+{
+  "requirement_id": "POOL-001",
+  "slide_scope": "requirement",
+  "primary_requirement_id": "POOL-001",
+  "requirement_ids": ["POOL-001"],
+  "slide_title": "고객행동 데이터 기반 AI 분석·활용 체계",
+  "layout_family": "block_pool_auto",
+  "orientation": "portrait",
+  "governing_message": "고객 접점 데이터를 안전하게 연결하고 분석 결과를 운영·마케팅에 즉시 반영하는 체계를 구축합니다.",
+  "density": "high",
+  "protected_metrics": [
+    { "metric_id": "POOL-001-M1", "label": "분석 응답시간", "value_text": "30초 이내", "source_refs": ["rfp-pool-1"] },
+    { "metric_id": "POOL-001-M2", "label": "데이터 접점", "value_text": "3개 채널", "source_refs": ["rfp-pool-2"] }
+  ],
+  "theme": {
+    "primary": "#1769E0",
+    "navy": "#123B78",
+    "accent": "#4A8CF0",
+    "pale": "#EEF5FF",
+    "surface": "#F3F6FA",
+    "ink": "#172033",
+    "gray": "#5F6B7A",
+    "line": "#C8D2DF",
+    "white": "#FFFFFF"
+  },
+  "blocks": [
+    {
+      "block_id": "pool_metrics",
+      "role": "pool_block",
+      "slot": "auto",
+      "visual_category": "metric_dashboard",
+      "importance": "mandatory",
+      "content": {
+        "headline": "핵심 성능 지표",
+        "metrics": [
+          { "label": "분석 응답시간", "value_text": "30초 이내", "target_text": "운영 기준" },
+          { "label": "데이터 접점", "value_text": "3개 채널", "target_text": "웹·앱·API" }
+        ]
+      },
+      "source_refs": ["rfp-pool-1", "rfp-pool-2"]
+    },
+    {
+      "block_id": "pool_mapping",
+      "role": "pool_block",
+      "slot": "auto",
+      "visual_category": "scope_outcome_mapping",
+      "importance": "mandatory",
+      "content": {
+        "headline": "데이터 범위와 운영 효과",
+        "left": [{ "label": "홈페이지 웹 로그" }, { "label": "코레일+ 행동 데이터" }],
+        "right": [{ "label": "고객 세분화" }, { "label": "운영·마케팅 알림" }],
+        "links": [{ "from": 0, "to": 0 }, { "from": 1, "to": 1 }]
+      },
+      "source_refs": ["rfp-pool-3"]
+    },
+    {
+      "block_id": "pool_table",
+      "role": "pool_block",
+      "slot": "auto",
+      "visual_category": "matrix_table",
+      "importance": "mandatory",
+      "content": {
+        "headline": "요구사항 대응·검증 기준",
+        "columns": ["구분", "제안 대응", "검증 기준"],
+        "rows": [
+          { "label": "수집", "cells": ["접점 로그 연결", "수집 누락 점검"] },
+          { "label": "표준화", "cells": ["비식별·공통 스키마", "필드 정합성 확인"] },
+          { "label": "활용", "cells": ["대시보드·알림 제공", "사용자 시나리오 검증"] }
+        ],
+        "conclusion": "수집부터 활용까지 동일 기준으로 추적합니다."
+      },
+      "source_refs": ["rfp-pool-4"]
+    },
+    {
+      "block_id": "pool_flow",
+      "role": "pool_block",
+      "slot": "auto",
+      "visual_category": "blueprint_flow",
+      "importance": "mandatory",
+      "content": {
+        "headline": "분석 처리 흐름",
+        "inputs": ["고객 접점 로그"],
+        "steps": ["표준화·비식별", "실시간·Batch 분석", "대시보드·알림"],
+        "tools": ["행동모델링", "통계·AI 분석"],
+        "outputs": ["운영·마케팅 활용"],
+        "fallbacks": ["장애 시 Batch 재처리"]
+      },
+      "source_refs": ["rfp-pool-5"]
+    },
+    {
+      "block_id": "pool_chevron",
+      "role": "pool_block",
+      "slot": "auto",
+      "visual_category": "chevron_pipeline",
+      "importance": "mandatory",
+      "content": {
+        "headline": "6개월 구축·검증 순서",
+        "steps": ["기반 구축", "분석 적용", "안정화"],
+        "criteria": ["단위 테스트", "통합·성능 테스트", "인수·장애복구 테스트"],
+        "gates": ["수집 승인", "분석 승인", "운영 전환"]
+      },
+      "source_refs": ["rfp-pool-6"]
+    }
+  ]
+}

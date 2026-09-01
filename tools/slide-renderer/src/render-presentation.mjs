@@ -90,6 +90,7 @@ function addWireframe(deck, model, layout, assetByBlock) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
     const mapping = assetByBlock.get(block.blockId);
+    const rendererKey = mapping?.rendererKey ?? block.blockTypeDefinition?.rendererKey;
     if (block.architectureTreatment !== "native_diagram") {
       rect(slide, `wireframe:${block.blockId}`, frame, C.white, "#93A2B4");
       text(slide, `wireframe-title:${block.blockId}`, `[${roleTitles[block.role] ?? block.role} · ${block.architectureTreatment}]`, { left: frame.left + 14, top: frame.top + 13, width: frame.width - 28, height: 24 }, 16, C.navy, true);
@@ -100,10 +101,10 @@ function addWireframe(deck, model, layout, assetByBlock) {
       text(slide, `wireframe-mapping:${block.blockId}`, treatmentNote, { left: frame.left + 14, top: frame.top + frame.height - 30, width: frame.width - 28, height: 16 }, 10, C.gray, true);
       continue;
     }
-    if (mapping) {
-      const recipe = createAssetRecipe({ rendererKey: mapping.rendererKey, block, frame, theme: model.theme });
+    if (rendererKey) {
+      const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
       applyAssetRecipe(slide, recipe);
-      text(slide, `wireframe-mapping:${block.blockId}`, `asset: ${mapping.assetId} · ${mapping.rendererKey}`, { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, 9, C.gray, true, "right");
+      text(slide, `wireframe-mapping:${block.blockId}`, mapping ? `asset: ${mapping.assetId} · ${rendererKey}` : `fallback: native_shapes · ${rendererKey}`, { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, 9, C.gray, true, "right");
       continue;
     }
     rect(slide, `wireframe:${block.blockId}`, frame, C.white, "#93A2B4");
@@ -275,13 +276,15 @@ function addFinal(deck, model, layout, assets) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
     const asset = assetByBlock.get(block.blockId);
+    const rendererKey = asset?.rendererKey ?? block.blockTypeDefinition?.rendererKey;
     if (block.architectureTreatment !== "native_diagram") {
       renderGeneric(slide, block, frame);
       continue;
     }
-    if (asset) {
-      const recipe = createAssetRecipe({ rendererKey: asset.rendererKey, block, frame, theme: model.theme });
-      applications.push({ blockId: block.blockId, assetId: asset.assetId, ...applyAssetRecipe(slide, recipe) });
+    if (rendererKey) {
+      const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
+      const application = applyAssetRecipe(slide, recipe);
+      if (asset) applications.push({ blockId: block.blockId, assetId: asset.assetId, ...application });
       continue;
     }
     if (block.role === "metric_highlight") renderMetric(slide, model, block, frame);
