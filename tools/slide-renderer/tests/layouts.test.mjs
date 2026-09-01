@@ -2,6 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createLayoutPlan } from "../src/layouts.mjs";
 
+function overlaps(a, b) {
+  return a.left < b.left + b.width && a.left + a.width > b.left && a.top < b.top + b.height && a.top + a.height > b.top;
+}
+
+function poolBlock(blockId, span, minHeight = { portrait: 120, landscape: 90 }) {
+  return {
+    blockId,
+    role: blockId,
+    slot: "auto",
+    steps: [],
+    content: {},
+    blockTypeDefinition: {
+      id: blockId,
+      preferredSpan: span,
+      minHeight,
+      preferredHeight: minHeight,
+    },
+  };
+}
+
 function model(overrides = {}) {
   return {
     requirementId: "SEC-204",
@@ -72,4 +92,34 @@ test("falls back to a bounded generic grid for an unknown layout family", () => 
   assert.equal(plan.layoutKey, "generic_grid:landscape");
   assert.deepEqual(Object.keys(plan.frames).sort(), ["main_process", "metric_highlight", "operation_quality", "requirement_summary", "technology_comparison"]);
   for (const frame of Object.values(plan.frames)) assert.ok(frame.left >= 0 && frame.top >= 0 && frame.left + frame.width <= 1280 && frame.top + frame.height <= 720);
+});
+
+test("packs full and half pool blocks inside a portrait canvas", () => {
+  const plan = createLayoutPlan({
+    layoutFamily: "block_pool_auto",
+    canvas: { width: 720, height: 1280, orientation: "portrait" },
+    blocks: [
+      poolBlock("metric_dashboard", "half"),
+      poolBlock("scope_outcome_mapping", "half"),
+      poolBlock("matrix_table", "full"),
+      poolBlock("blueprint_flow", "full"),
+      poolBlock("chevron_pipeline", "half"),
+    ],
+  });
+  assert.equal(plan.layoutKey, "block_pool_auto:portrait");
+  const frames = Object.values(plan.frames);
+  for (const current of frames) {
+    assert.ok(current.left >= 0 && current.top >= 0 && current.left + current.width <= 720 && current.top + current.height <= 1280);
+  }
+  for (let i = 0; i < frames.length; i += 1) {
+    for (let j = i + 1; j < frames.length; j += 1) assert.equal(overlaps(frames[i], frames[j]), false);
+  }
+});
+
+test("rejects a pool that cannot fit without shrinking content", () => {
+  assert.throws(() => createLayoutPlan({
+    layoutFamily: "block_pool_auto",
+    canvas: { width: 720, height: 1280, orientation: "portrait" },
+    blocks: Array.from({ length: 5 }, (_, index) => poolBlock(`full-${index}`, "full", { portrait: 300, landscape: 200 })),
+  }), /block_pool_auto.*fit/i);
 });

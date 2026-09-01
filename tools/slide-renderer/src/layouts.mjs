@@ -38,6 +38,57 @@ function genericFrames(model) {
   }));
 }
 
+function poolFrames(model) {
+  const { width, height, orientation } = model.canvas;
+  const margin = orientation === "portrait" ? 36 : 48;
+  const top = orientation === "portrait" ? 166 : 160;
+  const bottom = height - 66;
+  const gap = 14;
+  const availableWidth = width - margin * 2;
+  const rows = [];
+  for (const block of model.blocks) {
+    const span = block.blockTypeDefinition?.preferredSpan;
+    if (span !== "full" && span !== "half") throw new Error(`block_pool_auto requires a full or half span for ${block.blockId}`);
+    const previous = rows.at(-1);
+    if (span === "half" && previous?.span === "half" && previous.blocks.length < 2) previous.blocks.push(block);
+    else rows.push({ span, blocks: [block] });
+  }
+  const dimensions = rows.map((row) => {
+    const definitions = row.blocks.map((block) => block.blockTypeDefinition);
+    const minHeight = Math.max(...definitions.map((definition) => Number(definition.minHeight?.[orientation])));
+    const preferredHeight = Math.max(minHeight, ...definitions.map((definition) => Number(definition.preferredHeight?.[orientation])));
+    if (!Number.isFinite(minHeight) || !Number.isFinite(preferredHeight)) throw new Error(`block_pool_auto requires numeric heights for ${row.blocks.map((block) => block.blockId).join(", ")}`);
+    return { ...row, minHeight, preferredHeight };
+  });
+  const availableHeight = bottom - top - gap * Math.max(0, dimensions.length - 1);
+  const minimumHeight = dimensions.reduce((total, row) => total + row.minHeight, 0);
+  if (minimumHeight > availableHeight) throw new Error(`block_pool_auto cannot fit ${minimumHeight} minimum height into ${availableHeight} available height`);
+  const heights = dimensions.map((row) => row.minHeight);
+  let remaining = availableHeight - minimumHeight;
+  for (let index = 0; index < dimensions.length && remaining > 0; index += 1) {
+    const room = dimensions[index].preferredHeight - heights[index];
+    const addition = Math.min(room, remaining);
+    heights[index] += addition;
+    remaining -= addition;
+  }
+  if (remaining > 0) {
+    const addition = remaining / heights.length;
+    for (let index = 0; index < heights.length; index += 1) heights[index] += addition;
+  }
+  const frames = {};
+  let currentTop = top;
+  for (let rowIndex = 0; rowIndex < dimensions.length; rowIndex += 1) {
+    const row = dimensions[rowIndex];
+    const rowHeight = heights[rowIndex];
+    const cellWidth = row.blocks.length === 2 ? (availableWidth - gap) / 2 : row.span === "half" ? (availableWidth - gap) / 2 : availableWidth;
+    row.blocks.forEach((block, index) => {
+      frames[block.blockId] = frame(margin + index * (cellWidth + gap), currentTop, cellWidth, rowHeight);
+    });
+    currentTop += rowHeight + gap;
+  }
+  return frames;
+}
+
 function processCells(model, frames) {
   const process = model.blocks.find((block) => block.role === "main_process" || block.blockId === "main_process");
   if (!process?.steps?.length) return [];
@@ -59,14 +110,15 @@ function processCells(model, frames) {
 
 export function createLayoutPlan(model) {
   const registered = model.layoutFamily === "three_column_with_bottom_band";
-  const templateFrames = registered ? registeredFrames(model) : genericFrames(model);
+  const pool = model.layoutFamily === "block_pool_auto";
+  const templateFrames = pool ? poolFrames(model) : registered ? registeredFrames(model) : genericFrames(model);
   const frames = registered
     ? Object.fromEntries(model.blocks
       .map((block) => [block.blockId, templateFrames[block.role] ?? templateFrames[block.blockId]])
       .filter(([, value]) => value))
     : templateFrames;
   return {
-    layoutKey: `${registered ? model.layoutFamily : "generic_grid"}:${model.canvas.orientation}`,
+    layoutKey: `${pool || registered ? model.layoutFamily : "generic_grid"}:${model.canvas.orientation}`,
     frames,
     processCells: processCells(model, frames),
   };
