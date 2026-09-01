@@ -130,3 +130,10 @@ test("reserves explanation space in pool block minimum heights", () => {
   const withExplanation = Array.from({ length: 5 }, (_, index) => poolBlock(`explained-${index}`, "full", { portrait: 190, landscape: 140 }, "간단한 부연설명"));
   assert.throws(() => createLayoutPlan({ layoutFamily: "block_pool_auto", canvas: { width: 720, height: 1280, orientation: "portrait" }, blocks: withExplanation }), /block_pool_auto.*fit/i);
 });
+
+test("fails closed instead of clipping detailed explanation text", () => {
+  const shortExplanation = Array.from({ length: 5 }, (_, index) => poolBlock(`short-${index}`, "full", { portrait: 150, landscape: 110 }, "짧은 설명"));
+  assert.doesNotThrow(() => createLayoutPlan({ layoutFamily: "block_pool_auto", canvas: { width: 720, height: 1280, orientation: "portrait" }, blocks: shortExplanation }));
+  const detailedExplanation = Array.from({ length: 5 }, (_, index) => poolBlock(`detailed-${index}`, "full", { portrait: 150, landscape: 110 }, "상세 설명을 보존합니다. ".repeat(20)));
+  assert.throws(() => createLayoutPlan({ layoutFamily: "block_pool_auto", canvas: { width: 720, height: 1280, orientation: "portrait" }, blocks: detailedExplanation }), /block_pool_auto.*fit/i);
+});

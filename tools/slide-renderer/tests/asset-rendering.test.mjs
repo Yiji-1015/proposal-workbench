@@ -84,3 +84,19 @@ test("adds an editable explanation area without replacing the native diagram", (
   assert.ok(recipe.primitives.some((item) => item.name === "explanation:explained-flow" && item.text.includes("접점 로그")));
   assert.ok(recipe.primitives.some((item) => item.name === "process-step:1"));
 });
+
+test("expands the editable explanation area for detailed native-diagram copy", () => {
+  const recipe = createAssetRecipe({
+    rendererKey: "blueprint_flow",
+    block: {
+      blockId: "detailed-flow",
+      content: { headline: "흐름", inputs: ["로그"], steps: ["정제", "분석"], outputs: ["알림"], explanation: "상세 설명을 보존합니다. ".repeat(20) },
+      steps: [],
+      options: [],
+    },
+    frame,
+    theme,
+  });
+  const explanation = recipe.primitives.find((item) => item.name === "explanation:detailed-flow");
+  assert.ok(explanation.position.height > 30);
+});

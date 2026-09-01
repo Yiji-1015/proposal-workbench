@@ -47,6 +47,9 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /나노바나나\/imagegen/);
   assert.match(skill, /간단한 도식.*부연설명/s);
   assert.match(skill, /도식 라벨.*짧게/s);
+  assert.match(skill, /가독성 한도까지 정보량/s);
+  assert.match(skill, /큰 빈 패널.*금지/s);
+  assert.match(skill, /네이티브 도식.*끝까지 구성/s);
   for (const blockType of [
     "matrix_table",
     "metric_dashboard",
@@ -153,6 +156,8 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /content\.explanation/);
   assert.match(planner, /visual_category.*블록 타입/);
   assert.match(planner, /간단한 도식.*부연설명/s);
+  assert.match(planner, /가독성 한도까지 정보량/s);
+  assert.match(planner, /네이티브 도식.*끝까지 구성/s);
   assert.match(maker, /업무 내용은 무시/);
   assert.match(maker, /최종 장표에 삽입하지 않는다/);
   for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {

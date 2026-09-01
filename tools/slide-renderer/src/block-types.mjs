@@ -1,5 +1,12 @@
 export const EXPLANATION_BAND_HEIGHT = 38;
 
+export function explanationBandHeight(text, width) {
+  if (typeof text !== "string" || !text.trim()) return 0;
+  const charactersPerLine = Math.max(22, Math.floor(Number(width) / 8));
+  const lines = Math.max(1, Math.ceil(text.trim().length / charactersPerLine));
+  return Math.max(EXPLANATION_BAND_HEIGHT, 14 + lines * 13);
+}
+
 const BLOCK_TYPE_DEFINITIONS = [
   {
     id: "matrix_table",

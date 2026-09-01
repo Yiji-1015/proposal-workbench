@@ -1,4 +1,4 @@
-import { EXPLANATION_BAND_HEIGHT } from "./block-types.mjs";
+import { explanationBandHeight } from "./block-types.mjs";
 
 const SUPPORTED_RENDERERS = new Set([
   "process_grid",
@@ -83,11 +83,12 @@ function explanationText(block) {
 function explanationPrimitives(block, frame, theme) {
   const explanation = explanationText(block);
   if (!explanation) return [];
+  const explanationHeight = explanationBandHeight(explanation, frame.width);
   const band = {
     left: frame.left + 12,
-    top: frame.top + frame.height - EXPLANATION_BAND_HEIGHT + 4,
+    top: frame.top + frame.height - explanationHeight + 4,
     width: frame.width - 24,
-    height: EXPLANATION_BAND_HEIGHT - 8,
+    height: explanationHeight - 8,
   };
   return [
     primitive("roundRect", `explanation-band:${block.blockId}`, band, { fill: theme.surface, stroke: theme.line }),
@@ -419,8 +420,9 @@ export function createAssetRecipe({ rendererKey, block, frame, theme }) {
     chevron_pipeline: chevronPipelineRecipe,
     gantt_roadmap: ganttRoadmapRecipe,
   };
-  const renderFrame = explanationText(block)
-    ? { ...frame, height: Math.max(40, frame.height - EXPLANATION_BAND_HEIGHT) }
+  const explanation = explanationText(block);
+  const renderFrame = explanation
+    ? { ...frame, height: Math.max(40, frame.height - explanationBandHeight(explanation, frame.width)) }
     : frame;
   const primitives = [...builders[rendererKey](block, renderFrame, theme), ...explanationPrimitives(block, frame, theme)];
   const requiredMotifs = REQUIRED_MOTIFS[rendererKey];

@@ -96,7 +96,7 @@ export interface SlideBlock {
     bullets?: string[];
     steps?: string[];
     flow_steps?: string[];    // 복잡한 아키텍처 설명의 읽기 순서
-    explanation?: string;      // text_explainer/generated_visual_with_text에서 필수
+    explanation?: string;      // native_diagram의 상세 부연설명으로 선택, 나머지는 필수
     options?: { label: string; desc: string; tag?: string }[];
     diagram_labels?: string[];
     conclusion?: string;     // 비교 블록 결론 필수

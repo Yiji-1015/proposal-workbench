@@ -82,7 +82,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 `primary_requirement_id`는 `slide_scope: requirement`일 때 필수이며 `requirement_ids`의 유일한 값과 같아야 한다. `overview`에서는 생략하거나 `null`로 두고 여러 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 각 페이지를 같은 `primary_requirement_id`로 연결한다.
 
-복잡한 아키텍처 블록은 `architecture_treatment`로 표현 방식을 선언한다. `native_diagram`은 읽을 수 있는 네이티브 도식, `text_explainer`는 네이티브 텍스트 상자 중심 설명, `generated_visual_with_text`는 사용자가 허용한 imagegen(나노바나나) 보조 시각과 편집 가능한 설명 텍스트의 조합이다. `native_diagram`도 긴 문장을 노드에 넣지 않고 `content.explanation`에 붙이는 편집 가능한 부연설명을 사용할 수 있으며, 후자의 두 방식은 `content.explanation`을 필수로 한다. 이미지 안의 생성 문구·수치·근거는 사실 데이터로 사용하지 않는다.
+복잡한 아키텍처 블록은 `architecture_treatment`로 표현 방식을 선언한다. `native_diagram`은 가능한 한 전체 구조를 담는 네이티브 도식, `text_explainer`는 네이티브 텍스트 상자 중심 설명, `generated_visual_with_text`는 사용자가 허용한 imagegen(나노바나나) 보조 시각과 편집 가능한 설명 텍스트의 조합이다. `native_diagram`도 노드 라벨은 공간에 맞게 축약하되 상세 문장·근거·예외·운영상 의미는 `content.explanation`에 붙이는 편집 가능한 부연설명으로 보존한다. 후자의 두 방식은 `content.explanation`을 필수로 하며, 이미지 안의 생성 문구·수치·근거는 사실 데이터로 사용하지 않는다.
 
 `orientation`이 `portrait`이면 다음 필드도 필수다.
 
@@ -121,11 +121,13 @@ node "<skill-root>/scripts/verify-skill.mjs"
 | `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
 | `gantt_roadmap` | 기간·작업·마일스톤 | `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
 
-자동 배치가 타입별 최소 높이를 만족하지 못하면 내용을 축소하지 않고 시리즈 장표로 나누거나 복잡한 흐름을 `text_explainer`로 전환한다.
+자동 배치가 타입별 최소 높이를 만족하지 못하면 내용을 축소하지 않고 먼저 시리즈 장표로 나눈다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능한 복잡한 흐름만 `text_explainer`로 전환한다.
 
 `requirement_summary`는 분석 입력이며 최종 장표의 `요구사항 해석` 섹션으로 그대로 노출하지 않는다. 최종 가시 제목은 `핵심 구현 전략`, `통합 적용 방안`, `운영 통제`처럼 제안사의 실행과 결과를 표현한다. 비교 성격의 블록은 `content.conclusion`에 최종 적용 방향을 포함한다.
 
 `diagram_labels`는 원문 근거가 있는 긴 `bullets`를 도식 노드에 넣기 위해 축약한 가시 라벨이다. 세 개 이상의 병렬 항목은 불릿 목록으로 그대로 두기 전에 chain, wheel, mapping, matrix, lifecycle 자산의 노드 라벨로 변환할 수 있는지 우선 검토한다.
+
+`density: high`는 최소 개수만 채우라는 뜻이 아니다. 요구사항·세부 기능·처리·통제·검증 기준·성과·자사 역량 상태를 가능한 한 빠짐없이 담고, 큰 빈 영역이나 두세 줄 요약을 남기지 않는다. 도식 라벨만 공간에 맞게 줄이고 상세 내용은 노드·주석·인접 편집 텍스트로 분산한다.
 
 ## `mapping/asset-mapping.json`
 

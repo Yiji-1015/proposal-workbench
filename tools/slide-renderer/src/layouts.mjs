@@ -1,4 +1,4 @@
-import { EXPLANATION_BAND_HEIGHT } from "./block-types.mjs";
+import { explanationBandHeight } from "./block-types.mjs";
 
 function frame(left, top, width, height) { return { left, top, width, height }; }
 
@@ -57,9 +57,8 @@ function poolFrames(model) {
   }
   const dimensions = rows.map((row) => {
     const definitions = row.blocks.map((block) => block.blockTypeDefinition);
-    const explanationHeight = row.blocks.some((block) => typeof block.content?.explanation === "string" && block.content.explanation.trim())
-      ? EXPLANATION_BAND_HEIGHT
-      : 0;
+    const rowWidth = row.blocks.length === 2 ? (availableWidth - gap) / 2 : availableWidth;
+    const explanationHeight = Math.max(...row.blocks.map((block) => explanationBandHeight(block.content?.explanation, rowWidth)));
     const baseMinHeight = Math.max(...definitions.map((definition) => Number(definition.minHeight?.[orientation])));
     const basePreferredHeight = Math.max(baseMinHeight, ...definitions.map((definition) => Number(definition.preferredHeight?.[orientation])));
     const minHeight = baseMinHeight + explanationHeight;

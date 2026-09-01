@@ -81,10 +81,10 @@
 
 ## 7. 복잡한 아키텍처
 
-복잡한 흐름도 먼저 간단한 도식과 부연설명으로 압축한다. 노드·연결에는 핵심 명사와 짧은 동사만 두고, `content.explanation`에 데이터가 어디서 와서 어떤 처리·통제를 거쳐 어디로 가는지 1~2문장으로 상세히 설명한다.
+복잡한 흐름도 먼저 간단한 도식과 부연설명으로 설계하되, 네이티브 도식을 끝까지 구성한다. 노드·연결에는 공간에 맞는 짧은 라벨을 두고 기능·수치·관계·통제 지점을 가능한 한 보존하며, `content.explanation`과 인접 편집 텍스트에 상세 내용을 빠짐없이 설명한다.
 
-1. 간단한 도식으로 핵심 흐름이 전달되면 `architecture_treatment: "native_diagram"`과 `content.explanation`을 함께 사용한다.
-2. 간단한 도식으로도 핵심 흐름을 전달할 수 없을 때만 `architecture_treatment: "text_explainer"`로 전환하고 `content.flow_steps`를 보조 흐름으로 기록한다.
+1. `architecture_treatment: "native_diagram"`을 우선 선택하고, 가능한 한 전체 흐름·구성요소·데이터·통제·결과를 네이티브 도형으로 구성한 뒤 `content.explanation`으로 상세 내용을 보완한다.
+2. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능할 때만 `architecture_treatment: "text_explainer"`로 전환하고 `content.flow_steps`를 보조 흐름으로 기록한다.
 3. 사용자가 허용한 경우에만 `generated_visual_with_text`와 imagegen(나노바나나) 보조 시각을 사용한다. 이미지가 정확한 사실·수치·근거를 대신하지 않도록 설명 텍스트를 반드시 병기한다.
 4. 텍스트 설명으로도 핵심 흐름을 전달할 수 없을 때만 와이어프레임에 `architecture_required`를 표시하고 승인을 대기한다.
 
