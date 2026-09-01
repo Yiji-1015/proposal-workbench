@@ -1,3 +1,5 @@
+export const EXPLANATION_BAND_HEIGHT = 38;
+
 const BLOCK_TYPE_DEFINITIONS = [
   {
     id: "matrix_table",

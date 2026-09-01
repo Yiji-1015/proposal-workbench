@@ -6,13 +6,13 @@ function overlaps(a, b) {
   return a.left < b.left + b.width && a.left + a.width > b.left && a.top < b.top + b.height && a.top + a.height > b.top;
 }
 
-function poolBlock(blockId, span, minHeight = { portrait: 120, landscape: 90 }) {
+function poolBlock(blockId, span, minHeight = { portrait: 120, landscape: 90 }, explanation = "") {
   return {
     blockId,
     role: blockId,
     slot: "auto",
     steps: [],
-    content: {},
+    content: explanation ? { explanation } : {},
     blockTypeDefinition: {
       id: blockId,
       preferredSpan: span,
@@ -122,4 +122,11 @@ test("rejects a pool that cannot fit without shrinking content", () => {
     canvas: { width: 720, height: 1280, orientation: "portrait" },
     blocks: Array.from({ length: 5 }, (_, index) => poolBlock(`full-${index}`, "full", { portrait: 300, landscape: 200 })),
   }), /block_pool_auto.*fit/i);
+});
+
+test("reserves explanation space in pool block minimum heights", () => {
+  const withoutExplanation = Array.from({ length: 5 }, (_, index) => poolBlock(`plain-${index}`, "full", { portrait: 190, landscape: 140 }));
+  assert.doesNotThrow(() => createLayoutPlan({ layoutFamily: "block_pool_auto", canvas: { width: 720, height: 1280, orientation: "portrait" }, blocks: withoutExplanation }));
+  const withExplanation = Array.from({ length: 5 }, (_, index) => poolBlock(`explained-${index}`, "full", { portrait: 190, landscape: 140 }, "간단한 부연설명"));
+  assert.throws(() => createLayoutPlan({ layoutFamily: "block_pool_auto", canvas: { width: 720, height: 1280, orientation: "portrait" }, blocks: withExplanation }), /block_pool_auto.*fit/i);
 });

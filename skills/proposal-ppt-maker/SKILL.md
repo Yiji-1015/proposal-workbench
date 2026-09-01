@@ -35,7 +35,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 15. **산출물은 실행 단위로 정리한다.** 요구사항마다 최종 산출물 폴더를 하나씩 만들지 않는다. 하나의 RFP 실행을 한 폴더로 묶고 요구사항 ID는 파일명으로 식별한다.
 16. **첨부 이미지는 구조 레퍼런스다.** 첨부 이미지에서는 구조와 배치만 참고하고 색상, 타이포그래피, 문구, 업무 내용은 무시한다. 이 Skill은 인제스트나 레퍼런스 검색을 호출하지 않으며, 사용자가 이미지 배치를 별도로 요청하지 않으면 최종 장표에 삽입하지 않는다.
 17. **장표 단위를 구분한다.** 기본은 RFP 개별 요구사항 1건당 1페이지다. 개요 장표만 여러 요구사항을 묶을 수 있으며, 반드시 `slide_scope: "overview"`와 `requirement_ids`를 명시한다. `run_id`나 프로젝트 ID만으로 개별 요구사항 장표로 간주하지 않는다.
-18. **복잡한 아키텍처는 설명 우선으로 완화한다.** 최종 크기에서 노드·연결·라벨을 읽기 어렵다면 억지로 축소하지 말고 `architecture_treatment: "text_explainer"`로 전환한다. 이때 `content.explanation`에 데이터가 무엇에서 무엇으로, 어떤 처리·통제를 거쳐, 어떤 사용자·운영 결과로 이어지는지 상세히 쓴다. 사용자가 나노바나나/imagegen을 허용하면 `generated_visual_with_text`를 보조 시각으로 사용할 수 있지만, 이미지 안의 생성 문구를 사실·수치·근거로 취급하지 않고 설명 텍스트를 함께 제공한다. 텍스트 설명으로도 전달할 수 없을 때만 `architecture_required`와 `상세 아키텍처 필요`를 남긴다.
+18. **복잡한 아키텍처는 설명 우선으로 판단하되, 간단한 도식과 부연설명으로 전달한다.** 핵심 출발점·처리·결과만 `native_diagram`으로 그리고, 도식 라벨은 짧게 쓴 뒤 `content.explanation`에 사용자가 이해할 상세 부연설명을 1~2문장으로 붙인다. 간단한 도식으로도 핵심 흐름이 전달되지 않을 때만 `architecture_treatment: "text_explainer"`로 전환한다. 사용자가 나노바나나/imagegen을 허용하면 `generated_visual_with_text`를 보조 시각으로 사용할 수 있지만, 이미지 안의 생성 문구를 사실·수치·근거로 취급하지 않고 설명 텍스트를 함께 제공한다. 텍스트 설명으로도 전달할 수 없을 때만 `architecture_required`와 `상세 아키텍처 필요`를 남긴다.
 19. **선택 가능한 블록 풀에서 요구사항에 맞는 구조를 고른다.** `visual_category`는 `block_pool_auto`에서 블록 타입을 지정하며, 표·기준은 `matrix_table`, 숫자·목표는 `metric_dashboard`, 범위와 효과의 대응은 `scope_outcome_mapping`, 입력·처리·결과 흐름은 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 기간·작업은 `gantt_roadmap`을 우선 선택한다. 이 레이아웃은 5~6개 블록에 `slot: "auto"`를 사용하고, 기존 고정 레이아웃을 임의로 대체하지 않는다.
 
 ## 실행 절차
@@ -46,7 +46,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 4. 요구사항별로 원문 사실, 정량지표, 필수 기능, 제약, 제안사가 답해야 할 질문을 내부 분석한다. 모든 정량표현을 `protected_metrics`와 `source_refs`에 보존한다.
 5. 장표 제목, 거버닝 메시지, 가시 섹션, 결론을 작성한다. 내부 분석 제목을 가시 제목으로 복사하지 않는다.
 6. 병렬 항목을 먼저 내용 도식으로 변환하고, 카탈로그를 `semantic` → `structural` → `decorative` 순으로 검토한다. 방향 차이만으로 자산을 거절하지 않는다.
-7. 선택한 자산 구조를 네이티브 PowerPoint 도형으로 재구성하는 청사진과 매핑을 만든다. 복잡한 아키텍처는 `architecture_treatment`를 먼저 결정하고, `text_explainer`이면 상세 `content.explanation`을 포함한다. 최종 `render_mode`는 기본적으로 `native_powerpoint_shapes`여야 한다.
+7. 선택한 자산 구조를 네이티브 PowerPoint 도형으로 재구성하는 청사진과 매핑을 만든다. 복잡한 흐름은 짧은 도식 라벨과 상세 `content.explanation`을 함께 설계하고, 간단한 도식으로 전달할 수 없을 때만 `text_explainer`를 선택한다. 최종 `render_mode`는 기본적으로 `native_powerpoint_shapes`여야 한다.
 8. 선택 에셋 고유의 구조가 보이는 첫 와이어프레임을 채팅에 인라인으로 표시해 구조·배치·자산 매핑 승인을 받는다. 최소 5개의 독립된 내용 상자와 `density: high`를 충족하되 같은 카드 형태를 반복하지 않는다.
 9. 승인된 프로젝트만 렌더링한다.
 

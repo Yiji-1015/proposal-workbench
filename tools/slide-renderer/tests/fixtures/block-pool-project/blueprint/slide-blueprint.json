@@ -83,7 +83,8 @@
         "steps": ["표준화·비식별", "실시간·Batch 분석", "대시보드·알림"],
         "tools": ["행동모델링", "통계·AI 분석"],
         "outputs": ["운영·마케팅 활용"],
-        "fallbacks": ["장애 시 Batch 재처리"]
+        "fallbacks": ["장애 시 Batch 재처리"],
+        "explanation": "접점 로그를 표준화·분석해 운영과 마케팅에 바로 활용할 수 있는 결과로 전달합니다."
       },
       "source_refs": ["rfp-pool-5"]
     },

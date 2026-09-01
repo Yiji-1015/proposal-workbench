@@ -82,7 +82,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 `primary_requirement_id`는 `slide_scope: requirement`일 때 필수이며 `requirement_ids`의 유일한 값과 같아야 한다. `overview`에서는 생략하거나 `null`로 두고 여러 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 각 페이지를 같은 `primary_requirement_id`로 연결한다.
 
-복잡한 아키텍처 블록은 `architecture_treatment`로 표현 방식을 선언한다. `native_diagram`은 읽을 수 있는 네이티브 도식, `text_explainer`는 네이티브 텍스트 상자 중심 설명, `generated_visual_with_text`는 사용자가 허용한 imagegen(나노바나나) 보조 시각과 편집 가능한 설명 텍스트의 조합이다. 후자의 두 방식은 `content.explanation`을 필수로 하며, 이미지 안의 생성 문구·수치·근거는 사실 데이터로 사용하지 않는다.
+복잡한 아키텍처 블록은 `architecture_treatment`로 표현 방식을 선언한다. `native_diagram`은 읽을 수 있는 네이티브 도식, `text_explainer`는 네이티브 텍스트 상자 중심 설명, `generated_visual_with_text`는 사용자가 허용한 imagegen(나노바나나) 보조 시각과 편집 가능한 설명 텍스트의 조합이다. `native_diagram`도 긴 문장을 노드에 넣지 않고 `content.explanation`에 붙이는 편집 가능한 부연설명을 사용할 수 있으며, 후자의 두 방식은 `content.explanation`을 필수로 한다. 이미지 안의 생성 문구·수치·근거는 사실 데이터로 사용하지 않는다.
 
 `orientation`이 `portrait`이면 다음 필드도 필수다.
 
@@ -117,7 +117,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 | `matrix_table` | 표·기준·검증·역할 | `columns[]`, `rows[]` (`label`, `cells[]`) |
 | `metric_dashboard` | 숫자·목표·증감·성능 | `metrics[]` (`label`, `value_text`) |
 | `scope_outcome_mapping` | 범위와 효과의 대응 | `left[]`, `right[]`, 선택 `links[]` (`from`, `to`) |
-| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `outputs[]`; 선택 `tools[]`, `fallbacks[]` |
+| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `outputs[]`; 선택 `tools[]`, `fallbacks[]`, `explanation` |
 | `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
 | `gantt_roadmap` | 기간·작업·마일스톤 | `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
 

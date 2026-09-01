@@ -1,3 +1,5 @@
+import { EXPLANATION_BAND_HEIGHT } from "./block-types.mjs";
+
 function frame(left, top, width, height) { return { left, top, width, height }; }
 
 function registeredFrames(model) {
@@ -55,8 +57,13 @@ function poolFrames(model) {
   }
   const dimensions = rows.map((row) => {
     const definitions = row.blocks.map((block) => block.blockTypeDefinition);
-    const minHeight = Math.max(...definitions.map((definition) => Number(definition.minHeight?.[orientation])));
-    const preferredHeight = Math.max(minHeight, ...definitions.map((definition) => Number(definition.preferredHeight?.[orientation])));
+    const explanationHeight = row.blocks.some((block) => typeof block.content?.explanation === "string" && block.content.explanation.trim())
+      ? EXPLANATION_BAND_HEIGHT
+      : 0;
+    const baseMinHeight = Math.max(...definitions.map((definition) => Number(definition.minHeight?.[orientation])));
+    const basePreferredHeight = Math.max(baseMinHeight, ...definitions.map((definition) => Number(definition.preferredHeight?.[orientation])));
+    const minHeight = baseMinHeight + explanationHeight;
+    const preferredHeight = basePreferredHeight + explanationHeight;
     if (!Number.isFinite(minHeight) || !Number.isFinite(preferredHeight)) throw new Error(`block_pool_auto requires numeric heights for ${row.blocks.map((block) => block.blockId).join(", ")}`);
     return { ...row, minHeight, preferredHeight };
   });

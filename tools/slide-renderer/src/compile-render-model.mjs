@@ -28,6 +28,8 @@ function normalizeBlock(block) {
   const visualCategory = ownString(block, "visual_category");
   const blockTypeDefinition = getBlockTypeDefinition(visualCategory);
   const content = blockTypeDefinition ? validateBlockTypeContent(visualCategory, block.content) : structuredClone(block.content ?? {});
+  if (content.explanation != null && typeof content.explanation !== "string") throw new TypeError(`content.explanation for ${blockId} must be a string`);
+  if (typeof content.explanation === "string") content.explanation = content.explanation.trim();
   const steps = Array.isArray(content.steps) ? content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
   const flowSteps = Array.isArray(content.flow_steps) ? content.flow_steps.map((step) => String(step).trim()).filter(Boolean) : [];
   const options = Array.isArray(content.options) ? structuredClone(content.options) : [];

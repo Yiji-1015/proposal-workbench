@@ -45,6 +45,8 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /architecture_treatment/);
   assert.match(skill, /content\.explanation/);
   assert.match(skill, /나노바나나\/imagegen/);
+  assert.match(skill, /간단한 도식.*부연설명/s);
+  assert.match(skill, /도식 라벨.*짧게/s);
   for (const blockType of [
     "matrix_table",
     "metric_dashboard",
@@ -54,6 +56,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
     "gantt_roadmap",
   ]) assert.ok(io.includes(blockType), `missing block type ${blockType}`);
   assert.match(io, /block_pool_auto/);
+  assert.match(io, /content\.explanation.*부연설명/s);
   assert.match(skill, /선택 가능한 블록 풀/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);
@@ -98,6 +101,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(assetSelection, /text_explainer/);
   assert.match(assetSelection, /generated_visual_with_text/);
   assert.match(assetSelection, /imagegen/);
+  assert.match(assetSelection, /간단한 도식.*부연설명/s);
 
   assert.match(portraitProposal, /모든 `portrait` 청사진에 `governing_message`/);
   assert.match(portraitProposal, /반드시 `니다\.`로 끝낸다/);
@@ -148,6 +152,7 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /복잡한 아키텍처는 설명 우선/);
   assert.match(planner, /content\.explanation/);
   assert.match(planner, /visual_category.*블록 타입/);
+  assert.match(planner, /간단한 도식.*부연설명/s);
   assert.match(maker, /업무 내용은 무시/);
   assert.match(maker, /최종 장표에 삽입하지 않는다/);
   for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {

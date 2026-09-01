@@ -68,3 +68,19 @@ test("maps catalog visual modules to pool renderer keys", () => {
   };
   for (const [module_type, expected] of Object.entries(mappings)) assert.equal(resolveRendererKey({}, { module_type }), expected);
 });
+
+test("adds an editable explanation area without replacing the native diagram", () => {
+  const recipe = createAssetRecipe({
+    rendererKey: "blueprint_flow",
+    block: {
+      blockId: "explained-flow",
+      content: { headline: "흐름", inputs: ["로그"], steps: ["정제", "분석"], outputs: ["알림"], explanation: "접점 로그를 정제·분석해 운영 알림으로 전달합니다." },
+      steps: [],
+      options: [],
+    },
+    frame,
+    theme,
+  });
+  assert.ok(recipe.primitives.some((item) => item.name === "explanation:explained-flow" && item.text.includes("접점 로그")));
+  assert.ok(recipe.primitives.some((item) => item.name === "process-step:1"));
+});

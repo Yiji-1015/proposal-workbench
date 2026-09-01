@@ -1,3 +1,5 @@
+import { EXPLANATION_BAND_HEIGHT } from "./block-types.mjs";
+
 const SUPPORTED_RENDERERS = new Set([
   "process_grid",
   "comparison",
@@ -72,6 +74,26 @@ function labelsFor(block, minimum = 2) {
 
 function titlePrimitive(block, frame, theme) {
   return primitive("text", `asset-title:${block.blockId}`, { left: frame.left + 12, top: frame.top + 8, width: frame.width - 24, height: 24 }, { color: theme.navy, fontSize: 17, bold: true }, block.content?.headline ?? "");
+}
+
+function explanationText(block) {
+  return typeof block.content?.explanation === "string" ? block.content.explanation.trim() : "";
+}
+
+function explanationPrimitives(block, frame, theme) {
+  const explanation = explanationText(block);
+  if (!explanation) return [];
+  const band = {
+    left: frame.left + 12,
+    top: frame.top + frame.height - EXPLANATION_BAND_HEIGHT + 4,
+    width: frame.width - 24,
+    height: EXPLANATION_BAND_HEIGHT - 8,
+  };
+  return [
+    primitive("roundRect", `explanation-band:${block.blockId}`, band, { fill: theme.surface, stroke: theme.line }),
+    primitive("rect", `explanation-rule:${block.blockId}`, { left: band.left + 8, top: band.top + 6, width: 3, height: band.height - 12 }, { fill: theme.accent, stroke: theme.accent }),
+    primitive("text", `explanation:${block.blockId}`, { left: band.left + 18, top: band.top + 5, width: band.width - 26, height: band.height - 8 }, { color: theme.gray, fontSize: 10 }, explanation),
+  ];
 }
 
 function processRecipe(block, frame, theme) {
@@ -397,7 +419,10 @@ export function createAssetRecipe({ rendererKey, block, frame, theme }) {
     chevron_pipeline: chevronPipelineRecipe,
     gantt_roadmap: ganttRoadmapRecipe,
   };
-  const primitives = builders[rendererKey](block, frame, theme);
+  const renderFrame = explanationText(block)
+    ? { ...frame, height: Math.max(40, frame.height - EXPLANATION_BAND_HEIGHT) }
+    : frame;
+  const primitives = [...builders[rendererKey](block, renderFrame, theme), ...explanationPrimitives(block, frame, theme)];
   const requiredMotifs = REQUIRED_MOTIFS[rendererKey];
   const producedMotifs = [...requiredMotifs];
   const structureFingerprint = `${rendererKey}|${producedMotifs.join(",")}|${primitives.map((item) => `${item.kind}:${item.name.split(":")[0]}`).join(";")}`;
