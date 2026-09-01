@@ -138,7 +138,7 @@ async function runDoctor() {
     addCheck("sqlite_engine", false, `node:sqlite error: ${err.message}`);
   }
 
-  // 4. Skills Discovery & Frontmatter Check (All 7 skills)
+  // 4. Skills Discovery & Frontmatter Check (All 8 skills)
   const expectedSkills = [
     "document-converter",
     "rfp-analyzer",
@@ -146,7 +146,8 @@ async function runDoctor() {
     "proposal-reference-search",
     "proposal-slide-planner",
     "proposal-ppt-maker",
-    "proposal-reviewer"
+    "proposal-reviewer",
+    "proposal-asset-curator"
   ];
   for (const s of expectedSkills) {
     const skillMd = path.join(workbenchRoot, "skills", s, "SKILL.md");
@@ -169,10 +170,13 @@ async function runDoctor() {
     const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
     const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
     const count = Array.isArray(catalog) ? catalog.length : -1;
-    const required = ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"];
+    const required = ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"];
     const fields = new Set(manifest.asset_required_fields ?? []);
-    const sourceFields = new Set(manifest.source_required_fields ?? []);
-    const valid = count >= 0 && required.every((field) => fields.has(field)) && ["provider", "original_file", "license"].every((field) => sourceFields.has(field));
+    const valid = count >= 0 && manifest.version === 2 && required.every((field) => fields.has(field))
+      && Array.isArray(manifest.asset_kind_values)
+      && ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"].every((kind) => manifest.asset_kind_values.includes(kind))
+      && Array.isArray(manifest.forbidden_permanent_fields)
+      && ["source_path", "original_file", "raw_text", "raw_texts"].every((field) => manifest.forbidden_permanent_fields.includes(field));
     addCheck("asset_catalog", valid, valid ? `Asset catalog contract ready (${count} imported items)` : "Asset catalog contract is incomplete");
   } catch (err) {
     addCheck("asset_catalog", false, `Asset catalog contract read failed: ${err.message}`);

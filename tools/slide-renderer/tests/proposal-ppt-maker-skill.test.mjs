@@ -177,10 +177,11 @@ test("empty asset catalog keeps the import contract explicit", async () => {
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
   assert.deepEqual(catalog, []);
-  for (const field of ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"]) {
+  assert.equal(manifest.version, 2);
+  for (const field of ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"]) {
     assert.ok(manifest.asset_required_fields.includes(field), `missing asset field ${field}`);
   }
-  for (const field of ["provider", "original_file", "license"]) {
-    assert.ok(manifest.source_required_fields.includes(field), `missing source field ${field}`);
-  }
+  for (const kind of ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"]) assert.ok(manifest.asset_kind_values.includes(kind), `missing asset kind ${kind}`);
+  for (const field of ["source_path", "original_file", "raw_text", "raw_texts"]) assert.ok(manifest.forbidden_permanent_fields.includes(field), `missing forbidden field ${field}`);
+  assert.ok(manifest.renderer_key_values.includes("responsive_native_template"));
 });

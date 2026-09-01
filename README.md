@@ -43,10 +43,11 @@ proposal-workbench/
 ├─ skills/                           ──▶ Agent Skills (업무 판단 및 오케스트레이션)
 │  ├─ document-converter/            ──▶ HWP/PDF/DOCX -> Markdown 독립 변환
 │  ├─ rfp-analyzer/                  ──▶ 목표업무흐름, 13대 도메인, KPI, 역량 Gap 정밀 분석
-│  ├─ proposal-ppt-ingest/           ──▶ 독립 PPTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
+│  ├─ proposal-ppt-ingest/           ──▶ 독립 PPTX/POTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
 │  ├─ proposal-reference-search/     ──▶ 독립 SQLite lexical/vector 검색 + HitL Reference Picker
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
 │  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
+│  ├─ proposal-asset-curator/        ──▶ 블록·도식·아이콘 후보 선별 및 승인 자산 승격
 │  └─ proposal-reviewer/             ──▶ 4대 결함(요구사항누락, 수치왜곡, 과장표현, 레이아웃) QA
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
@@ -73,6 +74,7 @@ proposal-workbench/
    ├─ sessions/                      ──▶ HitL 세션 교환 JSON 파일
    ├─ ingest_data/                   ──▶ 색인 슬라이드 PNG, HTML, 매니페스트
    ├─ index/                         ──▶ SQLite 슬라이드 색인 DB
+   ├─ asset_candidates/              ──▶ 로컬 에셋 후보·익명화 검토 데이터 (Git 제외)
    └─ deliverables/                  ──▶ 최종 생성 PPTX 및 검수 보고서
 ```
 
@@ -112,7 +114,7 @@ Doctor에서 Python 의존성 설치 안내를 확인한 뒤 실행합니다. �
 
 ```powershell
 python -m pip install -r tools/ppt-ingest/requirements.txt
-python tools/ppt-ingest/ingest_pipeline.py --pptx "경로/제안서.pptx"
+python tools/ppt-ingest/ingest_pipeline.py --source "경로/제안서.pptx 또는 템플릿.potx"
 ```
 
 ### 3) HitL 세션 브릿지 & 뷰어 테스트 (포트 5274 단일 서버)
@@ -128,7 +130,8 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/rfp_analysis.json` 및 `RFP_분석보고서.md` 산출.
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
-3. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
-4. **장표 기획**: `$proposal-slide-planner` 실행 → 방향 선택 → RFP만 사용하거나 첨부 이미지의 구조·배치 또는 명시적으로 전달한 완료 세션을 선택적으로 참고 → `planner.html`에서 승인.
-5. **PPTX 생성**: `$proposal-ppt-maker` 실행 → 기본 파란 팔레트로 `deliverables/<id>.pptx` 생성. 사용자가 팔레트나 템플릿을 주면 그 값만 우선 적용.
-6. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
+3. **선택적 에셋 선별**: `$proposal-asset-curator` 실행 → 블록 후보를 검토하고 명시적으로 승인한 후보만 `tools/pattern-library`로 승격.
+4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
+5. **장표 기획**: `$proposal-slide-planner` 실행 → 방향 선택 → RFP만 사용하거나 첨부 이미지의 구조·배치 또는 명시적으로 전달한 완료 세션을 선택적으로 참고 → `planner.html`에서 승인.
+6. **PPTX 생성**: `$proposal-ppt-maker` 실행 → 기본 파란 팔레트로 `deliverables/<id>.pptx` 생성. 사용자가 팔레트나 템플릿을 주면 그 값만 우선 적용.
+7. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.

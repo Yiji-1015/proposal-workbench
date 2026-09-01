@@ -144,11 +144,11 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 `asset_id`를 쓰는 경우에는 `tools/pattern-library/unified-visual-module-catalog.json`에 존재해야 한다. 최초 상태의 빈 카탈로그는 허용되며, 이때는 `fallback_native_shapes` 또는 `no_suitable_asset`으로 기록하고 네이티브 도형을 사용한다. `renderer_key`는 기존 renderer와 `matrix_table`, `metric_dashboard`, `scope_outcome_mapping`, `blueprint_flow`, `chevron_pipeline`, `gantt_roadmap` 중 하나다. 지원하지 않는 선택 자산은 generic grid로 대체하지 않고 실패한다. 프로세스 단계 수가 자산 구조와 다르면 2~12개 범위에서 노드 수를 재배치하고 `adaptations: [{ type: node_count_reflow, from, to }]`를 기록한다.
 
-미리캔버스에서 자산을 가져올 때는 `tools/pattern-library/asset-manifest.schema.json`의 필드를 채운다. 자산별 미리보기 파일은 등록하지 않는다. 최소 등록 단위는 구조 모듈 1개이며 `module_id`, `module_type`, `purpose`, `flow_direction`, `aspect_ratio`, `step_count`, `visual_tags`, `semantic_tags`, `template`, `source`, `supported_slide_orientations`, `aspect_ratio_semantics`, `orientation_adaptations`, `usage_mode`, `render_mode`와 출처의 `provider`, `original_file`, `license`를 포함해야 한다.
+승인 자산은 `tools/pattern-library/asset-manifest.schema.json` v2 계약을 따른다. 자산별 미리보기 파일은 등록하지 않는다. 최소 등록 단위는 `block_shell`, `diagram_recipe`, `composite_block`, `icon_asset`, `media_frame`, `photo_asset` 중 하나이며 `display_name`, `description`, `design_traits`, `use_cases`, `search_tags`, `renderer_key`, `template`, `usage_mode`, `render_mode`, `provenance_ref`, `license`, `license_status`, `approved_at`를 포함해야 한다. `source_path`, `original_file`, `raw_text`, `raw_texts`는 영구 카탈로그에 금지한다. 사진은 승인된 `photo_id`와 라이선스 상태가 있을 때만 매핑한다.
 
 `usage_mode`는 `semantic`, `structural`, `decorative` 중 하나다. `decorative`는 원본 주제와의 일치가 아니라 시각적 리듬과 완성도를 위한 재사용이며, 원본 라벨을 제거하고 사실로 오인될 관계를 만들지 않아야 한다. 정확한 주제 자산이 없다는 이유만으로 즉시 `fallback_native_shapes`를 선택하지 않는다.
 
-선택 자산의 최종 `render_mode`는 `native_powerpoint_shapes`여야 한다. 카탈로그의 SVG 파일은 구조 레퍼런스이며 최종 PPTX에 삽입하지 않는다. 스크린샷, PNG/JPG 또는 SVG 그림으로 자산을 전달하지 않는다. 사용자가 명시적으로 요청한 사진이나 로고만 이미지 예외로 허용한다. 네이티브 도형과 텍스트만 포함한 논리적 그룹은 허용한다.
+선택 자산의 최종 `render_mode`는 `native_powerpoint_shapes`여야 한다. `responsive_native_template`은 블록 로컬 좌표를 현재 frame에 맞춰 `wide`·`compact`·`tall`로 다시 배치한다. 카탈로그의 SVG 파일은 구조 레퍼런스이며 최종 PPTX에 삽입하지 않는다. 스크린샷, PNG/JPG 또는 SVG 그림으로 자산을 전달하지 않는다. 사용자가 명시적으로 요청한 사진이나 로고만 이미지 예외로 허용한다. 네이티브 도형과 텍스트만 포함한 논리적 그룹은 허용한다.
 
 카탈로그의 `aspect_ratio`는 자산이 추출된 원본 도형의 비율이며 슬라이드 방향 제한이 아니다. 가로형 자산도 세로 장표의 블록 안에서 비례 축소, 여백 크롭, 텍스트 교체, 반복 구조 재배치 방식으로 사용할 수 있다. 자산 선택과 폴백 판단 전에는 [asset-selection.md](asset-selection.md)의 방향 독립 규칙을 적용한다. 원본 비율과 슬라이드 방향이 다르다는 이유만으로 `fallback_native_shapes`를 선택하지 않는다.
 
