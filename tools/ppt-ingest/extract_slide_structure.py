@@ -9,9 +9,17 @@ import argparse
 import html
 import json
 import re
+import sys
 from pathlib import Path
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+
+WORKBENCH_ROOT = Path(__file__).resolve().parents[2]
+ASSET_CURATOR_DIR = WORKBENCH_ROOT / "tools" / "asset-curator"
+if str(ASSET_CURATOR_DIR) not in sys.path:
+    sys.path.insert(0, str(ASSET_CURATOR_DIR))
+from asset_curator import describe_source, extract_index_slides
 
 
 def emu_to_px(v: int) -> int:
@@ -81,10 +89,68 @@ body {{
 </html>"""
 
 
+def _part_id(part) -> str:
+    partname = getattr(part, "partname", "")
+    return str(partname).rsplit("/", 1)[-1] if partname else ""
+
+
+def _extract_potx_slides(potx_file: Path, html_out_dir: str | None = None) -> list[dict]:
+    package = describe_source(str(potx_file))
+    indexed_slides = extract_index_slides(str(potx_file))
+    slide_w_px = int(package["slide_size"]["px"]["width"])
+    slide_h_px = int(package["slide_size"]["px"]["height"])
+    year = extract_year_from_name(potx_file.name)
+    out_html_path = Path(html_out_dir).resolve() if html_out_dir else None
+    if out_html_path:
+        out_html_path.mkdir(parents=True, exist_ok=True)
+    result = []
+    for indexed in indexed_slides:
+        elements = []
+        texts = []
+        for box in indexed.get("text_boxes", []):
+            text = clean_text(box.get("text", ""))
+            if not text:
+                continue
+            texts.append(text)
+            bounds = box.get("bounds", {})
+            left = int(float(bounds.get("x", 0)) * slide_w_px)
+            top = int(float(bounds.get("y", 0)) * slide_h_px)
+            width = int(float(bounds.get("w", 0)) * slide_w_px)
+            height = int(float(bounds.get("h", 0)) * slide_h_px)
+            elements.append(f"""
+        <div class="shape" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px;">
+            {html.escape(text).replace(chr(10), "<br>")}
+        </div>""")
+        slide_no = indexed["slide_no"]
+        html_file_name = f"slide_{slide_no:02d}.html"
+        html_content = build_slide_html(slide_w_px, slide_h_px, elements)
+        if out_html_path:
+            (out_html_path / html_file_name).write_text(html_content, encoding="utf-8")
+        result.append({
+            "slide_no": slide_no,
+            "source_pptx": potx_file.name,
+            "source_type": "potx",
+            "year": year,
+            "title": indexed.get("title", "").strip(),
+            "raw_text": "\n".join(texts),
+            "text_count": len(texts),
+            "html_file_name": html_file_name,
+            "html_content": html_content,
+            "layout_id": indexed.get("layout_id", ""),
+            "master_id": indexed.get("master_id", ""),
+        })
+    return result
+
+
 def extract_slides(pptx_path: str, html_out_dir: str | None = None) -> list[dict]:
     pptx_file = Path(pptx_path).resolve()
     if not pptx_file.exists():
-        raise FileNotFoundError(f"PPTX not found: {pptx_file}")
+        raise FileNotFoundError(f"PowerPoint source not found: {pptx_file}")
+    if pptx_file.suffix.lower() not in {".pptx", ".potx"}:
+        raise ValueError("Only .pptx and .potx sources are supported.")
+
+    if pptx_file.suffix.lower() == ".potx":
+        return _extract_potx_slides(pptx_file, html_out_dir)
 
     prs = Presentation(str(pptx_file))
     slide_w_px = emu_to_px(prs.slide_width)
@@ -150,12 +216,15 @@ def extract_slides(pptx_path: str, html_out_dir: str | None = None) -> list[dict
         extracted_slides.append({
             "slide_no": i,
             "source_pptx": pptx_file.name,
+            "source_type": "pptx",
             "year": year,
             "title": slide_title.strip(),
             "raw_text": "\n".join(texts),
             "text_count": len(texts),
             "html_file_name": html_file_name,
             "html_content": slide_html_content,
+            "layout_id": _part_id(getattr(slide, "slide_layout", None).part) if getattr(slide, "slide_layout", None) else "",
+            "master_id": _part_id(getattr(getattr(slide, "slide_layout", None), "slide_master", None).part) if getattr(getattr(slide, "slide_layout", None), "slide_master", None) else "",
         })
 
     return extracted_slides

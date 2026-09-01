@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify-workbench.mjs
- * Proposal Workbench Doctor: runtime, skills, SQLite, catalog, offline UI checks.
+ * Proposal Workbench Doctor: runtime, skills, SQLite, asset contract, offline UI checks.
  */
 
 import fs from "node:fs/promises";
@@ -138,7 +138,7 @@ async function runDoctor() {
     addCheck("sqlite_engine", false, `node:sqlite error: ${err.message}`);
   }
 
-  // 4. Skills Discovery & Frontmatter Check (All 7 skills)
+  // 4. Skills Discovery & Frontmatter Check (All 8 skills)
   const expectedSkills = [
     "document-converter",
     "rfp-analyzer",
@@ -146,7 +146,8 @@ async function runDoctor() {
     "proposal-reference-search",
     "proposal-slide-planner",
     "proposal-ppt-maker",
-    "proposal-reviewer"
+    "proposal-reviewer",
+    "proposal-asset-curator"
   ];
   for (const s of expectedSkills) {
     const skillMd = path.join(workbenchRoot, "skills", s, "SKILL.md");
@@ -162,14 +163,23 @@ async function runDoctor() {
     }
   }
 
-  // 5. Pattern Library Catalog Check
+  // 5. User asset catalog contract check. The initial catalog may be empty.
   const catalogPath = path.join(workbenchRoot, "tools", "pattern-library", "unified-visual-module-catalog.json");
+  const manifestPath = path.join(workbenchRoot, "tools", "pattern-library", "asset-manifest.schema.json");
   try {
     const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
-    const count = Array.isArray(catalog) ? catalog.length : 0;
-    addCheck("pattern_catalog", count >= 40, `Found ${count} native visual modules`);
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    const count = Array.isArray(catalog) ? catalog.length : -1;
+    const required = ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"];
+    const fields = new Set(manifest.asset_required_fields ?? []);
+    const valid = count >= 0 && manifest.version === 2 && required.every((field) => fields.has(field))
+      && Array.isArray(manifest.asset_kind_values)
+      && ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"].every((kind) => manifest.asset_kind_values.includes(kind))
+      && Array.isArray(manifest.forbidden_permanent_fields)
+      && ["source_path", "original_file", "raw_text", "raw_texts"].every((field) => manifest.forbidden_permanent_fields.includes(field));
+    addCheck("asset_catalog", valid, valid ? `Asset catalog contract ready (${count} imported items)` : "Asset catalog contract is incomplete");
   } catch (err) {
-    addCheck("pattern_catalog", false, `Catalog read failed: ${err.message}`);
+    addCheck("asset_catalog", false, `Asset catalog contract read failed: ${err.message}`);
   }
 
   // 6. Zero-CDN / Offline UI Integrity Check

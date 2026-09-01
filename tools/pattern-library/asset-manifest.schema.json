@@ -1,0 +1,65 @@
+{
+  "version": 2,
+  "description": "Required metadata for approved editable proposal assets.",
+  "asset_required_fields": [
+    "module_id",
+    "display_name",
+    "asset_kind",
+    "module_type",
+    "description",
+    "design_traits",
+    "use_cases",
+    "search_tags",
+    "renderer_key",
+    "template",
+    "usage_mode",
+    "render_mode",
+    "provenance_ref",
+    "license",
+    "license_status",
+    "approved_at"
+  ],
+  "asset_kind_values": [
+    "block_shell",
+    "diagram_recipe",
+    "composite_block",
+    "icon_asset",
+    "media_frame",
+    "photo_asset"
+  ],
+  "forbidden_permanent_fields": [
+    "source_path",
+    "original_file",
+    "raw_text",
+    "raw_texts"
+  ],
+  "renderer_key_values": [
+    "responsive_native_template",
+    "photo_asset_reference"
+  ],
+  "kind_required_fields": {
+    "block_shell": ["shell", "constraints"],
+    "diagram_recipe": ["diagram", "constraints"],
+    "composite_block": ["shell", "diagram", "constraints"],
+    "icon_asset": ["primitives", "icon_category", "recolorable"],
+    "media_frame": ["shell", "frame_count", "crop_mode"],
+    "photo_asset": ["mime_type", "width_px", "height_px", "aspect_ratio", "transparent", "content_sha256"]
+  },
+  "allowed_values": {
+    "usage_mode": ["semantic", "structural", "decorative"],
+    "render_mode": ["native_powerpoint_shapes"],
+    "module_type": [
+      "process_chain",
+      "mapping",
+      "hub_spoke",
+      "matrix",
+      "feedback_loop",
+      "lanes",
+      "architecture",
+      "shell",
+      "icon",
+      "media_frame",
+      "photo"
+    ]
+  }
+}

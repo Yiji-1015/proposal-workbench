@@ -38,6 +38,8 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 18. **복잡한 아키텍처는 설명 우선으로 판단하되, 네이티브 도식은 끝까지 구성한다.** 간단한 도식과 부연설명을 기본으로 하되, 핵심 출발점·처리·데이터 흐름·통제 지점·사용자 결과를 가능한 한 빠짐없이 `native_diagram`에 구성한다. 도식 라벨은 짧게 축약할 수 있지만 기능·수치·관계는 생략하지 않으며, 상세 문장·근거·예외는 `content.explanation`과 인접 편집 텍스트에 병기한다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능할 때만 `architecture_treatment: "text_explainer"`로 전환한다. 사용자가 나노바나나/imagegen을 허용하면 `generated_visual_with_text`를 보조 시각으로 사용할 수 있지만, 이미지 안의 생성 문구를 사실·수치·근거로 취급하지 않고 설명 텍스트를 함께 제공한다. 텍스트 설명으로도 전달할 수 없을 때만 `architecture_required`와 `상세 아키텍처 필요`를 남긴다.
 19. **선택 가능한 블록 풀에서 요구사항에 맞는 구조를 고른다.** `visual_category`는 `block_pool_auto`에서 블록 타입을 지정하며, 표·기준은 `matrix_table`, 숫자·목표는 `metric_dashboard`, 범위와 효과의 대응은 `scope_outcome_mapping`, 입력·처리·결과 흐름은 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 기간·작업은 `gantt_roadmap`을 우선 선택한다. `blueprint_flow`는 `steps[]`와 동일 길이의 `step_details[]`를 채워 각 처리 노드에 세부 문구를 넣는다. 이 레이아웃은 5~6개 블록에 `slot: "auto"`를 사용하고, 기존 고정 레이아웃을 임의로 대체하지 않는다.
 
+20. **승인 자산은 큐레이터 계약으로만 사용한다.** 자산 검색은 파일명이 아니라 `display_name`, `description`, `design_traits`, `use_cases`, `search_tags`를 사용한다. 승인 가능한 종류는 `block_shell`, `diagram_recipe`, `composite_block`, `icon_asset`, `media_frame`, `photo_asset`이며, 구조 자산은 `responsive_native_template`와 블록 로컬 좌표를 따른다. `photo_asset`은 명시적인 `photo_id`와 승인된 라이선스가 있을 때만 사용하고, 선택·로드·적용·충실도 검증을 `selected`, `loaded`, `applied`, `fidelity_passed`로 분리한다. 큐레이터의 선별 전용 결과는 카탈로그에 자동 반영하지 않는다.
+
 ## 실행 절차
 
 1. RFP, 수정공고, 참조자료, 요청 산출물을 목록화한다.
@@ -76,7 +78,7 @@ node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" -
 
 ## 설치와 이식성
 
-이 Skill은 단독 폴더가 아니라 `.codex-plugin/plugin.json`이 있는 플러그인 루트와 함께 설치한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 공용 렌더러는 `tools/slide-renderer`, 패턴 카탈로그는 `tools/pattern-library`에 있다. 실행 스크립트가 플러그인 루트를 기준으로 두 경로를 찾으므로 저장소를 그대로 플러그인으로 설치해야 한다.
+이 Skill은 단독 폴더가 아니라 `.codex-plugin/plugin.json`이 있는 플러그인 루트와 함께 설치한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 공용 렌더러는 `tools/slide-renderer`, 사용자 제공 도식 자산 카탈로그는 `tools/pattern-library`에 있다. 카탈로그는 최초 설치 시 비어 있을 수 있으며, 이때는 선택 자산 대신 네이티브 도형 폴백으로 생성한다. 실행 스크립트가 플러그인 루트를 기준으로 두 경로를 찾으므로 저장소를 그대로 플러그인으로 설치해야 한다.
 
 ```powershell
 node "<skill-root>/scripts/verify-skill.mjs"

@@ -43,12 +43,30 @@ const catalogPath = await resolveFirst([
   path.join(workbenchRoot, "tools", "pattern-library", "unified-visual-module-catalog.json"),
   path.join(skillRoot, "assets", "proposal-pattern-library", "unified-visual-module-catalog.json"),
 ]);
+const manifestPath = await resolveFirst([
+  path.join(workbenchRoot, "tools", "pattern-library", "asset-manifest.schema.json"),
+  path.join(skillRoot, "assets", "proposal-pattern-library", "asset-manifest.schema.json"),
+]);
 try {
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   const items = Array.isArray(catalog) ? catalog : (catalog.modules ?? catalog.items ?? []);
-  add("catalog", items.length > 0, `pattern catalog contains ${items.length} items`);
+  add("catalog", Array.isArray(items), `asset catalog contains ${items.length} imported items; empty is allowed before user import`);
 } catch (error) {
-  add("catalog", false, `pattern catalog cannot be read: ${error.message}`);
+  add("catalog", false, `asset catalog cannot be read: ${error.message}`);
+}
+try {
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  const required = ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"];
+  const fields = new Set(manifest.asset_required_fields ?? []);
+  const kinds = ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"];
+  const forbidden = ["source_path", "original_file", "raw_text", "raw_texts"];
+  const valid = manifest.version === 2
+    && required.every((field) => fields.has(field))
+    && kinds.every((kind) => manifest.asset_kind_values?.includes(kind))
+    && forbidden.every((field) => manifest.forbidden_permanent_fields?.includes(field));
+  add("asset-contract", valid, valid ? "version-2 editable asset contract is ready" : "asset manifest contract is incomplete");
+} catch (error) {
+  add("asset-contract", false, `asset manifest contract cannot be read: ${error.message}`);
 }
 
 const runtimes = await discoverArtifactTools();

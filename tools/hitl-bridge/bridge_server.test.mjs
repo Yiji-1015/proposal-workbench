@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import test from "node:test";
 import path from "node:path";
 
-import { getSelectedSlides, isSafePath, isValidIdentifier } from "./bridge_server.mjs";
+import { getSelectedSlides, isSafePath, isValidIdentifier, validateDiscoverRequest, validatePromoteRequest } from "./bridge_server.mjs";
 
 test("accepts Korean deck identifiers but rejects path syntax", () => {
   assert.equal(isValidIdentifier("제안서_테스트_abc123"), true);
@@ -64,4 +64,28 @@ test("rejects unknown or cross-deck PPTX selections", () => {
     }),
     /one source deck/i,
   );
+});
+
+test("validates asset discovery and final promotion requests", () => {
+  assert.deepEqual(validateDiscoverRequest({ source_key: "deck_123", slide_no: 7 }), {
+    sourceKey: "deck_123", slideNo: 7,
+  });
+  assert.deepEqual(validateDiscoverRequest({ source_key: "deck_123" }), {
+    sourceKey: "deck_123", slideNo: undefined,
+  });
+  assert.throws(() => validateDiscoverRequest({ source_key: "bad/path" }), /source key/i);
+  assert.throws(() => validatePromoteRequest({ candidate_id: "ok", approved: false }), /approval/i);
+  assert.throws(() => validatePromoteRequest({ approved: true, candidate_id: "ok", module_id: "ok" }), /display_name/i);
+});
+
+test("ingest asset UI exposes discovery, overlay, dialog, metadata, and final approval", async () => {
+  const ingestHtml = await fs.readFile(new URL("./public/ingest.html", import.meta.url), "utf8");
+  assert.match(ingestHtml, /\/api\/assets\/discover/);
+  assert.match(ingestHtml, /\/api\/assets\/promote/);
+  assert.match(ingestHtml, /asset-overlay/);
+  assert.match(ingestHtml, /<dialog/);
+  for (const field of ["assetModuleId", "assetDisplayName", "assetModuleType", "assetKind", "assetDescription", "assetDesignTraits", "assetUseCases", "assetSearchTags", "assetUsageMode"]) {
+    assert.match(ingestHtml, new RegExp(field));
+  }
+  assert.match(ingestHtml, /최종 승인·에셋화/);
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAssetRecipe, resolveRendererKey } from "../src/asset-recipes.mjs";
+import { AssetLayoutError, createAssetRecipe, resolveRendererKey } from "../src/asset-recipes.mjs";
 
 const frame = { left: 20, top: 40, width: 600, height: 300 };
 const theme = {
@@ -125,4 +125,85 @@ test("renders detailed copy inside blueprint flow nodes and bands", () => {
   assert.equal(firstDetail.text, "· 공통 스키마 정리\n· 개인정보 비식별 처리");
   assert.equal(inputBand.text, "· 웹 로그\n· 앱 행동 데이터");
   assert.ok(inputBand.position.height > 22);
+});
+
+function responsiveTemplate(overrides = {}) {
+  return {
+    version: 1,
+    module_id: "responsive-process",
+    asset_kind: "composite_block",
+    module_type: "process_chain",
+    renderer_key: "responsive_native_template",
+    shell: {
+      container: { kind: "roundRect", fill: "white", stroke: "line" },
+      header_zone: { x: 0.04, y: 0.03, w: 0.92, h: 0.12, text_slot: "title" },
+      body_zone: { x: 0.04, y: 0.2, w: 0.92, h: 0.72 },
+    },
+    diagram: {
+      topology: {
+        kind: "process_chain",
+        repeat_source: "steps",
+        nodes: [{ id: "step", kind: "roundRect", repeat: true, text_slot: "steps[]" }],
+        edges: [{ from: "step[n]", to: "step[n+1]", kind: "connector", arrow: "end" }],
+      },
+      variants: {
+        wide: { layout: "row", columns: "all" },
+        compact: { layout: "grid", columns: 2 },
+        tall: { layout: "column", columns: 1 },
+      },
+    },
+    style: { node_fill: "pale", node_stroke: "primary", text_color: "navy" },
+    constraints: { padding_ratio: 0.05, gap_ratio: 0.03, min_font_size: 9, min_nodes: 2, max_nodes: 8 },
+    primitives: [
+      { kind: "shape", bounds: { x: 0.08, y: 0.28, w: 0.18, h: 0.16 }, fill: "pale", stroke: "primary", text_slot: "steps[]", text: "원본 문구" },
+      { kind: "shape", bounds: { x: 0.82, y: 0.04, w: 0.06, h: 0.06 }, fill: "accent", stroke: "accent", custom_geometry: [{ width: 20, height: 20, commands: [{ moveTo: { x: 0, y: 0 } }, { lineTo: { x: 20, y: 20 } }, { close: {} }] }] },
+    ],
+    ...overrides,
+  };
+}
+
+test("responsive native templates select variants and reflow 2-8 steps", () => {
+  const currentBlock = { blockId: "responsive", content: { headline: "현재 제목" }, steps: ["수집", "표준화", "분석", "검증", "알림", "개선", "운영", "확장"], options: [] };
+  const wide = createAssetRecipe({ rendererKey: "responsive_native_template", block: { ...currentBlock, steps: currentBlock.steps.slice(0, 2) }, frame: { left: 10, top: 20, width: 600, height: 300 }, theme, template: responsiveTemplate() });
+  const compact = createAssetRecipe({ rendererKey: "responsive_native_template", block: { ...currentBlock, steps: currentBlock.steps.slice(0, 8) }, frame: { left: 10, top: 20, width: 400, height: 400 }, theme, template: responsiveTemplate() });
+  const tall = createAssetRecipe({ rendererKey: "responsive_native_template", block: currentBlock, frame: { left: 10, top: 20, width: 300, height: 600 }, theme, template: responsiveTemplate() });
+  assert.equal(wide.variant, "wide");
+  assert.equal(compact.variant, "compact");
+  assert.equal(tall.variant, "tall");
+  assert.equal(wide.primitives.filter((item) => item.kind === "connector").length, 1);
+  assert.equal(compact.primitives.filter((item) => item.kind === "connector").length, 7);
+  assert.equal(tall.primitives.filter((item) => item.kind === "connector").length, 7);
+  assert.deepEqual(compact.primitives.filter((item) => item.kind === "connector").map((item) => item.name), [
+    "asset-connector:1", "asset-connector:2", "asset-connector:3", "asset-connector:4", "asset-connector:5", "asset-connector:6", "asset-connector:7",
+  ]);
+  for (const [recipe, currentFrame] of [[wide, { left: 10, top: 20, width: 600, height: 300 }], [compact, { left: 10, top: 20, width: 400, height: 400 }], [tall, { left: 10, top: 20, width: 300, height: 600 }]]) {
+    assert.ok(recipe.primitives.some((item) => item.custom_geometry));
+    assert.ok(recipe.primitives.filter((item) => item.kind === "text").every((item) => item.fontSize >= 9));
+    for (const item of recipe.primitives) {
+      assert.ok(item.position.left >= currentFrame.left - 0.01);
+      assert.ok(item.position.top >= currentFrame.top - 0.01);
+      assert.ok(item.position.left + item.position.width <= currentFrame.left + currentFrame.width + 0.01);
+      assert.ok(item.position.top + item.position.height <= currentFrame.top + currentFrame.height + 0.01);
+    }
+  }
+  assert.equal(JSON.stringify(compact).includes("원본 문구"), false);
+});
+
+test("responsive templates try another variant and fail typed when none fits", () => {
+  const currentBlock = { blockId: "responsive", content: { headline: "제목" }, steps: ["1", "2", "3", "4", "5", "6", "7", "8"], options: [] };
+  const alternate = createAssetRecipe({
+    rendererKey: "responsive_native_template",
+    block: currentBlock,
+    frame,
+    theme,
+    template: responsiveTemplate({ constraints: { min_node_width: 160, min_nodes: 2, max_nodes: 8 } }),
+  });
+  assert.equal(alternate.variant, "compact");
+  assert.throws(() => createAssetRecipe({
+    rendererKey: "responsive_native_template",
+    block: currentBlock,
+    frame: { left: 0, top: 0, width: 120, height: 80 },
+    theme,
+    template: responsiveTemplate({ constraints: { min_node_width: 200, min_node_height: 100, min_nodes: 2, max_nodes: 8 } }),
+  }), (error) => error instanceof AssetLayoutError);
 });

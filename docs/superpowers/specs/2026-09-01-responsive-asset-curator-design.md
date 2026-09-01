@@ -1,0 +1,345 @@
+# 반응형 블록·미디어 자산 큐레이터 설계
+
+상태: 사용자 최종 승인 완료
+
+## 1. 목표
+
+기존 PPTX·POTX의 마스터·레이아웃·슬라이드에서 블록 경계·외형·내부 영역, 자주 재사용할 도식, 네이티브 아이콘, 사진 프레임과 승인된 사진을 찾아 재사용 자산으로 승격한다. 같은 큐레이터 코어를 다음 두 진입점에서 사용한다.
+
+- PPT ingest 화면에서 사용자가 특정 블록·도식·아이콘·사진 프레임·사진 후보를 `자주 쓰는 에셋`으로 선택한다.
+- 사용자가 대화에서 `이거 자주 쓰는 에셋으로 저장해줘`처럼 요청하면 현재 선택된 ingest 장표·레이아웃과 자산 후보를 해석해 같은 승격 절차를 실행한다.
+
+승인된 블록·도식·아이콘 자산은 슬라이드 절대좌표나 PNG가 아니다. 블록 외형과 콘텐츠 영역을 만드는 `shell`, 블록 프레임을 입력받아 내부 노드·연결선·텍스트를 다시 계산하는 `diagram recipe`, 편집 가능한 아이콘 geometry를 독립 또는 결합 형태로 보존한다. 사진은 별도 `photo_asset`으로만 원본 래스터를 보존하고 블록 자산은 `photo_id`나 `media_slot`으로 참조한다.
+
+## 2. 비목표
+
+- PNG·JPG·SVG 또는 슬라이드 캡처를 블록·도식·아이콘 자산으로 저장하는 방식
+- 원본 PPTX·POTX의 장표나 레이아웃을 그대로 자산 카탈로그에 복사하는 방식
+- 원본 PPTX·POTX 파일을 Git 저장소나 배포물에 포함하는 방식
+- 사진, 차트, SmartArt, OLE 개체를 자동으로 네이티브 도식으로 변환하는 기능
+- 사용자의 승인 없이 후보를 자동으로 영구 카탈로그에 등록하는 기능
+- 임의 영역 자유 드래그와 모든 PowerPoint 도형 종류를 지원하는 범용 편집기
+- 여러 블록의 슬라이드 전체 배치까지 재사용하는 완성 장표 레이아웃 카탈로그
+- 자산 등록 과정에서 자동 Git commit 또는 push를 수행하는 기능
+- 후보마다 숫자 점수와 가중치를 계산하는 범용 품질 평가 시스템
+
+## 3. 핵심 구조
+
+```text
+원본 PPTX·POTX (로컬 전용)
+  └─ proposal-ppt-ingest
+       ├─ 기존 PNG·HTML·검색 색인
+       └─ master·layout·slide 네이티브 구조와 미디어 관계
+              ↓
+      유효 슬라이드 블록 맵과 자산 후보 탐지
+       ├─ 블록 shell·헤더·본문·강조영역
+       ├─ 블록 내부 도형 그룹·연결 컴포넌트
+       ├─ 네이티브 아이콘·사진 프레임
+       └─ 승인 가능한 실제 사진
+              ↓
+ storage/asset_candidates/<candidate_id>/candidate.json
+              ↓ 사용자 승인·익명화·슬롯화
+ tools/pattern-library/templates/<module_id>.json
+ tools/pattern-library/icons/<asset_id>.json
+ tools/pattern-library/media-frames/<asset_id>.json
+ tools/pattern-library/photos/<asset_id>.<ext>
+ tools/pattern-library/unified-visual-module-catalog.json
+              ↓
+ responsive_native_template renderer + media resolver
+              ↓ block frame 기반 재배치
+ 편집 가능한 PowerPoint 네이티브 도형
+```
+
+공용 코어는 `tools/asset-curator`에 둔다. ingest UI와 자연어 Skill은 후보의 출처를 해석하고 코어를 호출할 뿐, 별도의 추출·승격 로직을 구현하지 않는다.
+
+## 4. 후보 탐색과 선택
+
+### 4.1 지원 원본
+
+초기 구현은 원본 PPTX 또는 POTX 경로가 남아 있는 ingest 항목만 지원한다. `manifest.json`의 `source_path`, `source_key`, `source_type`, `slide_no`, `layout_id`, `master_id`로 원본 패키지를 다시 연다. PPTX는 해당 슬라이드가 상속하는 마스터·레이아웃과 슬라이드 로컬 도형을 합쳐 읽고, POTX는 모든 마스터·레이아웃과 선택적 샘플 슬라이드를 후보 원본으로 읽는다. 이미지나 PDF만 있는 경우에는 편집 가능한 네이티브 구조를 보장할 수 없으므로 승격하지 않고 PPTX 또는 POTX 원본을 요청한다.
+
+원본 파일은 로컬 `source_path`에서만 읽는다. Git 저장소, 플러그인 번들, 승인 자산 폴더에는 원본 PPTX·POTX나 그 복사본을 만들지 않는다.
+
+### 4.2 블록 맵과 후보 단위
+
+큐레이터는 먼저 마스터 → 레이아웃 → 슬라이드 상속을 해석해 사용자가 보는 유효 장표를 블록 맵으로 나눈다. 각 후보는 실제 구조가 위치한 `source_scope`(`master`, `layout`, `slide`)와 원본 shape path를 보존한다. 블록은 다음 신호를 순서대로 조합해 탐지한다.
+
+1. PowerPoint에 이미 정의된 그룹 도형과 큰 배경·테두리 컨테이너
+2. 같은 정렬선, 간격, 채우기, 테두리를 공유하는 제목·본문·배지 도형
+3. 연결선으로 이어진 네이티브 도형의 연결 컴포넌트
+4. 그룹이 없을 때 서로 가깝고 겹치는 본문 도형의 공간 클러스터
+
+각 블록 후보는 `bounds`, `shell`, `header_zone`, `body_zone`, 선택적 `footer_zone`, `accent_shapes`, `inner_candidates`, `reading_order`를 가진다. `shell`은 배경·모서리·테두리·강조띠·내부 여백을, `inner_candidates`는 블록 안의 프로세스·허브·매핑 등 도식 구조를 나타낸다.
+
+상단 장표 제목과 하단 페이지 번호·회사명·각주는 블록 맵에서 제외한다. 아이콘 후보는 지원 도형 1~40개와 슬라이드 면적 0.1~20%, 블록·도식 후보는 지원 도형 3~200개와 슬라이드 면적 5~90%, 텍스트 슬롯 1~24개 범위를 만족해야 한다. 200개를 넘는 복잡한 지도·일러스트는 초기 구현에서 승격하지 않는다. ingest 화면은 기존 슬라이드 PNG 위에 블록 경계와 내부 도식·아이콘·미디어 후보만 표시하며 별도 asset preview 파일을 저장하지 않는다.
+
+### 4.3 지원 primitive
+
+초기 primitive는 `rect`, `roundRect`, `ellipse`, `diamond`, `text`, `line`, `connector`, `group`, 정규화 가능한 `custom_geometry`로 제한한다. `picture_placeholder`는 실제 이미지 누락 오류가 아니라 `media_frame` 후보로 분류한다. 실제 `p:pic` 관계는 블록·도식 안에 복사하지 않고 별도 `photo_asset` 후보 또는 `media_slot`로 분리한다. 차트, SmartArt, OLE, 비디오 또는 지원하지 않는 미디어 관계가 구조의 핵심이면 해당 블록 후보를 거절한다.
+
+### 4.4 실전 블록 선별 플레이북
+
+선별은 장표 전체가 아니라 블록·도식·아이콘 후보 단위로 수행한다. 한 장표에 독립적인 도식과 표가 함께 있으면 각각 별도 후보로 분리한다. 자연어 Skill은 다음 두 단계를 따른다.
+
+1. **블록 탐지**: 그룹, 큰 컨테이너, 정렬·간격, 연결선 컴포넌트, 공간 클러스터를 합쳐 후보를 만들고 기존 장표 렌더와 실제 도형 구조를 교차 확인한다.
+2. **정성 판정**: 구조 재사용 가능성, 원문 슬롯화 후 형태 유지 여부, 다른 블록 크기에서 재배치 가능성, 정리 비용 대비 가치를 보고 `selected`, `deferred`, `rejected` 중 하나로 분류한다. 숫자 점수와 가중치는 사용하지 않는다.
+
+`selected`는 바로 승격한다는 뜻이 아니라 에셋화할 가치가 있는 후보라는 뜻이다. `deferred`는 구조는 유용하지만 블록 분리, 표 지원, 고정 종횡비, 다수 래스터 제거처럼 추가 작업이 필요한 후보다. `rejected`는 핵심 구조가 이미지·스크린샷이거나 회사·인명·인증서·브랜드에 종속되고 익명화 후 재사용 가치가 낮은 후보다. 판정에는 1~2문장 이유와 필요한 `cleanup_actions`만 기록한다.
+
+실전 탐지와 판정은 다음 규칙을 지킨다.
+
+- 그룹 여부는 하위 XML 문자열 포함 여부가 아니라 현재 OOXML element의 직접 태그로 판별한다. 연결선을 포함한 그룹을 connector로 오인하지 않는다.
+- 공통 제목·각주·페이지 번호·SAMPLE 스탬프·사용 가이드·슬라이드 밖 도형·폭이나 높이가 0인 도형·반복되는 얇은 장식 PNG는 후보에서 제외한다.
+- 래스터 아이콘이나 사진이 제거돼도 네이티브 shell과 도식 관계가 남으면 블록 전체를 버리지 않고 `icon_slot` 또는 `media_slot`으로 치환할 후보로 유지한다. 이미지 자체가 핵심 구조이면 승격하지 않는다.
+- 네이티브 도형 수가 많다는 이유만으로 채택하지 않는다. Gantt, 복잡한 표, 고정형 아키텍처처럼 다른 크기에서 의미가 깨지면 `deferred`로 둔다.
+- 정규화된 경계, 도형 종류, 연결 topology, 텍스트 슬롯 서명이 같은 후보는 중복으로 묶고 가장 깨끗하고 이미지 의존이 낮은 한 개를 대표본으로 선택한다.
+- 선별 결과는 후보 위치, 자산 종류, 판정, 이유, 정리 작업, 중복 대표, 지원 가능한 `wide`·`compact`·`tall` variant만 간결하게 보여준다. 구조 수치는 판정 근거가 필요할 때만 표시한다.
+
+이 규칙과 실제 실패 사례는 `skills/proposal-asset-curator/references/selection-playbook.md`에 둔다. `SKILL.md`는 대상 해석, 선별 전용 모드, 승인·승격 흐름만 유지한다.
+
+## 5. 두 진입점
+
+### 5.1 ingest 화면
+
+`tools/hitl-bridge/public/ingest.html`의 각 슬라이드 카드에 `자주 쓰는 에셋` 동작을 추가한다.
+
+1. 사용자가 슬라이드에서 동작을 선택한다.
+2. 서버가 해당 장표와 상속 레이아웃의 블록 맵, 내부 도식, 아이콘, 사진 프레임, 사진 후보를 탐색한다.
+3. 화면은 기존 PNG 위에 source scope, 블록 번호, 블록 경계, 내부 도식·아이콘·사진 프레임·사진 후보를 표시한다.
+4. 사용자가 후보 하나, 자산 이름, 저장 범위(`block_shell`, `diagram_recipe`, `composite_block`, `icon_asset`, `media_frame`, `photo_asset`)를 선택한다.
+5. 서버가 구조에서 도식 유형·용도 설명·디자인 특징·검색 태그 초안을 만들고 로컬 후보의 익명화 결과와 함께 보여준다.
+6. 사용자가 최종 승인하면 영구 카탈로그로 승격한다.
+
+새 API는 다음 두 개로 제한한다.
+
+- `POST /api/assets/discover`: `source_key`와 선택적 `slide_no`를 받아 후보 목록을 반환한다. `slide_no`가 없으면 원본 전체를 블록 단위로 선별한다.
+- `POST /api/assets/promote`: `candidate_id`, `module_id`, `display_name`, `module_type`, `asset_kind`, `description`, `design_traits`, `use_cases`, `search_tags`, `usage_mode`를 받아 검증 후 카탈로그로 승격한다.
+
+### 5.2 자연어 요청
+
+새 `proposal-asset-curator` Skill은 `이 자료에서 쓸만한 에셋 후보를 골라줘`, `이거 자주 쓰는 에셋으로 저장`, `이 도식 재사용 자산으로 등록`, `선택 장표의 도형을 자산화` 같은 요청을 담당한다. 별도 selector Skill을 만들지 않는다.
+
+대상 해석 우선순위는 다음과 같다.
+
+1. 사용자가 명시한 `source_key`, 장표 번호 또는 선택 세션
+2. 현재 작업에서 명시적으로 선택된 ingest 장표
+3. 현재 작업에서 마지막으로 언급된 ingest 장표
+
+대상을 하나로 확정할 수 없으면 Skill은 원본 전체, 장표 또는 레이아웃 중 하나를 물어본다. 저장·등록·에셋화 요청에서는 후보를 자동 승격하지 않고 source scope, 후보 번호, 저장 범위(`블록 외형`, `내부 도식`, `둘 다`, `아이콘`, `사진 프레임`, `사진`), 자산 이름, 추론한 `module_type`, 용도 설명, 디자인 특징, 검색 태그, 지원 노드 수, 제거될 원본 문구를 보여준 뒤 승인받는다. 사용자는 이 메타데이터를 승인 전에 고칠 수 있다. Skill은 ingest UI와 같은 `tools/asset-curator` 코어를 호출한다.
+
+사용자가 `골라줘`, `쓸만한 것만 추려줘`, `후보를 봐줘`처럼 요청하면 Skill은 선별 전용 모드로 실행한다. 이 모드는 블록 단위 `selected`·`deferred`·`rejected` 보고만 만들고 `tools/pattern-library`를 변경하지 않는다. 사용자가 명시적으로 저장·등록·에셋화를 요청한 경우에도 선별과 익명화 결과를 먼저 보여주고 승인받은 후보만 별도 승격한다.
+
+## 6. 로컬 후보와 승인 자산의 분리
+
+### 6.1 로컬 후보
+
+`storage/asset_candidates/<candidate_id>/candidate.json`은 Git에 포함하지 않는다. 원본 추적과 익명화 검증을 위해 다음 정보를 보관할 수 있다.
+
+- 원본 `source_path`, `source_key`, `source_type`, `slide_no`, `layout_id`, `master_id`, `source_scope`, 원본 shape ID
+- 원본 텍스트와 색상
+- 후보 경계와 추출 경고
+- 탐지된 블록 맵, shell 영역, 콘텐츠 슬롯, 노드·연결선·그룹 구조
+- lifecycle 상태와 별도인 선별 상태 `curation_status`, 1~2문장 `selection_reason`, `cleanup_actions`, 선택적 `duplicate_of`, 지원 가능한 variant
+- 후보 상태: `discovered`, `sanitized`, `approved`, `promoted`, `rejected`
+
+`.gitignore`에 `storage/asset_candidates/*`와 `.gitkeep` 예외를 추가한다.
+
+### 6.2 승인 자산
+
+`tools/pattern-library`에는 원본 PPTX·POTX, 회사명, 사람 이름, 원본 파일명, 원문 문구, 절대경로를 저장하지 않는다. 승인 자산은 익명화된 블록 shell, 콘텐츠 영역, 내부 도식 구조, 아이콘 geometry, 사진 프레임, 의미 슬롯, 테마 토큰, 비식별 provenance hash와 라이선스 범위만 가진다. `photo_asset`만 승인된 원본 이미지 바이트를 `photos/`에 보존할 수 있다.
+
+현재 `asset-manifest.schema.json`의 `provider`, `original_file` 요구는 로컬 후보 계약으로 이동한다. 영구 카탈로그는 `provenance_ref`, `license`, `license_status`, `approved_at`만 요구한다. 사용자가 사용 권한을 확인한 자산은 `license_status: "user_confirmed"`로 기록하되 원본 파일은 포함하지 않는다.
+
+### 6.3 자산 식별·검색 메타데이터
+
+파일명은 설명문으로 사용하지 않고 변경되지 않는 `<module_id>.json`만 사용한다. 사람이 자산의 형태와 용도를 이해하고 검색할 수 있도록 승인 자산과 카탈로그 항목은 다음 메타데이터를 필수로 가진다.
+
+- `display_name`: 화면에 표시할 짧은 한글 이름
+- `asset_kind`: `block_shell`, `diagram_recipe`, `composite_block`, `icon_asset`, `media_frame`, `photo_asset` 중 하나
+- `module_type`: `process_chain`, `mapping`, `hub_spoke`, `matrix`, `feedback_loop`, `lanes`, `architecture`, `shell`, `icon`, `media_frame`, `photo` 중 하나
+- `description`: 어떤 형태이고 무엇을 설명할 때 쓰는지 담은 1~2문장
+- `design_traits`: `라운드 카드`, `헤더 분리`, `좌측 강조띠`처럼 외형을 설명하는 짧은 배열
+- `use_cases`: `업무 흐름`, `추진 절차`, `로드맵`처럼 적합한 활용처
+- `search_tags`: 자산 선택기가 검색할 동의어와 구조 키워드
+
+초안은 원본 문구가 아니라 토폴로지, 노드 수 범위, shell 영역, 도형 종류, 강조 위치에서 규칙 기반으로 생성한다. 사용자는 승격 전에 모든 표시용 메타데이터를 수정할 수 있다. 승인 검증은 빈 필드, 원본 회사명·파일명·절대경로·원문 문구의 잔존을 거절한다. `module_id`는 파일·참조 안정성을 위해 승격 후 이름이나 설명을 고쳐도 변경하지 않는다.
+
+아이콘은 `icon_category`, `recolorable`, 원본 geometry 수를 추가로 가진다. 사진은 `mime_type`, 픽셀 크기, 종횡비, 투명 배경 여부를 가진다. 사진 프레임은 `frame_count`, 프레임별 종횡비, `crop_mode`, 선택적 캡션 슬롯을 가진다.
+
+## 7. 재사용 자산 계약
+
+승인 자산은 여섯 종류다.
+
+- `block_shell`: 배경, 테두리, 제목 영역, 본문 영역, 강조띠, 내부 여백만 재사용한다.
+- `diagram_recipe`: 블록 내부의 노드·연결선·텍스트 슬롯과 반응형 배치만 재사용한다.
+- `composite_block`: `block_shell`과 `diagram_recipe`를 한 자산으로 결합한다.
+- `icon_asset`: 그룹·커스텀 geometry를 블록 로컬 좌표로 정규화하고 테마 색상으로 재색상 가능한 네이티브 아이콘이다.
+- `media_frame`: 사진 데이터 없이 위치·종횡비·크롭·캡션 규칙만 가진 사진 프레임이다.
+- `photo_asset`: 라이선스 확인된 실제 사진 파일과 검색·크기 메타데이터다. 블록 JSON에 사진 바이트를 넣지 않고 `photo_id`로 참조한다.
+
+승인 템플릿은 슬라이드 좌표가 아닌 블록 로컬 좌표와 배치 규칙을 저장한다.
+
+```json
+{
+  "version": 1,
+  "module_id": "process_chain_001",
+  "display_name": "단계형 프로세스 블록",
+  "asset_kind": "composite_block",
+  "module_type": "process_chain",
+  "description": "2~8개 업무 단계를 순차적으로 설명하는 반응형 블록 도식",
+  "design_traits": ["라운드 카드", "헤더 분리", "좌측 강조띠"],
+  "use_cases": ["업무 흐름", "추진 절차", "로드맵"],
+  "search_tags": ["프로세스", "단계", "순차", "화살표"],
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": { "kind": "roundRect", "fill": "white", "stroke": "line" },
+    "header_zone": { "height_ratio": 0.16, "text_slot": "title" },
+    "body_zone": { "x": 0.05, "y": 0.20, "w": 0.90, "h": 0.73 },
+    "accent_shapes": [
+      { "kind": "rect", "anchor": "left", "width_ratio": 0.012, "fill": "primary" }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "process_chain",
+      "repeat_source": "steps",
+      "nodes": [
+        { "id": "step", "kind": "roundRect", "repeat": true, "text_slot": "steps[]" }
+      ],
+      "edges": [
+        { "from": "step[n]", "to": "step[n+1]", "kind": "connector", "arrow": "end" }
+      ]
+    },
+    "variants": {
+      "wide": { "layout": "row", "columns": "all" },
+      "compact": { "layout": "grid", "columns": 2 },
+      "tall": { "layout": "column", "columns": 1 }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  }
+}
+```
+
+원본 좌표는 블록 경계, shell 비율, 콘텐츠 영역, 내부 도식 관계를 추론하는 데만 사용한다. 승인 자산은 블록 shell과 `wide`, `compact`, `tall` 토폴로지 규칙을 저장하며 최종 좌표는 렌더링 시 계산한다.
+
+## 8. 블록 렌더링
+
+기존 `createAssetRecipe({ rendererKey, block, frame, theme })` 흐름을 유지하고 `responsive_native_template` 해석기를 추가한다.
+
+1. 슬라이드 레이아웃 엔진이 최종 `frame.left`, `frame.top`, `frame.width`, `frame.height`를 계산한다.
+2. `block_shell` 또는 `composite_block`이면 shell 컨테이너와 header·body·accent 영역을 현재 frame 비율에 맞춰 생성한다.
+3. shell의 `body_zone` 또는 기본 안쪽 여백으로 내부 `innerFrame`을 만든다.
+4. `innerFrame.width / innerFrame.height`가 1.35 이상이면 `wide`, 0.80 이하이면 `tall`, 나머지는 `compact`를 선택한다. 자산이 임계값을 명시하면 그 값을 우선한다.
+5. 반복 노드 수를 실제 `block.content`와 맞추고 노드·연결선 좌표를 다시 계산한다.
+6. 색상은 자산 원본 RGB가 아니라 현재 장표 `theme` 토큰으로 치환한다.
+7. 모든 텍스트는 현재 요구사항의 `title`, `steps`, `items`, `metrics`, `labels`, `conclusion`에서 채운다.
+8. `icon_asset`은 현재 frame 안에서 비율을 유지해 확대·축소하고 `recolorable`이면 테마 토큰을 적용한다.
+9. `media_frame`은 선택된 `photo_asset`을 프레임의 `crop_mode`로 배치하며 사진이 없으면 자산 적용을 실패시키고 임의 사진을 넣지 않는다.
+
+블록이 `min_font_size`와 최소 노드 크기를 만족하지 못하면 텍스트를 자르거나 겹치지 않는다. 다른 variant를 한 번 시도하고, 그래도 실패하면 `no_suitable_asset`로 되돌려 기존 네이티브 폴백이나 장표 분할을 선택한다.
+
+초기 반복 구조는 2~8개 노드를 지원한다. 고정형 허브·매핑 자산은 승인된 고정 노드 수와 실제 콘텐츠 수가 다르면 적용하지 않는다. 범용 제약조건 솔버와 임의 노드 증감은 이후 확장으로 남긴다.
+
+## 9. 추출·익명화 규칙
+
+큐레이터는 다음 순서로 후보를 정규화한다.
+
+1. 마스터·레이아웃·슬라이드 도형을 재귀 순회하고 상속 관계, 그룹·컨테이너·primitive·텍스트·연결선·picture placeholder·실제 미디어 관계를 추출한다.
+2. 정렬, 간격, 배경, 테두리, 포함 관계를 이용해 블록 경계와 reading order를 만든다.
+3. 각 블록에서 shell, header·body·footer zone, accent shape, 내부 도식 후보를 분리한다.
+4. 블록 경계 기준으로 shell과 내부 도식의 상대 좌표와 크기를 계산한다.
+5. 연결 관계와 반복 패턴으로 내부 도식을 `process_chain`, `mapping`, `hub_spoke`, `matrix`, `feedback_loop`, `lanes`, `architecture` 중 하나로 추론한다.
+6. 원본 텍스트를 `title`, `steps[]`, `items[]`, `metrics[]`, `conclusion` 등의 슬롯으로 교체한다.
+7. 원본 색상을 `primary`, `navy`, `accent`, `pale`, `surface`, `line`, `ink`, `gray`, `white` 토큰 중 가장 가까운 역할로 치환한다.
+8. 원본 문구와 source 식별자가 승인 JSON에 남아 있지 않은지 검사한다.
+9. 구조적 특징에서 표시 이름·도식 유형·설명·디자인 특징·활용처·검색 태그 초안을 생성한다.
+10. 작은 그룹·커스텀 geometry는 `icon_asset`, picture placeholder는 `media_frame`, 실제 이미지 관계는 `photo_asset` 후보로 분리한다.
+
+토폴로지를 안정적으로 분류하지 못하면 `unsupported_topology`로 후보를 유지하되 영구 카탈로그로 승격하지 않는다. 사용자가 모듈 타입을 명시적으로 교정하면 다시 검증한다.
+
+## 10. 변경 범위
+
+- `tools/asset-curator/`: 블록 맵 탐지, 후보 추출, 익명화, 검증, 승격 공용 코어
+- `skills/proposal-asset-curator/`: 자연어 선별·승격 진입점과 승인 절차
+- `skills/proposal-asset-curator/references/selection-playbook.md`: 블록 탐지 순서, 정성 판정, 이미지 슬롯화, 중복 대표본 선택, 실제 실패 사례
+- `tools/ppt-ingest/`: PPTX·POTX 입력, master·layout·slide 상속과 picture placeholder·미디어 관계 추출 보강
+- `tools/hitl-bridge/bridge_server.mjs`: discover·promote API
+- `tools/hitl-bridge/public/ingest.html`: 후보 선택 UI
+- `tools/slide-renderer/src/asset-recipes.mjs`: 반응형 템플릿 해석기 연결
+- `tools/slide-renderer/src/render-presentation.mjs`: 승인 템플릿 로드와 적용 상태 기록
+- `tools/pattern-library/asset-manifest.schema.json`: 로컬 provenance와 승인 provenance 분리
+- `tools/pattern-library/icons/`, `media-frames/`, `photos/`: 자산 종류별 저장 위치
+- `skills/proposal-ppt-ingest/SKILL.md`, `skills/proposal-ppt-maker/SKILL.md`: 선택적 큐레이션과 반응형 자산 계약 반영
+- `.codex-plugin/plugin.json`, `README.md`: Skill 수와 사용 흐름 갱신
+
+새 외부 의존성은 추가하지 않는다. Python의 기존 `python-pptx`, Node.js 표준 라이브러리, 기존 artifact-tool만 사용한다.
+
+## 11. 오류 처리와 안전장치
+
+- 원본 PPTX·POTX가 이동·삭제됐으면 재인제스트를 요구한다.
+- 원본 PPTX·POTX나 그 복사본이 승인 자산 폴더에 발견되면 승격을 실패시킨다.
+- 사진·미디어 후보를 분리한 뒤에도 지원하지 않는 미디어가 구조에 남으면 파일 일부를 조용히 누락하지 않고 거절한다.
+- 동일 `module_id`가 있으면 덮어쓰지 않고 다른 이름을 요구한다.
+- 표시 이름·설명·디자인 특징·활용처·검색 태그가 비어 있거나 원본 식별정보를 포함하면 승격하지 않는다.
+- 카탈로그와 템플릿은 모두 검증된 후 임시 파일에서 원자적으로 교체한다.
+- 승격 실패 시 기존 카탈로그와 템플릿을 변경하지 않는다.
+- 사용자 승인 전에는 `tools/pattern-library`에 파일을 만들지 않는다.
+- 원본 텍스트·절대경로·회사명이 승인 자산에서 발견되면 검증 실패다.
+- `photo_asset`은 `license_status: "user_confirmed"` 또는 더 구체적인 허용 라이선스가 없으면 승격하지 않는다.
+- 자산 적용 후 `selected`, `loaded`, `applied`, `fidelity_passed`를 기존 보고서에 그대로 기록한다.
+- 렌더 검사기가 비정상 종료해도 예상 장표별 렌더·레이아웃 수, 매니페스트, 직접 OOXML 구조 추출이 모두 완성됐으면 선별은 경고와 함께 계속할 수 있다. 하나라도 빠졌으면 후보 탐색을 완료로 보고하지 않는다.
+- 선별 전용 모드에서는 어떤 승인 자산 파일도 만들지 않는다. 영구 카탈로그 파일 생성, `promoted` 상태, 네이티브 편집성 검증이 모두 확인되기 전에는 사용자에게 `에셋화 완료`라고 보고하지 않는다.
+
+## 12. 검증 계획
+
+1. 컨테이너·헤더·본문·강조띠가 있는 PPTX fixture에서 블록 경계와 reading order를 안정적으로 찾는다.
+2. POTX fixture에서 master·layout·slide 상속을 해석하고 레이아웃에만 존재하는 네이티브 자산을 찾는다.
+3. AutoShape, 텍스트, 그룹, custom geometry, 연결선으로 된 블록과 아이콘 후보를 안정적으로 찾는다.
+4. picture placeholder가 누락 이미지가 아니라 `media_frame`으로 분류되는지 검사한다.
+5. 제목·각주·페이지 번호가 블록 맵에서 제외되는지 검사한다.
+6. 여섯 `asset_kind`가 각각 올바른 계약과 저장 위치로 승격되는지 검사한다.
+7. 차트·SmartArt·OLE 포함 구조가 블록·도식으로 잘못 승격되지 않는지 검사한다.
+8. 승인 템플릿과 카탈로그에 원본 텍스트·회사명·절대경로·원본 PPTX·POTX가 없는지 검사한다.
+9. 라이선스가 확인된 사진만 `photos/`에 저장되고 중복 파일은 content hash로 합쳐지는지 검사한다.
+10. 동일 shell과 diagram을 wide·compact·tall 블록에 렌더링하고 프레임 밖 이탈·겹침·9pt 미만 텍스트가 없는지 검사한다.
+11. 반복형 템플릿이 2~8개 노드에서 연결 순서와 의미 슬롯을 보존하는지 검사한다.
+12. 블록·도식·아이콘 최종 PPTX에는 래스터 대체물이 없고 도형·텍스트가 개별 편집 가능한지 검사한다. 사진을 명시적으로 선택한 장표만 `p:pic`을 허용한다.
+13. ingest API와 자연어 Skill이 같은 후보 ID와 승격 코어를 사용하는지 검사한다.
+14. 같은 후보에서 규칙 기반 메타데이터 초안이 재현 가능하게 생성되고 사용자가 수정한 값이 카탈로그 검색에 반영되는지 검사한다.
+15. 표시용 메타데이터와 파일명에 원본 회사명·파일명·원문 문구가 없는지 검사한다.
+16. 기존 빈 카탈로그 폴백과 기존 14개 renderer 회귀 테스트를 통과시킨다.
+17. 실제 PowerPoint에서 wide·portrait·landscape 샘플을 열고 전체 슬라이드 PNG 내보내기를 통과시킨다.
+18. 직접 태그가 `grpSp`이고 내부에 `cxnSp`가 있는 fixture를 group으로 판별해 connector 오인을 방지한다.
+19. 한 장표에 독립된 도식과 표가 있는 fixture에서 서로 다른 블록 후보를 만든다.
+20. 래스터 아이콘이 섞인 네이티브 블록은 전체 거절하지 않고 `icon_slot` 정리 작업이 있는 후보로 남긴다.
+21. 정규화 경계·topology·슬롯 서명이 같은 반복 장표는 대표 후보 하나로 묶는다.
+22. 선별 전용 요청은 판정 보고만 생성하고 카탈로그와 승인 자산 폴더를 변경하지 않는다.
+23. 렌더 검사기가 결과 작성 후 비정상 종료하는 fixture에서 완성도 검사를 통과한 경우만 경고로 처리하고, 누락 산출물이 있으면 실패한다.
+
+## 13. 완료 기준
+
+- 사용자가 ingest 장표와 상속 레이아웃의 블록 경계, 내부 도식, 아이콘, 사진 프레임, 사진 후보를 확인할 수 있다.
+- 사용자가 블록 외형, 내부 도식 또는 둘을 결합한 자산을 등록할 수 있다.
+- 사용자가 레이아웃·마스터에서 네이티브 아이콘과 사진 프레임을 등록하고, 라이선스 확인된 실제 사진을 별도 등록할 수 있다.
+- 사용자가 등록 전에 자산 이름·도식 유형·용도 설명·디자인 특징·검색 태그를 확인하고 수정할 수 있다.
+- 자산 선택기는 파일명이 아니라 승인된 표시 이름·설명·활용처·검색 태그로 자산을 찾을 수 있다.
+- 사용자가 대화에서 현재 선택 장표를 `자주 쓰는 에셋`으로 요청할 수 있다.
+- 사용자가 PPTX·POTX 전체에서 쓸만한 후보를 요청하면 장표가 아니라 블록 단위로 선별 결과와 간단한 이유·정리 작업을 받을 수 있다.
+- 선별 전용 모드와 실제 승격 모드가 구분되며 선별만으로 승인 카탈로그가 변경되거나 에셋화 완료로 보고되지 않는다.
+- 두 경로가 동일한 후보·익명화·검증·승격 코어를 사용한다.
+- 승인 자산은 슬라이드 절대좌표와 무관하게 블록 shell과 내부 도식을 wide·compact·tall 프레임에서 재배치한다.
+- 승인된 블록·도식·아이콘 자산에 원본 회사정보·원문 문구·래스터 자산이 남지 않는다.
+- 원본 PPTX·POTX는 Git 저장소와 플러그인 배포물에 포함되지 않고 승인된 자산 파일만 포함된다.
+- 블록·도식·아이콘은 네이티브 도형만 사용하며 사진은 명시적인 `photo_asset` 선택 때만 래스터로 포함된다.
+- 기존 자산 0개 네이티브 폴백과 기존 제안 장표 생성 흐름이 깨지지 않는다.

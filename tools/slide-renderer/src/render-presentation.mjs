@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { loadArtifactTool } from "./artifact-tool-runtime.mjs";
-import { createAssetRecipe } from "./asset-recipes.mjs";
+import { AssetLayoutError, createAssetRecipe } from "./asset-recipes.mjs";
 
 const { Presentation, PresentationFile } = await loadArtifactTool();
 
@@ -24,15 +24,30 @@ function blockTitle(block) { return block.content?.headline || roleTitles[block.
 function optionDescription(option) { return option.desc ?? option.summary ?? ""; }
 function bulletText(block) { return Array.isArray(block.content?.bullets) ? block.content.bullets.map((item) => `• ${item}`).join("\n") : ""; }
 async function loadAssets(model, patternRoot) {
+  const root = path.resolve(patternRoot);
+  const resolveAssetPath = (reference) => {
+    if (typeof reference !== "string" || !reference.trim()) throw new Error("Selected asset has no template path");
+    const target = path.resolve(root, reference);
+    if (target !== root && !target.startsWith(`${root}${path.sep}`)) throw new Error(`Asset path escapes pattern library: ${reference}`);
+    return target;
+  };
   const loaded = [];
   for (const asset of model.selectedAssets) {
     if (!asset.template) throw new Error(`Selected asset ${asset.assetId} has no template path`);
-    const source = path.join(patternRoot, asset.template);
+    const source = resolveAssetPath(asset.template);
     const original = await fs.readFile(source, "utf8");
+    const templateData = asset.rendererKey === "responsive_native_template" ? JSON.parse(original) : null;
+    let photoPath = null;
+    if (asset.photoCatalog) {
+      photoPath = resolveAssetPath(asset.photoCatalog.template);
+      await fs.stat(photoPath);
+    }
     loaded.push({
       ...asset,
       source,
       sha256: crypto.createHash("sha256").update(original).digest("hex"),
+      templateData,
+      photoPath,
       renderMode: "native_powerpoint_shapes",
       selected: true,
       loaded: true,
@@ -60,19 +75,41 @@ function addHeader(slide, model, page, wireframe) {
   text(slide, `requirement-id-${suffix}`, displayRequirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
   text(slide, `page-${suffix}`, String(page).padStart(2, "0"), { left: model.canvas.width - 92, top: model.canvas.height - 36, width: 54, height: 18 }, 12, C.blue, true, "right");
 }
-function applyAssetRecipe(slide, recipe) {
+function applyAssetRecipe(slide, recipe, asset = null) {
+  const shapesByName = new Map();
+  let pictureShapeCount = 0;
   for (const item of recipe.primitives) {
     if (item.kind === "text") {
-      text(slide, item.name, item.text, item.position, item.fontSize ?? 14, item.color ?? C.ink, item.bold ?? false, item.alignment ?? "left");
+      const shape = text(slide, item.name, item.text, item.position, item.fontSize ?? 14, item.color ?? C.ink, item.bold ?? false, item.alignment ?? "left");
+      shapesByName.set(item.name, shape);
       continue;
     }
-    slide.shapes.add({
-      geometry: item.kind,
+    if (item.kind === "image") {
+      if (!asset?.photoPath) throw new AssetLayoutError("Responsive media primitive has no approved photo mapping");
+      slide.images.add({ path: asset.photoPath, alt: "Approved proposal photo", fit: item.fit ?? "cover", position: item.position });
+      pictureShapeCount += 1;
+      continue;
+    }
+    if (item.kind === "connector" && item.from && item.to && shapesByName.has(item.from) && shapesByName.has(item.to)) {
+      slide.shapes.connect(shapesByName.get(item.from), shapesByName.get(item.to), {
+        kind: item.connectorKind ?? "straight",
+        fromSide: item.fromSide,
+        toSide: item.toSide,
+        line: { style: "solid", fill: item.stroke ?? C.accent, width: item.lineWidth ?? 1 },
+        head: { type: "arrow", width: "sm", length: "sm" },
+      });
+      continue;
+    }
+    const geometry = item.custom_geometry ? "custom" : item.kind === "connector" ? "line" : item.kind;
+    const shape = slide.shapes.add({
+      geometry,
       name: item.name,
       position: item.position,
       fill: item.fill ?? "none",
       line: { style: "solid", fill: item.stroke ?? item.fill ?? "none", width: item.lineWidth ?? 1 },
+      ...(item.custom_geometry ? { customPaths: item.custom_geometry } : {}),
     });
+    shapesByName.set(item.name, shape);
   }
   const fidelityPassed = recipe.requiredMotifs.every((motif) => recipe.producedMotifs.includes(motif));
   return {
@@ -81,6 +118,7 @@ function applyAssetRecipe(slide, recipe) {
     requiredMotifs: recipe.requiredMotifs,
     producedMotifs: recipe.producedMotifs,
     fidelityPassed,
+    pictureShapeCount,
   };
 }
 function addWireframe(deck, model, layout, assetByBlock) {
@@ -102,9 +140,16 @@ function addWireframe(deck, model, layout, assetByBlock) {
       continue;
     }
     if (rendererKey) {
-      const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
-      applyAssetRecipe(slide, recipe);
-      text(slide, `wireframe-mapping:${block.blockId}`, mapping ? `asset: ${mapping.assetId} · ${rendererKey}` : `fallback: native_shapes · ${rendererKey}`, { left: frame.left + 14, top: frame.top + 31, width: frame.width - 28, height: 9 }, 8, C.gray, true, "right");
+      try {
+        const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme, template: mapping?.templateData, photo: mapping?.photoPath ? { id: mapping.photoId, path: mapping.photoPath } : null });
+        applyAssetRecipe(slide, recipe, mapping);
+        text(slide, `wireframe-mapping:${block.blockId}`, mapping ? `asset: ${mapping.assetId} · ${rendererKey}` : `fallback: native_shapes · ${rendererKey}`, { left: frame.left + 14, top: frame.top + 31, width: frame.width - 28, height: 9 }, 8, C.gray, true, "right");
+      } catch (error) {
+        if (!(error instanceof AssetLayoutError)) throw error;
+        rect(slide, `wireframe-fallback:${block.blockId}`, frame, C.white, "#93A2B4");
+        text(slide, `wireframe-fallback-title:${block.blockId}`, `[asset fallback · ${rendererKey}]`, { left: frame.left + 14, top: frame.top + 13, width: frame.width - 28, height: 24 }, 16, C.navy, true);
+        text(slide, `wireframe-fallback-content:${block.blockId}`, block.steps.join(" → ") || bulletText(block), { left: frame.left + 14, top: frame.top + 46, width: frame.width - 28, height: Math.max(28, frame.height - 70) }, 16, C.ink);
+      }
       continue;
     }
     rect(slide, `wireframe:${block.blockId}`, frame, C.white, "#93A2B4");
@@ -272,6 +317,8 @@ function addFinal(deck, model, layout, assets) {
   const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
   const assetByBlock = new Map(assets.map((asset) => [asset.blockId, asset]));
   const applications = [];
+  const runtimeFallbacks = [];
+  let pictureShapeCount = 0;
   for (const block of model.blocks) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
@@ -282,9 +329,17 @@ function addFinal(deck, model, layout, assets) {
       continue;
     }
     if (rendererKey) {
-      const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
-      const application = applyAssetRecipe(slide, recipe);
-      if (asset) applications.push({ blockId: block.blockId, assetId: asset.assetId, ...application });
+      try {
+        const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme, template: asset?.templateData, photo: asset?.photoPath ? { id: asset.photoId, path: asset.photoPath } : null });
+        const application = applyAssetRecipe(slide, recipe, asset);
+        pictureShapeCount += application.pictureShapeCount;
+        if (asset) applications.push({ blockId: block.blockId, assetId: asset.assetId, ...application, applied: true });
+      } catch (error) {
+        if (!(error instanceof AssetLayoutError)) throw error;
+        if (asset) applications.push({ blockId: block.blockId, assetId: asset.assetId, applied: false, fidelityPassed: false, requiredMotifs: [], producedMotifs: [], structureFingerprint: null });
+        runtimeFallbacks.push({ blockId: block.blockId, assetId: asset?.assetId ?? null, rendererKey, reason: error.message });
+        renderGeneric(slide, block, frame);
+      }
       continue;
     }
     if (block.role === "metric_highlight") renderMetric(slide, model, block, frame);
@@ -296,7 +351,7 @@ function addFinal(deck, model, layout, assets) {
   }
   const footerTop = model.canvas.height - 54;
   text(slide, "source-footer", `RFP ${displayRequirementId} | 보호 정량지표: ${model.protectedMetrics.map((metric) => metric.valueText).join(", ") || "없음"} | 자산 구조와 제안 문구는 개별 도형으로 편집 가능`, { left: model.canvas.orientation === "portrait" ? 36 : 48, top: footerTop, width: model.canvas.width - 150, height: 18 }, 11, C.gray);
-  return { slide, applications };
+  return { slide, applications, runtimeFallbacks, pictureShapeCount };
 }
 
 export async function renderPresentation({ model, layout, patternRoot, outputPptx, wireframePng, finalSlidePng }) {
@@ -327,7 +382,7 @@ export async function renderPresentation({ model, layout, patternRoot, outputPpt
       const application = applicationsByBlock.get(asset.blockId);
       return {
         ...asset,
-        applied: Boolean(application),
+        applied: application?.applied ?? Boolean(application),
         fidelityPassed: application?.fidelityPassed ?? false,
         structureFingerprint: application?.structureFingerprint ?? null,
         requiredMotifs: application?.requiredMotifs ?? [],
@@ -335,5 +390,7 @@ export async function renderPresentation({ model, layout, patternRoot, outputPpt
       };
     }),
     slideCount: 2,
+    pictureShapeCount: final.pictureShapeCount,
+    runtimeFallbacks: final.runtimeFallbacks,
   };
 }

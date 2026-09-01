@@ -16,6 +16,8 @@ storage/ingest_data/*
 !storage/ingest_data/.gitkeep
 storage/index/*
 !storage/index/.gitkeep
+storage/asset_candidates/*
+!storage/asset_candidates/.gitkeep
 
 # Python caches
 __pycache__/

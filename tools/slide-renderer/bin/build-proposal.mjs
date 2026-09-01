@@ -80,7 +80,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     density: model.density,
     content_box_count: model.contentBoxCount,
     meaningful_area_count: model.meaningfulAreaCount,
-    picture_shape_count: 0,
+    picture_shape_count: rendered.pictureShapeCount ?? rendered.picture_shape_count ?? 0,
     selected_assets: rendered.assets.map((asset) => ({
       block_id: asset.blockId,
       asset_id: asset.assetId,
@@ -100,6 +100,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       adaptations: asset.adaptations,
     })),
     fallback_blocks: model.fallbackBlocks,
+    runtime_fallbacks: rendered.runtimeFallbacks ?? [],
     outputs: { pptx: outputPptx, wireframe: wireframePng, final_slide: finalSlidePng },
     checks: { png_is_real_raster: validPng, pptx_is_zip_package: validPptx, slide_count: rendered.slideCount, requirement_id_not_hardcoded: true, render_worker_exit_code: worker.status, native_cleanup_recovered: worker.status !== 0 },
     status: "generated_pending_powerpoint_review",

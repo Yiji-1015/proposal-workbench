@@ -33,7 +33,9 @@ def run_ingest_pipeline(
 ) -> dict:
     pptx_file = Path(pptx_path).resolve()
     if not pptx_file.exists():
-        raise FileNotFoundError(f"PPTX file not found: {pptx_file}")
+        raise FileNotFoundError(f"PowerPoint source not found: {pptx_file}")
+    if pptx_file.suffix.lower() not in {".pptx", ".potx"}:
+        raise ValueError("Only .pptx and .potx sources are supported.")
 
     data_root = Path(data_dir).resolve() if data_dir else (WORKBENCH_ROOT / "storage")
     source_key = generate_source_key(pptx_file)
@@ -50,10 +52,15 @@ def run_ingest_pipeline(
     print(f"[Output Directory] {out_root}")
     print(f"==========================================\n")
 
+    source_type = "potx" if pptx_file.suffix.lower() == ".potx" else "pptx"
+
     # Step 1: PowerPoint COM 고화질 PNG 렌더링
     rendered_pngs = []
     render_status = {"status": "skipped", "completed": 0, "total": 0}
-    if not skip_com_render:
+    if source_type == "potx":
+        render_status["reason"] = "POTX template source has no reliable COM slide render."
+        print("[Step 1/3] Skipping PowerPoint COM rendering for POTX template source")
+    elif not skip_com_render:
         try:
             from render_slides_com import render_pptx_to_png
             print("[Step 1/3] Rendering high-fidelity slide PNGs via PowerPoint COM...")
@@ -91,8 +98,13 @@ def run_ingest_pipeline(
         data_dir=data_root,
         env=env,
         # None means intentionally skipped; an empty list means rendering failed.
-        rendered_pngs=rendered_pngs if not skip_com_render else None,
+        rendered_pngs=rendered_pngs if not skip_com_render and source_type == "pptx" else None,
     )
+
+    for doc, extracted in zip(indexed_docs, extracted_slides):
+        doc["source_type"] = extracted.get("source_type", source_type)
+        doc["layout_id"] = extracted.get("layout_id", "")
+        doc["master_id"] = extracted.get("master_id", "")
 
     # Ingest Manifest 저장
     overall_status = "completed" if render_status["status"] in ["completed", "skipped"] else "partial"
@@ -101,6 +113,7 @@ def run_ingest_pipeline(
         "source_pptx": pptx_file.name,
         "source_path": str(pptx_file),
         "source_key": source_key,
+        "source_type": source_type,
         "total_slides": len(extracted_slides),
         "render": render_status,
         "extract": {"status": "completed", "completed": len(extracted_slides)},
@@ -124,8 +137,8 @@ def run_ingest_pipeline(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="End-to-End PPTX Ingestion Pipeline.")
-    parser.add_argument("--pptx", required=True, help="Path to the input PPTX file")
+    parser = argparse.ArgumentParser(description="End-to-End PPTX/POTX Ingestion Pipeline.")
+    parser.add_argument("--source", "--pptx", dest="source_path", required=True, help="Path to the input .pptx or .potx file")
     parser.add_argument("--data-dir", help="Base data directory (default: storage/)")
     parser.add_argument("--skip-com-render", action="store_true", help="Skip PowerPoint COM PNG rendering")
 
@@ -133,7 +146,7 @@ def main():
 
     try:
         run_ingest_pipeline(
-            pptx_path=args.pptx,
+            pptx_path=args.source_path,
             data_dir=args.data_dir,
             skip_com_render=args.skip_com_render,
         )
