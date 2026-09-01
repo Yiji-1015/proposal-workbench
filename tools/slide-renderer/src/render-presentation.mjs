@@ -104,7 +104,7 @@ function addWireframe(deck, model, layout, assetByBlock) {
     if (rendererKey) {
       const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
       applyAssetRecipe(slide, recipe);
-      text(slide, `wireframe-mapping:${block.blockId}`, mapping ? `asset: ${mapping.assetId} · ${rendererKey}` : `fallback: native_shapes · ${rendererKey}`, { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, 9, C.gray, true, "right");
+      text(slide, `wireframe-mapping:${block.blockId}`, mapping ? `asset: ${mapping.assetId} · ${rendererKey}` : `fallback: native_shapes · ${rendererKey}`, { left: frame.left + 14, top: frame.top + 31, width: frame.width - 28, height: 9 }, 8, C.gray, true, "right");
       continue;
     }
     rect(slide, `wireframe:${block.blockId}`, frame, C.white, "#93A2B4");

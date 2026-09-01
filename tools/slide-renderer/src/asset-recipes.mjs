@@ -173,8 +173,9 @@ function itemLabel(item) {
 function matrixTableRecipe(block, frame, theme) {
   const columns = block.content?.columns ?? ["구분", "내용"];
   const rows = block.content?.rows ?? [];
+  const hasConclusion = Boolean(block.content?.conclusion);
   const primitives = [titlePrimitive(block, frame, theme)];
-  const inner = { left: frame.left + 12, top: frame.top + 42, width: frame.width - 24, height: frame.height - 54 };
+  const inner = { left: frame.left + 12, top: frame.top + 42, width: frame.width - 24, height: frame.height - (hasConclusion ? 72 : 54) };
   const headerHeight = Math.min(30, inner.height * 0.25);
   const rowHeight = Math.max(8, (inner.height - headerHeight) / Math.max(1, rows.length));
   const columnWidth = inner.width / columns.length;
@@ -299,7 +300,7 @@ function chevronPipelineRecipe(block, frame, theme) {
   const gates = block.content?.gates ?? [];
   const primitives = [titlePrimitive(block, frame, theme)];
   const gap = 4;
-  const inner = { left: frame.left + 12, top: frame.top + 44, width: frame.width - 24, height: Math.max(20, frame.height - 76) };
+  const inner = { left: frame.left + 12, top: frame.top + 44, width: frame.width - 24, height: Math.max(20, frame.height - 86) };
   const width = (inner.width - gap * (steps.length - 1)) / Math.max(1, steps.length);
   const height = Math.max(18, inner.height);
   steps.forEach((step, index) => {
