@@ -20,6 +20,8 @@ import { detectPythonCommand } from "../verify-workbench.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workbenchRoot = path.resolve(__dirname, "..", "..");
 const publicDir = path.join(__dirname, "public");
+const assetCuratorScript = path.join(workbenchRoot, "tools", "asset-curator", "asset_curator.py");
+const patternLibraryDir = path.join(workbenchRoot, "tools", "pattern-library");
 const PORT = 5274;
 const HOST = "127.0.0.1";
 
@@ -71,6 +73,51 @@ export function isValidIdentifier(id) {
   return typeof id === "string" && /^[\p{L}\p{N}_-]{1,128}$/u.test(id);
 }
 
+export function validateDiscoverRequest(body) {
+  const sourceKey = body?.source_key;
+  if (!isValidIdentifier(sourceKey)) throw new Error("Invalid source key.");
+  if (body?.slide_no === undefined || body?.slide_no === null || body?.slide_no === "") {
+    return { sourceKey, slideNo: undefined };
+  }
+  const slideNo = Number(body.slide_no);
+  if (!Number.isInteger(slideNo) || slideNo < 1 || slideNo > 10000) throw new Error("Invalid slide number.");
+  return { sourceKey, slideNo };
+}
+
+export function validatePromoteRequest(body) {
+  if (body?.approved !== true) throw new Error("Final approval is required.");
+  if (!isValidIdentifier(body?.candidate_id) || !isValidIdentifier(body?.module_id)) {
+    throw new Error("Invalid candidate or module ID.");
+  }
+  const requiredStrings = ["display_name", "module_type", "asset_kind", "description", "usage_mode"];
+  for (const field of requiredStrings) {
+    if (typeof body[field] !== "string" || body[field].trim().length === 0 || body[field].length > 500) {
+      throw new Error(`Invalid ${field}.`);
+    }
+  }
+  for (const field of ["design_traits", "use_cases", "search_tags"]) {
+    if (!Array.isArray(body[field]) || body[field].length < 1 || body[field].length > 30 || body[field].some((item) => typeof item !== "string" || item.length > 100)) {
+      throw new Error(`Invalid ${field}.`);
+    }
+  }
+  if (!["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"].includes(body.asset_kind)) {
+    throw new Error("Invalid asset_kind.");
+  }
+  if (!["process_chain", "mapping", "hub_spoke", "matrix", "feedback_loop", "lanes", "architecture", "shell", "icon", "media_frame", "photo"].includes(body.module_type)) {
+    throw new Error("Invalid module_type.");
+  }
+  if (!["semantic", "structural", "decorative"].includes(body.usage_mode)) {
+    throw new Error("Invalid usage_mode.");
+  }
+  return {
+    ...body,
+    candidate_id: body.candidate_id.trim(),
+    module_id: body.module_id.trim(),
+    display_name: body.display_name.trim(),
+    description: body.description.trim(),
+  };
+}
+
 export function isSafePath(baseDir, targetPath) {
   const resolvedBase = path.resolve(baseDir);
   const resolvedTarget = path.resolve(targetPath);
@@ -102,7 +149,9 @@ export function getSelectedSlides(session) {
   };
 }
 
-function runProcess(command, args, timeoutMs = 120_000) {
+function runProcess(command, args, options = {}) {
+  const timeoutMs = typeof options === "number" ? options : (options.timeoutMs ?? 120_000);
+  const input = typeof options === "object" ? options.input : undefined;
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: workbenchRoot, windowsHide: true });
     let stdout = "";
@@ -122,13 +171,36 @@ function runProcess(command, args, timeoutMs = 120_000) {
     }, timeoutMs);
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
+    if (input !== undefined) child.stdin.end(input);
     child.once("error", (error) => finish(error));
     child.once("close", (code) => {
       if (timedOut) finish(new Error(`PPTX export timed out after ${timeoutMs / 1000} seconds.`));
-      else if (code === 0) finish(null, stdout.trim());
-      else finish(new Error(stderr.trim() || stdout.trim() || `Exporter exited with code ${code}.`));
+      else if (code === 0) finish(null, { exitCode: code, stdout: stdout.trim(), stderr: stderr.trim() });
+      else {
+        const error = new Error(stderr.trim() || stdout.trim() || `Exporter exited with code ${code}.`);
+        error.exitCode = code;
+        error.stdout = stdout.trim();
+        error.stderr = stderr.trim();
+        finish(error);
+      }
     });
   });
+}
+
+async function runAssetCurator(args, input) {
+  const python = detectPythonCommand();
+  if (!python) throw new Error("Python runtime not found. Run node tools/verify-workbench.mjs.");
+  const result = await runProcess(python.cmd, [assetCuratorScript, ...args], { input, timeoutMs: 120_000 });
+  try {
+    return JSON.parse(result.stdout);
+  } catch (error) {
+    throw new Error(`Asset curator returned invalid JSON: ${error.message}`);
+  }
+}
+
+function sendAssetProcessError(res, error) {
+  const status = error?.exitCode === 3 ? 404 : error?.exitCode === 4 ? 409 : error?.exitCode === 2 ? 400 : 500;
+  sendError(res, status, error.message);
 }
 
 async function exportSelectedSlides(sessionId, session, dataDir) {
@@ -267,6 +339,61 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, data);
     } catch {
       sendError(res, 404, `Ingest manifest not found: ${stem}`);
+    }
+    return;
+  }
+
+  // 1-2. 네이티브 블록 후보 탐색: POST /api/assets/discover
+  if (req.method === "POST" && url.pathname === "/api/assets/discover") {
+    try {
+      const body = await readBodyJson(req, 256 * 1024);
+      let request;
+      try {
+        request = validateDiscoverRequest(body);
+      } catch (error) {
+        sendError(res, 400, error.message);
+        return;
+      }
+      const { sourceKey, slideNo } = request;
+      const manifestFile = path.join(dataDir, "ingest_data", sourceKey, "manifest.json");
+      if (!isSafePath(dataDir, manifestFile)) throw Object.assign(new Error("Access denied."), { exitCode: 2 });
+      await fs.access(manifestFile);
+      const args = ["discover", "--manifest", manifestFile, "--data-dir", dataDir];
+      if (slideNo !== undefined) args.push("--slide-no", String(slideNo));
+      sendJson(res, 200, await runAssetCurator(args));
+    } catch (err) {
+      if (err.code === "ENOENT") sendError(res, 404, "Ingest manifest not found.");
+      else sendAssetProcessError(res, err);
+    }
+    return;
+  }
+
+  // 1-3. 승인된 후보 승격: POST /api/assets/promote
+  if (req.method === "POST" && url.pathname === "/api/assets/promote") {
+    try {
+      let body;
+      try {
+        body = validatePromoteRequest(await readBodyJson(req, 512 * 1024));
+      } catch (error) {
+        sendError(res, 400, error.message);
+        return;
+      }
+      const result = await runAssetCurator([
+        "promote",
+        "--candidate-id", body.candidate_id,
+        "--request-json", "-",
+        "--data-dir", dataDir,
+        "--pattern-root", patternLibraryDir,
+      ], JSON.stringify(body));
+      sendJson(res, 200, {
+        success: true,
+        candidate_id: result.candidate_id,
+        module_id: result.asset?.module_id || body.module_id,
+        status: result.status,
+        native_editability_verified: result.status === "promoted" && result.asset?.renderer_key === "responsive_native_template",
+      });
+    } catch (err) {
+      sendAssetProcessError(res, err);
     }
     return;
   }

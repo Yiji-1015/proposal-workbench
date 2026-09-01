@@ -16,6 +16,10 @@
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">슬라이드 분할, 렌더링, 색인 결과를 확인합니다.</p>
       </div>
+      <div class="selection-actions">
+        <button id="discoverWholeDeck" class="btn" type="button">전체 에셋 후보 찾기</button>
+        <span id="assetStatus" class="preview-note"></span>
+      </div>
     </header>
 
     <div class="info-bar">
@@ -34,9 +38,32 @@
     </div>
   </div>
 
+  <dialog id="assetDialog" class="asset-dialog">
+    <form method="dialog" id="assetForm">
+      <h2>재사용 에셋 승인</h2>
+      <p id="assetCandidateNote" class="preview-note"></p>
+      <p id="assetRemovedText" class="asset-removed">제거된 원문: 원문은 저장하지 않고 의미 슬롯으로 치환합니다.</p>
+      <label>자산 ID <input id="assetModuleId" maxlength="128" required></label>
+      <label>표시 이름 <input id="assetDisplayName" maxlength="120" required></label>
+      <label>도식 유형 <input id="assetModuleType" maxlength="60" required></label>
+      <label>에셋 종류 <input id="assetKind" maxlength="60" required></label>
+      <label>설명 <textarea id="assetDescription" maxlength="500" required></textarea></label>
+      <label>디자인 특징 <input id="assetDesignTraits" required></label>
+      <label>활용처 <input id="assetUseCases" required></label>
+      <label>검색 태그 <input id="assetSearchTags" required></label>
+      <label>사용 모드 <input id="assetUsageMode" value="structural" required></label>
+      <div class="dialog-actions">
+        <button id="assetCancel" class="btn btn-muted" value="cancel">취소</button>
+        <button id="assetApprove" class="btn btn-success" type="button">최종 승인·에셋화</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
     const params = new URLSearchParams(window.location.search);
     const pptxStem = params.get('pptx') || '';
+    let currentManifest = null;
+    let currentCandidates = [];
 
     async function loadIngest() {
       if (!pptxStem) {
@@ -86,6 +113,7 @@
     }
 
     function renderManifest(manifest) {
+      currentManifest = manifest;
       document.getElementById('deckName').textContent = manifest.source_pptx || pptxStem;
       document.getElementById('slideCount').textContent = (manifest.total_slides || manifest.slides?.length || 0) + '장 처리됨';
       const render = manifest.render || {};
@@ -99,6 +127,7 @@
       (manifest.slides || []).forEach((s) => {
         const card = document.createElement('div');
         card.className = 'card';
+        card.dataset.slideNo = s.slide_no;
 
         card.appendChild(buildPreview(s));
 
@@ -120,10 +149,130 @@
         body.appendChild(title);
         body.appendChild(desc);
         body.appendChild(status);
+        const actions = document.createElement('div');
+        actions.className = 'card-actions';
+        const assetButton = document.createElement('button');
+        assetButton.className = 'btn';
+        assetButton.type = 'button';
+        assetButton.textContent = '이 장표 에셋 후보 찾기';
+        assetButton.addEventListener('click', () => discoverAssets(s.slide_no));
+        actions.appendChild(assetButton);
+        body.appendChild(actions);
         card.appendChild(body);
         grid.appendChild(card);
       });
     }
+
+    function setAssetStatus(message) {
+      document.getElementById('assetStatus').textContent = message || '';
+    }
+
+    function clearOverlays() {
+      document.querySelectorAll('.asset-overlay').forEach((node) => node.remove());
+    }
+
+    function showCandidates(report) {
+      currentCandidates = report.candidates || [];
+      clearOverlays();
+      currentCandidates.forEach((candidate) => {
+        const card = document.querySelector(`.card[data-slide-no="${candidate.slide_no}"]`);
+        if (!card) return;
+        const preview = card.querySelector('.card-preview');
+        if (!preview || !candidate.bounds) return;
+        const overlay = document.createElement('button');
+        overlay.type = 'button';
+        overlay.className = `asset-overlay asset-${candidate.curation_status || 'discovered'}`;
+        overlay.style.cssText = `left:${candidate.bounds.x * 100}%;top:${candidate.bounds.y * 100}%;width:${candidate.bounds.w * 100}%;height:${candidate.bounds.h * 100}%`;
+        overlay.textContent = `${candidate.module_type || 'block'} · ${candidate.curation_status || '검토'}`;
+        overlay.title = candidate.selection_reason || '';
+        if (candidate.template_ready) overlay.addEventListener('click', () => openPromotion(candidate));
+        preview.appendChild(overlay);
+      });
+      setAssetStatus(`후보 ${currentCandidates.length}개 · evidence ${report.evidence?.status || 'unknown'}`);
+    }
+
+    async function discoverAssets(slideNo) {
+      try {
+        setAssetStatus('후보 탐색 중…');
+        const res = await fetch('/api/assets/discover', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({source_key: pptxStem, slide_no: slideNo}),
+        });
+        const report = await res.json();
+        if (!res.ok) throw new Error(report.error || '후보 탐색 실패');
+        showCandidates(report);
+      } catch (err) {
+        setAssetStatus('오류: ' + err.message);
+      }
+    }
+
+    async function discoverWholeDeck() {
+      try {
+        setAssetStatus('전체 장표 후보 탐색 중…');
+        const res = await fetch('/api/assets/discover', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({source_key: pptxStem}),
+        });
+        const report = await res.json();
+        if (!res.ok) throw new Error(report.error || '후보 탐색 실패');
+        showCandidates(report);
+      } catch (err) {
+        setAssetStatus('오류: ' + err.message);
+      }
+    }
+
+    function splitInput(id) {
+      return document.getElementById(id).value.split(',').map((item) => item.trim()).filter(Boolean);
+    }
+
+    function openPromotion(candidate) {
+      const dialog = document.getElementById('assetDialog');
+      const draft = candidate.metadata_draft || {};
+      dialog.dataset.candidateId = candidate.candidate_id;
+      document.getElementById('assetCandidateNote').textContent = `${candidate.source_scope || 'slide'} · ${candidate.module_type || ''} · variants: ${(candidate.supported_variants || []).join(', ')}`;
+      document.getElementById('assetModuleId').value = `${candidate.module_type || 'asset'}_${candidate.candidate_id.replace(/^cand_/, '')}`;
+      document.getElementById('assetDisplayName').value = draft.display_name || '';
+      document.getElementById('assetModuleType').value = candidate.module_type || '';
+      document.getElementById('assetKind').value = candidate.asset_kind || '';
+      document.getElementById('assetDescription').value = draft.description || '';
+      document.getElementById('assetDesignTraits').value = (draft.design_traits || []).join(', ');
+      document.getElementById('assetUseCases').value = (draft.use_cases || []).join(', ');
+      document.getElementById('assetSearchTags').value = (draft.search_tags || []).join(', ');
+      dialog.showModal();
+    }
+
+    async function promoteCurrentCandidate() {
+      const dialog = document.getElementById('assetDialog');
+      const payload = {
+        approved: true,
+        candidate_id: dialog.dataset.candidateId,
+        module_id: document.getElementById('assetModuleId').value.trim(),
+        display_name: document.getElementById('assetDisplayName').value.trim(),
+        module_type: document.getElementById('assetModuleType').value.trim(),
+        asset_kind: document.getElementById('assetKind').value.trim(),
+        description: document.getElementById('assetDescription').value.trim(),
+        design_traits: splitInput('assetDesignTraits'),
+        use_cases: splitInput('assetUseCases'),
+        search_tags: splitInput('assetSearchTags'),
+        usage_mode: document.getElementById('assetUsageMode').value.trim(),
+        license: 'user-provided',
+        license_status: 'user_confirmed',
+      };
+      try {
+        const res = await fetch('/api/assets/promote', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || '승격 실패');
+        dialog.close();
+        setAssetStatus(`승격 완료: ${result.module_id}`);
+      } catch (err) {
+        setAssetStatus('오류: ' + err.message);
+      }
+    }
+
+    document.getElementById('discoverWholeDeck').addEventListener('click', discoverWholeDeck);
+    document.getElementById('assetApprove').addEventListener('click', promoteCurrentCandidate);
 
     loadIngest();
   </script>
