@@ -56,11 +56,15 @@ try {
 }
 try {
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-  const required = ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"];
+  const required = ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"];
   const fields = new Set(manifest.asset_required_fields ?? []);
-  const sourceFields = new Set(manifest.source_required_fields ?? []);
-  const valid = required.every((field) => fields.has(field)) && ["provider", "original_file", "license"].every((field) => sourceFields.has(field));
-  add("asset-contract", valid, valid ? "empty baseline and future import fields are defined" : "asset manifest contract is incomplete");
+  const kinds = ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"];
+  const forbidden = ["source_path", "original_file", "raw_text", "raw_texts"];
+  const valid = manifest.version === 2
+    && required.every((field) => fields.has(field))
+    && kinds.every((kind) => manifest.asset_kind_values?.includes(kind))
+    && forbidden.every((field) => manifest.forbidden_permanent_fields?.includes(field));
+  add("asset-contract", valid, valid ? "version-2 editable asset contract is ready" : "asset manifest contract is incomplete");
 } catch (error) {
   add("asset-contract", false, `asset manifest contract cannot be read: ${error.message}`);
 }
