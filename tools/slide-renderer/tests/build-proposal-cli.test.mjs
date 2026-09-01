@@ -18,6 +18,8 @@ test("builds a non-DAR portrait proposal from project JSON without DAR leakage",
   const wireframe = await fs.readFile(path.join(temp, "wireframe.png"));
   const finalSlide = await fs.readFile(path.join(temp, "final-slide.png"));
   assert.equal(report.requirement_id, "SEC-204");
+  assert.equal(report.slide_scope, "requirement");
+  assert.deepEqual(report.requirement_ids, ["SEC-204"]);
   assert.equal(report.orientation, "portrait");
   assert.deepEqual(report.protected_metrics, ["분기 1회"]);
   assert.equal(JSON.stringify(report).includes("DAR-010"), false);

@@ -79,6 +79,8 @@ export interface RfpAnalysisContract {
 
 `proposal-slide-planner`가 기획하고, HitL UI에서 검토/승인하며, `proposal-slide-renderer`가 네이티브 도형으로 렌더링하는 핵심 계약입니다.
 
+`requirement_id`는 입력 파일을 묶는 실행·프로젝트 키다. 실제 페이지 범위는 `slide_scope`로 구분한다. `requirement` 페이지는 `primary_requirement_id`와 단일 `requirement_ids`를 사용하고, `overview` 페이지는 `primary_requirement_id: null`과 복수 `requirement_ids`를 사용한다.
+
 ```typescript
 export interface SlideBlock {
   block_id: string;          // 장표 내부 고유 블록 ID
@@ -87,11 +89,14 @@ export interface SlideBlock {
   visual_category: "process" | "hub_spoke" | "comparison" | "mapping" | "quality_gate" | "card_grid";
   direction?: "left_to_right" | "vertical" | "horizontal" | "none";
   importance?: "mandatory" | "optional";
+  architecture_treatment?: "native_diagram" | "text_explainer" | "generated_visual_with_text";
   step_count?: number;       // steps/options 수와 일치 필수
   content: {
     headline?: string;
     bullets?: string[];
     steps?: string[];
+    flow_steps?: string[];    // 복잡한 아키텍처 설명의 읽기 순서
+    explanation?: string;      // text_explainer/generated_visual_with_text에서 필수
     options?: { label: string; desc: string; tag?: string }[];
     diagram_labels?: string[];
     conclusion?: string;     // 비교 블록 결론 필수
@@ -101,6 +106,9 @@ export interface SlideBlock {
 
 export interface SlideBlueprintContract {
   requirement_id: string;
+  slide_scope: "requirement" | "overview";
+  primary_requirement_id?: string | null;
+  requirement_ids: string[];
   slide_title: string;
   governing_message?: string; // 세로형(portrait)일 때 필수, 반드시 ~니다. 종결
   orientation: "landscape" | "portrait";

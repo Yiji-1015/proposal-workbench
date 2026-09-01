@@ -20,7 +20,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
 
   assert.match(skill, /^---\s+name: proposal-ppt-maker\s+description: [^]*?---/);
   for (const trigger of ["제안서", "RFP", "PowerPoint", "PPTX", "HWPX"]) assert.ok(skill.includes(trigger), `missing trigger ${trigger}`);
-  for (const gate of ["요구사항 ID를 가장 먼저 확정한다", "방향을 승인받는다", "가로형(`landscape`)", "세로형(`portrait`)", "와이어프레임"]) {
+  for (const gate of ["장표 범위와 요구사항 ID를 가장 먼저 확정한다", "장표 단위를 구분한다", "방향을 승인받는다", "가로형(`landscape`)", "세로형(`portrait`)", "와이어프레임"]) {
     assert.ok(skill.includes(gate), `missing approval rule ${gate}`);
   }
   assert.match(skill, /색상을 묻지 않는다/);
@@ -41,6 +41,10 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /p:grpSp/);
   assert.match(skill, /네이티브 도형의 논리적 그룹/);
   assert.match(skill, /그룹 해제 후에도 각 도형과 텍스트가 개별 편집 가능/);
+  assert.match(skill, /복잡한 아키텍처는 설명 우선/);
+  assert.match(skill, /architecture_treatment/);
+  assert.match(skill, /content\.explanation/);
+  assert.match(skill, /나노바나나\/imagegen/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);
   assert.match(skill, /요구사항 ID.*가장 먼저/);
@@ -56,6 +60,7 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.ok(skill.includes("tools/pattern-library"));
 
   for (const input of ["input/requirement.json", "blueprint/slide-blueprint.json", "mapping/asset-mapping.json"]) assert.ok(io.includes(input), `missing input ${input}`);
+  for (const field of ["slide_scope", "primary_requirement_id", "requirement_ids", "architecture_treatment", "content.explanation"]) assert.ok(io.includes(field), `missing contract field ${field}`);
   for (const output of ["wireframe.png", "final-slide.png", "verification-report.json", ".pptx"]) assert.ok(io.includes(output), `missing output ${output}`);
   assert.match(io, /render_mode.*native_powerpoint_shapes/);
   assert.match(io, /embedded_media_count: 0/);
@@ -80,12 +85,17 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(assetSelection, /네이티브 PowerPoint 도형끼리의 논리적 그룹화/);
   assert.match(assetSelection, /그룹 내부에 `p:pic`, SVG, 래스터 이미지, 미디어 관계가 없다/);
   assert.match(assetSelection, /architecture_required/);
+  assert.match(assetSelection, /text_explainer/);
+  assert.match(assetSelection, /generated_visual_with_text/);
+  assert.match(assetSelection, /imagegen/);
 
   assert.match(portraitProposal, /모든 `portrait` 청사진에 `governing_message`/);
   assert.match(portraitProposal, /반드시 `니다\.`로 끝낸다/);
   assert.match(portraitProposal, /불릿 자체를 도식 노드의 라벨로/);
   assert.match(portraitProposal, /스크린샷, 래스터 이미지, SVG 직접 삽입, 편집 불가능한 그룹 그림/);
   assert.match(portraitProposal, /네이티브 도형과 텍스트는 이동·복제 편의를 위해 논리적으로 그룹화/);
+  assert.match(portraitProposal, /content\.explanation/);
+  assert.match(portraitProposal, /text_explainer/);
   assert.match(portraitProposal, /최소 5개의 독립된 내용 상자/);
   assert.match(portraitProposal, /정보 밀도.*높게/);
   assert.match(portraitProposal, /`3\+2`, `2\+2\+1`/);
@@ -123,6 +133,10 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /세션.*완료 상태.*selected_slide_ids.*확인/s);
   assert.match(planner, /세션이 없거나 완료되지 않았으면.*레퍼런스 없이 계속할지 묻는다/s);
   assert.match(planner, /검색이나 인제스트를 호출하지 않는다/);
+  assert.match(planner, /개별 요구사항 1건당 1페이지/);
+  assert.match(planner, /slide_scope: \"overview\"/);
+  assert.match(planner, /복잡한 아키텍처는 설명 우선/);
+  assert.match(planner, /content\.explanation/);
   assert.match(maker, /업무 내용은 무시/);
   assert.match(maker, /최종 장표에 삽입하지 않는다/);
   for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {

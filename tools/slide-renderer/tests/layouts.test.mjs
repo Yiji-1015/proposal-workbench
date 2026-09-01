@@ -42,6 +42,25 @@ test("uses a portrait variant instead of landscape coordinates", () => {
   for (const frame of Object.values(plan.frames)) assert.ok(frame.left + frame.width <= 720 && frame.top + frame.height <= 1280);
 });
 
+test("maps registered frames to arbitrary block IDs by role", () => {
+  const plan = createLayoutPlan(model({
+    canvas: { width: 720, height: 1280, orientation: "portrait" },
+    blocks: [
+      { blockId: "blk_summary", role: "requirement_summary", steps: [], content: {} },
+      { blockId: "blk_process", role: "main_process", steps: ["A", "B"], content: {} },
+      { blockId: "blk_quality", role: "operation_quality", steps: [], content: {} },
+      { blockId: "blk_tech", role: "technology_comparison", steps: [], content: {} },
+      { blockId: "blk_metrics", role: "metric_highlight", steps: [], content: {} },
+    ],
+  }));
+  assert.ok(plan.frames.blk_summary);
+  assert.ok(plan.frames.blk_process);
+  assert.ok(plan.frames.blk_quality);
+  assert.ok(plan.frames.blk_tech);
+  assert.ok(plan.frames.blk_metrics);
+  assert.equal(plan.processCells.length, 2);
+});
+
 test("uses a dense two-by-two process grid for four portrait steps", () => {
   const plan = createLayoutPlan(model({ canvas: { width: 720, height: 1280, orientation: "portrait" } }));
   assert.equal(new Set(plan.processCells.map((cell) => cell.left)).size, 2);

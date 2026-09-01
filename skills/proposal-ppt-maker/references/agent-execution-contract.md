@@ -31,4 +31,6 @@ node "<skill-root>/scripts/validate-agent-brief.mjs" --brief "<brief.json>"
 
 필수 필드는 `requirement_ids`, `slide_scope`, `palette`, `approved_asset_mappings`, `forbidden_actions`, `time_budget_minutes`, `max_review_rounds`, `completion_criteria`다. `max_review_rounds`는 0 또는 1이어야 한다.
 
+여기서 `slide_scope` 객체는 서브에이전트 실행 범위의 장수·방향을 뜻한다. 개별 청사진의 페이지 범위(`requirement` 또는 `overview`)는 `slide-blueprint.json`의 `slide_scope`를 따른다.
+
 서브에이전트는 시작 응답에서 대상 ID, 장표 수, 방향, 팔레트, 에셋 매핑, 금지 작업, 시간 예산을 한 번 요약해 계약 수신을 확인한다. 계약 밖의 검증기, 체크섬 체계, 골든 이미지, 아카이브 파이프라인 또는 테스트 인프라를 만들지 않는다. 범위 밖 문제가 발견되면 수정하지 말고 상위 에이전트에게 한 문장으로 보고한다.

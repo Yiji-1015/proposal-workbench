@@ -1,5 +1,8 @@
 {
   "requirement_id": "SEC-204",
+  "slide_scope": "requirement",
+  "primary_requirement_id": "SEC-204",
+  "requirement_ids": ["SEC-204"],
   "slide_title": "관리자 접근통제 수행 방안",
   "layout_family": "three_column_with_bottom_band",
   "orientation": "portrait",

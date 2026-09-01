@@ -50,6 +50,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 ```
 
 세 파일의 `requirement_id`는 반드시 동일해야 한다.
+이 값은 세 입력 파일을 묶는 실행·프로젝트 키다. 페이지 범위는 별도로 `slide_scope`와 `requirement_ids`로 표시한다.
 
 ## `input/requirement.json`
 
@@ -72,10 +73,16 @@ node "<skill-root>/scripts/verify-skill.mjs"
 필수 상위 필드:
 
 - `requirement_id`
+- `slide_scope`: `requirement` 또는 `overview`. 기본 장표는 `requirement`다.
+- `requirement_ids`: 이 장표가 다루는 RFP 요구사항 ID 목록. `requirement`이면 정확히 1개, `overview`이면 2개 이상이어야 한다.
 - `slide_title`
 - `layout_family`
 - `orientation`: `landscape` 또는 `portrait`
 - `blocks[]`: 최소 5개의 독립된 내용 상자. 각 상자는 고유 `block_id`와 구별되는 정보 역할을 가져야 하며, 동일 카드 복제로 개수만 채우지 않는다.
+
+`primary_requirement_id`는 `slide_scope: requirement`일 때 필수이며 `requirement_ids`의 유일한 값과 같아야 한다. `overview`에서는 생략하거나 `null`로 두고 여러 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 각 페이지를 같은 `primary_requirement_id`로 연결한다.
+
+복잡한 아키텍처 블록은 `architecture_treatment`로 표현 방식을 선언한다. `native_diagram`은 읽을 수 있는 네이티브 도식, `text_explainer`는 네이티브 텍스트 상자 중심 설명, `generated_visual_with_text`는 사용자가 허용한 imagegen(나노바나나) 보조 시각과 편집 가능한 설명 텍스트의 조합이다. 후자의 두 방식은 `content.explanation`을 필수로 하며, 이미지 안의 생성 문구·수치·근거는 사실 데이터로 사용하지 않는다.
 
 `orientation`이 `portrait`이면 다음 필드도 필수다.
 

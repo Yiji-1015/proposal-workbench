@@ -59,7 +59,12 @@ function processCells(model, frames) {
 
 export function createLayoutPlan(model) {
   const registered = model.layoutFamily === "three_column_with_bottom_band";
-  const frames = registered ? registeredFrames(model) : genericFrames(model);
+  const templateFrames = registered ? registeredFrames(model) : genericFrames(model);
+  const frames = registered
+    ? Object.fromEntries(model.blocks
+      .map((block) => [block.blockId, templateFrames[block.role] ?? templateFrames[block.blockId]])
+      .filter(([, value]) => value))
+    : templateFrames;
   return {
     layoutKey: `${registered ? model.layoutFamily : "generic_grid"}:${model.canvas.orientation}`,
     frames,

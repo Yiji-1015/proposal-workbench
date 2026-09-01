@@ -21,6 +21,7 @@ function text(slide, name, value, position, fontSize = 16, color = C.ink, bold =
   return shape;
 }
 function blockTitle(block) { return block.content?.headline || roleTitles[block.role] || block.role; }
+function optionDescription(option) { return option.desc ?? option.summary ?? ""; }
 function bulletText(block) { return Array.isArray(block.content?.bullets) ? block.content.bullets.map((item) => `• ${item}`).join("\n") : ""; }
 async function loadAssets(model, patternRoot) {
   const loaded = [];
@@ -55,7 +56,8 @@ function addHeader(slide, model, page, wireframe) {
     titleShape.text.style = { fontFamily: "Malgun Gothic", fontSize: portrait ? 28 : 36, color: C.navy, bold: true, alignment: "left" };
   }
   text(slide, `subtitle-${suffix}`, wireframe ? "내용 구조·배치·asset 매핑 승인용 초안" : (model.governingMessage || model.requirementSummary), { left: portrait ? 36 : 48, top: portrait ? 128 : 108, width: portrait ? 648 : 1120, height: portrait ? 42 : 34 }, portrait ? 15 : 16, C.gray);
-  text(slide, `requirement-id-${suffix}`, model.requirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
+  const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
+  text(slide, `requirement-id-${suffix}`, displayRequirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
   text(slide, `page-${suffix}`, String(page).padStart(2, "0"), { left: model.canvas.width - 92, top: model.canvas.height - 36, width: 54, height: 18 }, 12, C.blue, true, "right");
 }
 function applyAssetRecipe(slide, recipe) {
@@ -88,6 +90,16 @@ function addWireframe(deck, model, layout, assetByBlock) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
     const mapping = assetByBlock.get(block.blockId);
+    if (block.architectureTreatment !== "native_diagram") {
+      rect(slide, `wireframe:${block.blockId}`, frame, C.white, "#93A2B4");
+      text(slide, `wireframe-title:${block.blockId}`, `[${roleTitles[block.role] ?? block.role} · ${block.architectureTreatment}]`, { left: frame.left + 14, top: frame.top + 13, width: frame.width - 28, height: 24 }, 16, C.navy, true);
+      const explanation = typeof block.content?.explanation === "string" ? block.content.explanation.trim() : "";
+      const flow = block.flowSteps?.length ? block.flowSteps.join(" → ") : "";
+      text(slide, `wireframe-content:${block.blockId}`, [explanation, flow].filter(Boolean).join("\n\n"), { left: frame.left + 14, top: frame.top + 46, width: frame.width - 28, height: Math.max(28, frame.height - 90) }, 16, C.ink);
+      const treatmentNote = block.architectureTreatment === "text_explainer" ? "editable_text_explainer" : "generated_visual_optional + editable_text";
+      text(slide, `wireframe-mapping:${block.blockId}`, treatmentNote, { left: frame.left + 14, top: frame.top + frame.height - 30, width: frame.width - 28, height: 16 }, 10, C.gray, true);
+      continue;
+    }
     if (mapping) {
       const recipe = createAssetRecipe({ rendererKey: mapping.rendererKey, block, frame, theme: model.theme });
       applyAssetRecipe(slide, recipe);
@@ -211,9 +223,9 @@ function renderComparison(slide, block, frame, asset) {
   const rightPosition = { left: frame.left + half + 36, width: half - 54 };
   rect(slide, `option-vs-bg:${block.blockId}`, { left: frame.left + half - 20, top: labelTop + 11, width: 40, height: 40 }, C.blue, C.blue, true);
   text(slide, `option-left-label:${block.blockId}`, options[0].label, { ...leftPosition, top: labelTop, height: 20 }, labelSize, C.ink, true, "center");
-  text(slide, `option-left-summary:${block.blockId}`, options[0].summary, { ...leftPosition, top: summaryTop, height: summaryHeight }, summarySize, C.ink, false, "center");
+  text(slide, `option-left-summary:${block.blockId}`, optionDescription(options[0]), { ...leftPosition, top: summaryTop, height: summaryHeight }, summarySize, C.ink, false, "center");
   text(slide, `option-right-label:${block.blockId}`, options[1].label, { ...rightPosition, top: labelTop, height: 20 }, labelSize, C.navy, true, "center");
-  text(slide, `option-right-summary:${block.blockId}`, options[1].summary, { ...rightPosition, top: summaryTop, height: summaryHeight }, summarySize, C.navy, false, "center");
+  text(slide, `option-right-summary:${block.blockId}`, optionDescription(options[1]), { ...rightPosition, top: summaryTop, height: summaryHeight }, summarySize, C.navy, false, "center");
   text(slide, `option-vs:${block.blockId}`, "+", { left: frame.left + half - 22, top: labelTop + 19, width: 44, height: 24 }, 18, C.white, true, "center");
   rect(slide, `option-conclusion-bg:${block.blockId}`, { left: frame.left, top: conclusionTop, width: frame.width, height: conclusionHeight }, C.navy, C.navy);
   text(slide, `option-conclusion:${block.blockId}`, block.content.conclusion, { left: frame.left + 20, top: conclusionTop + 9, width: frame.width - 40, height: conclusionHeight - 14 }, 14, C.white, true, "center");
@@ -248,17 +260,25 @@ function renderGovernance(slide, block, frame, asset) {
 function renderGeneric(slide, block, frame) {
   rect(slide, `block:${block.blockId}`, frame, C.white, C.line);
   text(slide, `block-title:${block.blockId}`, blockTitle(block), { left: frame.left + 16, top: frame.top + 16, width: frame.width - 32, height: 24 }, 17, C.navy, true);
-  text(slide, `block-body:${block.blockId}`, bulletText(block) || JSON.stringify(block.content), { left: frame.left + 16, top: frame.top + 54, width: frame.width - 32, height: frame.height - 70 }, 16, C.ink);
+  const explanation = typeof block.content?.explanation === "string" ? block.content.explanation.trim() : "";
+  const flowSteps = block.flowSteps?.length ? `흐름: ${block.flowSteps.join(" → ")}` : "";
+  const body = [explanation, flowSteps].filter(Boolean).join("\n\n") || bulletText(block) || JSON.stringify(block.content);
+  text(slide, `block-body:${block.blockId}`, body, { left: frame.left + 16, top: frame.top + 54, width: frame.width - 32, height: frame.height - 70 }, 16, C.ink);
 }
 function addFinal(deck, model, layout, assets) {
   const slide = deck.slides.add();
   addHeader(slide, model, 2, false);
+  const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
   const assetByBlock = new Map(assets.map((asset) => [asset.blockId, asset]));
   const applications = [];
   for (const block of model.blocks) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
     const asset = assetByBlock.get(block.blockId);
+    if (block.architectureTreatment !== "native_diagram") {
+      renderGeneric(slide, block, frame);
+      continue;
+    }
     if (asset) {
       const recipe = createAssetRecipe({ rendererKey: asset.rendererKey, block, frame, theme: model.theme });
       applications.push({ blockId: block.blockId, assetId: asset.assetId, ...applyAssetRecipe(slide, recipe) });
@@ -272,7 +292,7 @@ function addFinal(deck, model, layout, assets) {
     else renderGeneric(slide, block, frame);
   }
   const footerTop = model.canvas.height - 54;
-  text(slide, "source-footer", `RFP ${model.requirementId} | 보호 정량지표: ${model.protectedMetrics.map((metric) => metric.valueText).join(", ") || "없음"} | 자산 구조와 제안 문구는 개별 도형으로 편집 가능`, { left: model.canvas.orientation === "portrait" ? 36 : 48, top: footerTop, width: model.canvas.width - 150, height: 18 }, 11, C.gray);
+  text(slide, "source-footer", `RFP ${displayRequirementId} | 보호 정량지표: ${model.protectedMetrics.map((metric) => metric.valueText).join(", ") || "없음"} | 자산 구조와 제안 문구는 개별 도형으로 편집 가능`, { left: model.canvas.orientation === "portrait" ? 36 : 48, top: footerTop, width: model.canvas.width - 150, height: 18 }, 11, C.gray);
   return { slide, applications };
 }
 

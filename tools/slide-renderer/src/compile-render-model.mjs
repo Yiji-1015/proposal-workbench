@@ -7,11 +7,32 @@ function ownString(object, key, name = key) {
   return object[key].trim();
 }
 
+function idList(value, name) {
+  if (!Array.isArray(value) || value.length === 0) throw new TypeError(`${name} must contain at least one ID`);
+  const ids = value.map((id, index) => {
+    if (typeof id !== "string" || !id.trim()) throw new TypeError(`${name}[${index}] must be a non-empty string`);
+    return id.trim();
+  });
+  if (new Set(ids).size !== ids.length) throw new Error(`${name} must not contain duplicate IDs`);
+  return ids;
+}
+
+const ARCHITECTURE_TREATMENTS = new Set(["native_diagram", "text_explainer", "generated_visual_with_text"]);
+
 function normalizeBlock(block) {
   requireObject(block, "blueprint block");
   const blockId = ownString(block, "block_id", "block_id");
   const steps = Array.isArray(block.content?.steps) ? block.content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
+  const flowSteps = Array.isArray(block.content?.flow_steps) ? block.content.flow_steps.map((step) => String(step).trim()).filter(Boolean) : [];
   const options = Array.isArray(block.content?.options) ? structuredClone(block.content.options) : [];
+  const architectureTreatment = block.architecture_treatment ?? "native_diagram";
+  if (!ARCHITECTURE_TREATMENTS.has(architectureTreatment)) {
+    throw new Error(`architecture_treatment for ${blockId} must be native_diagram, text_explainer, or generated_visual_with_text`);
+  }
+  const explanation = typeof block.content?.explanation === "string" ? block.content.explanation.trim() : "";
+  if (architectureTreatment !== "native_diagram" && !explanation) {
+    throw new Error(`architecture_treatment ${architectureTreatment} for ${blockId} requires content.explanation`);
+  }
   const countedItems = steps.length ? steps.length : options.length;
   if (block.step_count != null && (!Number.isInteger(block.step_count) || block.step_count !== countedItems)) {
     throw new Error(`step_count for ${blockId} must equal actual steps or options (${countedItems})`);
@@ -23,8 +44,10 @@ function normalizeBlock(block) {
     visualCategory: ownString(block, "visual_category"),
     direction: typeof block.direction === "string" ? block.direction : "none",
     importance: typeof block.importance === "string" ? block.importance : "optional",
+    architectureTreatment,
     content: structuredClone(block.content ?? {}),
     steps,
+    flowSteps,
     options,
     sourceRefs: Array.isArray(block.source_refs) ? [...block.source_refs] : [],
   };
@@ -52,7 +75,8 @@ function countMeaningfulAreas(blocks) {
   return blocks.reduce((total, block) => {
     const bullets = Array.isArray(block.content?.bullets) ? block.content.bullets.length : 0;
     const labels = Array.isArray(block.content?.diagram_labels) ? block.content.diagram_labels.length : 0;
-    return total + Math.max(1, block.steps.length, block.options.length, bullets, labels);
+    const explanation = typeof block.content?.explanation === "string" && block.content.explanation.trim() ? 1 : 0;
+    return total + Math.max(1, block.steps.length, block.flowSteps.length, block.options.length, bullets, labels, explanation);
   }, 0);
 }
 
@@ -65,6 +89,17 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
   const blueprintId = ownString(blueprint, "requirement_id", "blueprint.requirement_id");
   const mappingId = ownString(mapping, "requirement_id", "mapping.requirement_id");
   if (new Set([requirementId, blueprintId, mappingId]).size !== 1) throw new Error("Requirement IDs must match across requirement, blueprint, and mapping inputs");
+  const slideScope = ownString(blueprint, "slide_scope", "blueprint.slide_scope");
+  if (!["requirement", "overview"].includes(slideScope)) throw new Error("blueprint.slide_scope must be requirement or overview");
+  const requirementIds = idList(blueprint.requirement_ids, "blueprint.requirement_ids");
+  const primaryRequirementId = blueprint.primary_requirement_id == null ? null : ownString(blueprint, "primary_requirement_id", "blueprint.primary_requirement_id");
+  if (slideScope === "requirement") {
+    if (!primaryRequirementId) throw new Error("blueprint.primary_requirement_id is required for requirement slides");
+    if (requirementIds.length !== 1 || requirementIds[0] !== primaryRequirementId) throw new Error("requirement slides must contain exactly one requirement_ids value matching primary_requirement_id");
+  } else {
+    if (requirementIds.length < 2) throw new Error("overview slides must contain at least two requirement_ids");
+    if (primaryRequirementId) throw new Error("overview slides must not set primary_requirement_id");
+  }
   if (!Array.isArray(blueprint.blocks) || blueprint.blocks.length < 5) {
     throw new Error(`blueprint.blocks must contain at least 5 content boxes; found ${Array.isArray(blueprint.blocks) ? blueprint.blocks.length : 0}`);
   }
@@ -139,6 +174,9 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
     : [];
   return {
     requirementId,
+    slideScope,
+    primaryRequirementId,
+    requirementIds,
     requirementName: requirement.requirement_name ?? requirementId,
     requirementSummary: requirement.requirement_summary ?? "",
     governingMessage,

@@ -11,6 +11,9 @@ function fixture(overrides = {}) {
   };
   const blueprint = {
     requirement_id: "SEC-204",
+    slide_scope: "requirement",
+    primary_requirement_id: "SEC-204",
+    requirement_ids: ["SEC-204"],
     slide_title: "관리자 접근통제 수행 방안",
     layout_family: "three_column_with_bottom_band",
     orientation: "portrait",
@@ -42,6 +45,9 @@ function fixture(overrides = {}) {
 test("compiles an arbitrary requirement without DAR-specific defaults", () => {
   const model = compileRenderModel(fixture());
   assert.equal(model.requirementId, "SEC-204");
+  assert.equal(model.slideScope, "requirement");
+  assert.equal(model.primaryRequirementId, "SEC-204");
+  assert.deepEqual(model.requirementIds, ["SEC-204"]);
   assert.equal(model.title, "관리자 접근통제 수행 방안");
   assert.deepEqual(model.canvas, { width: 720, height: 1280, orientation: "portrait" });
   assert.equal(model.governingMessage, "관리자 권한의 전 생애주기를 정책 기반으로 통제합니다.");
@@ -54,6 +60,48 @@ test("compiles an arbitrary requirement without DAR-specific defaults", () => {
   assert.equal(model.theme.navy, "#123B78");
   assert.deepEqual(model.fallbackBlocks.map((block) => block.blockId), ["requirement_summary", "metric_highlight", "control_policy", "expected_effect"]);
   assert.equal(JSON.stringify(model).includes("DAR-010"), false);
+});
+
+test("allows an overview blueprint to group multiple requirements", () => {
+  const inputs = fixture();
+  inputs.blueprint.slide_scope = "overview";
+  delete inputs.blueprint.primary_requirement_id;
+  inputs.blueprint.requirement_ids = ["SFR-001", "SER-003"];
+  const model = compileRenderModel(inputs);
+  assert.equal(model.slideScope, "overview");
+  assert.equal(model.primaryRequirementId, null);
+  assert.deepEqual(model.requirementIds, ["SFR-001", "SER-003"]);
+});
+
+test("rejects a requirement blueprint that groups multiple requirements", () => {
+  const inputs = fixture();
+  inputs.blueprint.requirement_ids = ["SEC-204", "SER-003"];
+  assert.throws(() => compileRenderModel(inputs), /exactly one requirement_ids/i);
+});
+
+test("rejects an overview blueprint with one requirement", () => {
+  const inputs = fixture();
+  inputs.blueprint.slide_scope = "overview";
+  delete inputs.blueprint.primary_requirement_id;
+  inputs.blueprint.requirement_ids = ["SEC-204"];
+  assert.throws(() => compileRenderModel(inputs), /at least two requirement_ids/i);
+});
+
+test("requires detailed explanation for a non-native architecture treatment", () => {
+  const inputs = fixture();
+  inputs.blueprint.blocks[4].architecture_treatment = "text_explainer";
+  assert.throws(() => compileRenderModel(inputs), /requires content\.explanation/i);
+});
+
+test("normalizes a text explainer with ordered flow steps", () => {
+  const inputs = fixture();
+  inputs.blueprint.blocks[4].architecture_treatment = "text_explainer";
+  inputs.blueprint.blocks[4].content.explanation = "접점 데이터가 표준화와 통제를 거쳐 운영 결과로 전달된다.";
+  inputs.blueprint.blocks[4].content.flow_steps = ["접점 수집", "표준화·통제", "운영 반영"];
+  const model = compileRenderModel(inputs);
+  const block = model.blocks.find((candidate) => candidate.blockId === "expected_effect");
+  assert.equal(block.architectureTreatment, "text_explainer");
+  assert.deepEqual(block.flowSteps, ["접점 수집", "표준화·통제", "운영 반영"]);
 });
 
 test("uses a landscape canvas without changing proposal content", () => {
