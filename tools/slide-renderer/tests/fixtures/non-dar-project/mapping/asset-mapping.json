@@ -3,9 +3,9 @@
   "status": "approved_for_runtime_test",
   "mappings": [
     { "block_id": "requirement_summary", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "세로형 요약 슬롯" },
-    { "block_id": "main_process", "status": "selected_candidate", "asset_id": "hr_solution_03_content_process_grid", "template": "templates/03_content_process_grid.svg", "source_deck": "인력추천채용관리.pptx", "render_mode": "svg_geometry_plus_editable_text" },
+    { "block_id": "main_process", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "세로형 프로세스 네이티브 도식" },
     { "block_id": "operation_quality", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "세로형 통제 슬롯" },
-    { "block_id": "technology_comparison", "status": "selected_candidate", "asset_id": "hr_solution_01_content_comparison", "template": "templates/01_content_comparison.svg", "source_deck": "인력추천채용관리.pptx", "render_mode": "svg_geometry_plus_editable_text" },
+    { "block_id": "technology_comparison", "status": "fallback_native_shapes", "fallback": "native_shapes", "usage_note": "세로형 비교 네이티브 도식" },
     { "block_id": "metric_highlight", "status": "no_suitable_asset", "fallback": "native_shapes", "usage_note": "정량지표 네이티브 강조" }
   ]
 }

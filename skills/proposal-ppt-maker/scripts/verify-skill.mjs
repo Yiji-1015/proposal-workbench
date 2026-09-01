@@ -43,12 +43,26 @@ const catalogPath = await resolveFirst([
   path.join(workbenchRoot, "tools", "pattern-library", "unified-visual-module-catalog.json"),
   path.join(skillRoot, "assets", "proposal-pattern-library", "unified-visual-module-catalog.json"),
 ]);
+const manifestPath = await resolveFirst([
+  path.join(workbenchRoot, "tools", "pattern-library", "asset-manifest.schema.json"),
+  path.join(skillRoot, "assets", "proposal-pattern-library", "asset-manifest.schema.json"),
+]);
 try {
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   const items = Array.isArray(catalog) ? catalog : (catalog.modules ?? catalog.items ?? []);
-  add("catalog", items.length > 0, `pattern catalog contains ${items.length} items`);
+  add("catalog", Array.isArray(items), `asset catalog contains ${items.length} imported items; empty is allowed before user import`);
 } catch (error) {
-  add("catalog", false, `pattern catalog cannot be read: ${error.message}`);
+  add("catalog", false, `asset catalog cannot be read: ${error.message}`);
+}
+try {
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  const required = ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"];
+  const fields = new Set(manifest.asset_required_fields ?? []);
+  const sourceFields = new Set(manifest.source_required_fields ?? []);
+  const valid = required.every((field) => fields.has(field)) && ["provider", "original_file", "license"].every((field) => sourceFields.has(field));
+  add("asset-contract", valid, valid ? "empty baseline and future import fields are defined" : "asset manifest contract is incomplete");
+} catch (error) {
+  add("asset-contract", false, `asset manifest contract cannot be read: ${error.message}`);
 }
 
 const runtimes = await discoverArtifactTools();

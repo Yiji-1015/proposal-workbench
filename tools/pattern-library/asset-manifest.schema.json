@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "description": "Required metadata for user-provided editable proposal visual modules.",
+  "asset_required_fields": [
+    "module_id",
+    "module_type",
+    "purpose",
+    "flow_direction",
+    "aspect_ratio",
+    "step_count",
+    "visual_tags",
+    "semantic_tags",
+    "template",
+    "source",
+    "supported_slide_orientations",
+    "aspect_ratio_semantics",
+    "orientation_adaptations",
+    "usage_mode",
+    "render_mode"
+  ],
+  "source_required_fields": [
+    "provider",
+    "original_file",
+    "license"
+  ],
+  "allowed_values": {
+    "supported_slide_orientations": ["landscape", "portrait"],
+    "aspect_ratio_semantics": ["source_geometry_only"],
+    "usage_mode": ["semantic", "structural", "decorative"],
+    "render_mode": ["native_powerpoint_shapes"]
+  }
+}

@@ -76,7 +76,7 @@ node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" -
 
 ## 설치와 이식성
 
-이 Skill은 단독 폴더가 아니라 `.codex-plugin/plugin.json`이 있는 플러그인 루트와 함께 설치한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 공용 렌더러는 `tools/slide-renderer`, 패턴 카탈로그는 `tools/pattern-library`에 있다. 실행 스크립트가 플러그인 루트를 기준으로 두 경로를 찾으므로 저장소를 그대로 플러그인으로 설치해야 한다.
+이 Skill은 단독 폴더가 아니라 `.codex-plugin/plugin.json`이 있는 플러그인 루트와 함께 설치한다. 사용자별 절대경로를 Skill이나 매핑에 하드코딩하지 않는다. 공용 렌더러는 `tools/slide-renderer`, 사용자 제공 도식 자산 카탈로그는 `tools/pattern-library`에 있다. 카탈로그는 최초 설치 시 비어 있을 수 있으며, 이때는 선택 자산 대신 네이티브 도형 폴백으로 생성한다. 실행 스크립트가 플러그인 루트를 기준으로 두 경로를 찾으므로 저장소를 그대로 플러그인으로 설치해야 한다.
 
 ```powershell
 node "<skill-root>/scripts/verify-skill.mjs"

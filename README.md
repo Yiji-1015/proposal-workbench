@@ -51,7 +51,7 @@ proposal-workbench/
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
-│  ├─ pattern-library/               ──▶ 45개 제안 도식 패턴 카탈로그 & 레시피
+  │  ├─ pattern-library/               ──▶ 사용자 제공 도식 자산 카탈로그 (초기 빈 상태 허용)
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
 │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
@@ -102,7 +102,7 @@ npm --prefix tools/doc-converter install
 
 실제 PowerPoint 렌더링·검증까지 하려면 `python-pptx`, `pywin32`, 데스크톱 PowerPoint가 필요합니다. 구조·텍스트 추출만 할 때는 `powerpoint_com` 경고를 허용할 수 있습니다.
 
-### 1) 슬라이드 렌더러 무결성 검증 (45개 도식 패턴)
+### 1) 슬라이드 렌더러·자산 계약 검증
 ```powershell
 node skills/proposal-ppt-maker/scripts/verify-skill.mjs
 ```

@@ -171,15 +171,16 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(readme, /인제스트와 검색은 각각 독립 실행/);
 });
 
-test("every catalog module declares orientation-independent reuse", async () => {
+test("empty asset catalog keeps the import contract explicit", async () => {
   const catalogPath = path.resolve(rendererRoot, "..", "pattern-library", "unified-visual-module-catalog.json");
+  const manifestPath = path.resolve(rendererRoot, "..", "pattern-library", "asset-manifest.schema.json");
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
-  assert.ok(catalog.length > 0);
-  for (const module of catalog) {
-    assert.deepEqual(module.supported_slide_orientations, ["landscape", "portrait"], `${module.module_id} orientation support`);
-    assert.equal(module.aspect_ratio_semantics, "source_geometry_only", `${module.module_id} aspect ratio semantics`);
-    for (const adaptation of ["fit", "scale_and_relabel", "crop", "reflow", "split", "rotate"]) {
-      assert.ok(module.orientation_adaptations.includes(adaptation), `${module.module_id} missing ${adaptation}`);
-    }
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  assert.deepEqual(catalog, []);
+  for (const field of ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"]) {
+    assert.ok(manifest.asset_required_fields.includes(field), `missing asset field ${field}`);
+  }
+  for (const field of ["provider", "original_file", "license"]) {
+    assert.ok(manifest.source_required_fields.includes(field), `missing source field ${field}`);
   }
 });

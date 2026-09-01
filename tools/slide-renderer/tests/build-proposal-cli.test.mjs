@@ -23,15 +23,12 @@ test("builds a non-DAR portrait proposal from project JSON without DAR leakage",
   assert.equal(report.orientation, "portrait");
   assert.deepEqual(report.protected_metrics, ["분기 1회"]);
   assert.equal(JSON.stringify(report).includes("DAR-010"), false);
-  assert.ok(report.selected_assets.length > 0);
-  assert.ok(report.selected_assets.every((asset) => asset.render_mode === "native_powerpoint_shapes"));
+  assert.equal(report.selected_assets.length, 0);
+  assert.equal(report.fallback_blocks.length, 5);
   assert.equal(report.theme.primary, "#1769E0");
   assert.equal(report.density, "high");
   assert.ok(report.content_box_count >= 5);
   assert.ok(report.meaningful_area_count >= 5);
-  assert.ok(report.selected_assets.every((asset) => asset.selected && asset.loaded && asset.applied && asset.fidelity_passed && asset.used));
-  assert.ok(report.selected_assets.every((asset) => asset.renderer_key && asset.structure_fingerprint));
-  assert.ok(report.selected_assets.every((asset) => asset.required_motifs.length > 0 && asset.produced_motifs.length > 0));
   assert.equal(pptx.subarray(0, 2).toString("hex"), "504b");
   assert.equal(wireframe.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   assert.equal(finalSlide.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");

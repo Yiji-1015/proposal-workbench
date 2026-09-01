@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verify-workbench.mjs
- * Proposal Workbench Doctor: runtime, skills, SQLite, catalog, offline UI checks.
+ * Proposal Workbench Doctor: runtime, skills, SQLite, asset contract, offline UI checks.
  */
 
 import fs from "node:fs/promises";
@@ -162,14 +162,20 @@ async function runDoctor() {
     }
   }
 
-  // 5. Pattern Library Catalog Check
+  // 5. User asset catalog contract check. The initial catalog may be empty.
   const catalogPath = path.join(workbenchRoot, "tools", "pattern-library", "unified-visual-module-catalog.json");
+  const manifestPath = path.join(workbenchRoot, "tools", "pattern-library", "asset-manifest.schema.json");
   try {
     const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
-    const count = Array.isArray(catalog) ? catalog.length : 0;
-    addCheck("pattern_catalog", count >= 40, `Found ${count} native visual modules`);
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    const count = Array.isArray(catalog) ? catalog.length : -1;
+    const required = ["module_id", "module_type", "purpose", "flow_direction", "aspect_ratio", "step_count", "visual_tags", "semantic_tags", "template", "source", "supported_slide_orientations", "aspect_ratio_semantics", "orientation_adaptations", "usage_mode", "render_mode"];
+    const fields = new Set(manifest.asset_required_fields ?? []);
+    const sourceFields = new Set(manifest.source_required_fields ?? []);
+    const valid = count >= 0 && required.every((field) => fields.has(field)) && ["provider", "original_file", "license"].every((field) => sourceFields.has(field));
+    addCheck("asset_catalog", valid, valid ? `Asset catalog contract ready (${count} imported items)` : "Asset catalog contract is incomplete");
   } catch (err) {
-    addCheck("pattern_catalog", false, `Catalog read failed: ${err.message}`);
+    addCheck("asset_catalog", false, `Asset catalog contract read failed: ${err.message}`);
   }
 
   // 6. Zero-CDN / Offline UI Integrity Check
