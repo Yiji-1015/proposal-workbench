@@ -45,6 +45,16 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(skill, /architecture_treatment/);
   assert.match(skill, /content\.explanation/);
   assert.match(skill, /나노바나나\/imagegen/);
+  for (const blockType of [
+    "matrix_table",
+    "metric_dashboard",
+    "scope_outcome_mapping",
+    "blueprint_flow",
+    "chevron_pipeline",
+    "gantt_roadmap",
+  ]) assert.ok(io.includes(blockType), `missing block type ${blockType}`);
+  assert.match(io, /block_pool_auto/);
+  assert.match(skill, /선택 가능한 블록 풀/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);
   assert.match(skill, /요구사항 ID.*가장 먼저/);
@@ -137,6 +147,7 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /slide_scope: \"overview\"/);
   assert.match(planner, /복잡한 아키텍처는 설명 우선/);
   assert.match(planner, /content\.explanation/);
+  assert.match(planner, /visual_category.*블록 타입/);
   assert.match(maker, /업무 내용은 무시/);
   assert.match(maker, /최종 장표에 삽입하지 않는다/);
   for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {

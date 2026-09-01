@@ -76,7 +76,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 - `slide_scope`: `requirement` 또는 `overview`. 기본 장표는 `requirement`다.
 - `requirement_ids`: 이 장표가 다루는 RFP 요구사항 ID 목록. `requirement`이면 정확히 1개, `overview`이면 2개 이상이어야 한다.
 - `slide_title`
-- `layout_family`
+- `layout_family`: 기존 `three_column_with_bottom_band` 또는 5~6개 타입을 자동 배치하는 `block_pool_auto`
 - `orientation`: `landscape` 또는 `portrait`
 - `blocks[]`: 최소 5개의 독립된 내용 상자. 각 상자는 고유 `block_id`와 구별되는 정보 역할을 가져야 하며, 동일 카드 복제로 개수만 채우지 않는다.
 
@@ -98,15 +98,30 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 - `block_id`: 장표 내부 고유 ID
 - `role`: 예) `requirement_summary`, `main_process`, `operation_quality`, `technology_comparison`, `metric_highlight`
-- `slot`: 예) `left`, `center`, `right`, `bottom_center`, `top_left`
-- `visual_category`: 내용 주제가 아닌 도식 구조
+- `slot`: 예) `left`, `center`, `right`, `bottom_center`, `top_left`; `block_pool_auto`에서는 `auto`
+- `visual_category`: 내용 주제가 아닌 도식 구조. `block_pool_auto`에서는 선택 가능한 블록 타입이다.
 - `direction`: `left_to_right`, `vertical`, `horizontal`, `none` 등
 - `importance`: `mandatory` 또는 `optional`
-- `content`: `headline`, `bullets`, `steps`, `options`, `label`, `value_text`, `diagram_labels` 중 역할에 필요한 값
+- `content`: 역할에 필요한 값. `block_pool_auto`의 타입별 필드는 아래 계약을 따른다.
 - `source_refs[]`: 블록 내용의 근거
 - `step_count`: `steps` 또는 `options`가 있을 때 실제 항목 수와 동일해야 함
 
 현재 등록 레이아웃은 `three_column_with_bottom_band`의 가로·세로 변형이다. 다른 값은 경계를 벗어나지 않는 `generic_grid`로 폴백된다.
+
+### 선택 가능한 블록 풀
+
+`layout_family: "block_pool_auto"`는 서로 다른 5~6개 블록을 `slot: "auto"`로 선언하고, 콘텐츠 성격에 맞춰 full/half 행으로 자동 배치한다. `visual_category`에는 다음 6개 타입만 사용한다.
+
+| 타입 | 선택 신호 | 필수 `content` 필드 |
+|---|---|---|
+| `matrix_table` | 표·기준·검증·역할 | `columns[]`, `rows[]` (`label`, `cells[]`) |
+| `metric_dashboard` | 숫자·목표·증감·성능 | `metrics[]` (`label`, `value_text`) |
+| `scope_outcome_mapping` | 범위와 효과의 대응 | `left[]`, `right[]`, 선택 `links[]` (`from`, `to`) |
+| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `outputs[]`; 선택 `tools[]`, `fallbacks[]` |
+| `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
+| `gantt_roadmap` | 기간·작업·마일스톤 | `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
+
+자동 배치가 타입별 최소 높이를 만족하지 못하면 내용을 축소하지 않고 시리즈 장표로 나누거나 복잡한 흐름을 `text_explainer`로 전환한다.
 
 `requirement_summary`는 분석 입력이며 최종 장표의 `요구사항 해석` 섹션으로 그대로 노출하지 않는다. 최종 가시 제목은 `핵심 구현 전략`, `통합 적용 방안`, `운영 통제`처럼 제안사의 실행과 결과를 표현한다. 비교 성격의 블록은 `content.conclusion`에 최종 적용 방향을 포함한다.
 
@@ -125,7 +140,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 - 네이티브 폴백: `status: fallback_native_shapes`, `fallback: native_shapes`, `usage_note`
 - 적합 자산 없음: `status: no_suitable_asset`, `fallback: native_shapes`, `usage_note`
 
-`asset_id`는 `tools/pattern-library/unified-visual-module-catalog.json`에 존재해야 한다. `renderer_key`는 `process_grid`, `comparison`, `mapping`, `feedback_loop`, `quality_gate`, `hub_spoke`, `swimlane`, `architecture` 중 하나다. 지원하지 않는 선택 자산은 generic grid로 대체하지 않고 실패한다. 프로세스 단계 수가 자산 구조와 다르면 2~12개 범위에서 노드 수를 재배치하고 `adaptations: [{ type: node_count_reflow, from, to }]`를 기록한다.
+`asset_id`는 `tools/pattern-library/unified-visual-module-catalog.json`에 존재해야 한다. `renderer_key`는 기존 renderer와 `matrix_table`, `metric_dashboard`, `scope_outcome_mapping`, `blueprint_flow`, `chevron_pipeline`, `gantt_roadmap` 중 하나다. 지원하지 않는 선택 자산은 generic grid로 대체하지 않고 실패한다. 프로세스 단계 수가 자산 구조와 다르면 2~12개 범위에서 노드 수를 재배치하고 `adaptations: [{ type: node_count_reflow, from, to }]`를 기록한다.
 
 `usage_mode`는 `semantic`, `structural`, `decorative` 중 하나다. `decorative`는 원본 주제와의 일치가 아니라 시각적 리듬과 완성도를 위한 재사용이며, 원본 라벨을 제거하고 사실로 오인될 관계를 만들지 않아야 한다. 정확한 주제 자산이 없다는 이유만으로 즉시 `fallback_native_shapes`를 선택하지 않는다.
 

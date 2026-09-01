@@ -20,6 +20,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 9. 이 Skill은 검색이나 인제스트를 호출하지 않는다.
 10. **장표 단위를 명시한다.** 기본은 `slide_scope: "requirement"`로 RFP 개별 요구사항 1건당 1페이지를 만들고 `primary_requirement_id`와 단일 `requirement_ids`를 기록한다. 전체 추진방향·아키텍처·로드맵 같은 개요 장표만 여러 요구사항을 묶을 수 있으며, 이때 `slide_scope: "overview"`, `primary_requirement_id: null`과 포함 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 동일 요구사항 ID의 연속 장표로 구성한다.
 11. **복잡한 아키텍처는 설명 우선으로 기획한다.** 최종 크기에서 노드·연결·라벨이 읽기 어렵다면 `architecture_treatment: "text_explainer"`를 사용하고 `content.explanation`에 데이터의 출발점·처리·통제·도착점과 운영상 의미를 상세히 기록한다. 사용자가 나노바나나/imagegen을 허용한 경우에만 `generated_visual_with_text`를 보조 시각으로 선택하며, 이미지에 사실·수치·근거를 맡기지 않는다.
+12. **`visual_category`를 블록 타입으로 선택한다.** 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 일정은 `gantt_roadmap`을 사용한다. `layout_family: "block_pool_auto"`에서는 5~6개 블록을 `slot: "auto"`로 선언한다.
 
 ## 선택적 구조 레퍼런스
 
@@ -35,6 +36,8 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 4. `references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다.
 5. 승인 대기 세션을 `storage/sessions/plan_<id>.json`에 저장한다.
 6. 필요하면 HitL 검토 화면을 연다.
+
+`block_pool_auto`를 선택한 경우 요구사항의 표·지표·매핑·흐름·단계·일정 신호에 따라 블록 타입을 조합하고, 같은 카드 모양을 반복하지 않는다.
 
 ```powershell
 node tools/hitl-bridge/hitl_launcher.mjs --open "http://127.0.0.1:5274/planner.html?session=plan_<id>"

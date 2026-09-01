@@ -60,6 +60,8 @@
 - 하나의 문장을 다섯 박스로 나누거나 근거 없는 내용을 추가해 개수만 맞추지 않는다.
 - 선택 에셋이 feedback loop, quality gate, hub-spoke, swimlane이면 해당 토폴로지의 노드와 연결 관계를 실제 상자 구조에 반영한다. 최소 수량을 채우기 위해 같은 카드 형태를 반복하지 않는다.
 
+`block_pool_auto`를 사용할 때는 요구사항 내용에 따라 `matrix_table`, `metric_dashboard`, `scope_outcome_mapping`, `blueprint_flow`, `chevron_pipeline`, `gantt_roadmap` 중 필요한 타입을 조합한다. 자동 배치는 타입별 최소 높이를 우선 보장하며, 세로 공간이 부족하면 장표를 시리즈로 나누거나 `text_explainer`로 전환한다.
+
 ## 5. 비교와 결론
 
 비교·두 축·대안 블록은 항목 나열로 끝내지 않는다. `content.conclusion`에 선택, 통합 방식, 우선순위 또는 적용 결과를 한 문장으로 작성한다. 가능하면 `니다.`로 끝나는 실행 문장으로 쓴다.
