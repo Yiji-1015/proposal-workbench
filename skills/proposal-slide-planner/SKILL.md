@@ -15,13 +15,15 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 4. 원문 정량지표의 `value_text`와 `source_refs[]`를 `protected_metrics`에 그대로 보존한다.
 5. 비교 블록은 나열로 끝내지 않고 `content.conclusion`에 적용 방향을 쓴다.
 6. `requirement_summary`와 자산 검색 메모는 최종 가시 제목에 노출하지 않는다.
+6-1. **근거 메타와 가시 문구를 분리한다.** `source_refs`, 원문 인용, 보호 정량지표, 자산 매핑·fallback 정보는 JSON·검수용 메타에만 남긴다. 장표 카피에는 “RFP에서”, “요구사항에서”, “원문”, “근거”, “출처” 같은 표현을 넣지 않고 구현·운영·활용 언어로 정리한다. 사용자가 원문 인용을 요청한 경우만 예외다.
+6-2. **로드맵은 근거가 있을 때만 선택한다.** 원문이나 사용자 지시에 기간·마일스톤·일정·단계 전환이 있을 때만 `gantt_roadmap`을 사용한다. 요구사항의 처리 순서나 기능 목록을 임의의 주차·월차 로드맵으로 변환하지 않는다. 근거가 없으면 `blueprint_flow`, `chevron_pipeline`, `matrix_table` 등 요구사항에 직접 답하는 구조를 선택한다.
 7. 사용자에게 가로형(`landscape`)·세로형(`portrait`) 방향을 묻는다.
 8. 별도 팔레트나 템플릿이 없으면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF`를 사용한다.
 9. 이 Skill은 검색이나 인제스트를 호출하지 않는다.
 10. **장표 단위를 명시한다.** 기본은 `slide_scope: "requirement"`로 RFP 개별 요구사항 1건당 1페이지를 만들고 `primary_requirement_id`와 단일 `requirement_ids`를 기록한다. 전체 추진방향·아키텍처·로드맵 같은 개요 장표만 여러 요구사항을 묶을 수 있으며, 이때 `slide_scope: "overview"`, `primary_requirement_id: null`과 포함 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 동일 요구사항 ID의 연속 장표로 구성한다.
 11. **복잡한 아키텍처는 설명 우선으로 판단하되, 네이티브 도식은 끝까지 구성한다.** 간단한 도식과 부연설명을 기본으로 하되 출발점·처리·데이터 흐름·통제·도착점·운영상 의미를 가능한 한 빠짐없이 `native_diagram`과 `content.explanation`에 담는다. 도식 라벨은 짧게 축약할 수 있지만 기능·수치·관계는 생략하지 않는다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능할 때만 `architecture_treatment: "text_explainer"`를 사용한다. 사용자가 나노바나나/imagegen을 허용한 경우에만 `generated_visual_with_text`를 보조 시각으로 선택하며, 이미지에 사실·수치·근거를 맡기지 않는다.
 12. **가독성 한도까지 정보량을 채운다.** RFP 기능·세부 처리·통제·검증 기준·성과·자사 역량 상태를 가능한 한 빠짐없이 기록하고 큰 빈 패널이나 두세 줄 요약으로 끝내지 않는다. 긴 내용은 노드·주석·편집 텍스트로 나누며, 8pt 이하 축소나 중복 문장으로 밀도를 만들지 않는다.
-13. **`visual_category`를 블록 타입으로 선택한다.** 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 일정은 `gantt_roadmap`을 사용한다. `blueprint_flow`는 `steps[]`와 동일 길이의 `step_details[]`를 작성해 각 처리 노드의 세부 문구를 보존한다. `layout_family: "block_pool_auto"`에서는 5~6개 블록을 `slot: "auto"`로 선언한다.
+13. **`visual_category`를 블록 타입으로 선택한다.** 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 일정만 `gantt_roadmap`을 사용한다. `blueprint_flow`의 단계는 일정으로 간주하지 않는다. `blueprint_flow`는 `steps[]`와 동일 길이의 `step_details[]`를 작성해 각 처리 노드의 세부 문구를 보존한다. `layout_family: "block_pool_auto"`에서는 5~6개 블록을 `slot: "auto"`로 선언한다.
 
 ## 선택적 구조 레퍼런스
 
@@ -36,7 +38,8 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 3. 첨부 이미지, 명시적으로 전달된 완료 세션, 레퍼런스 없음 중 입력 상태를 확정한다.
 4. `references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다.
 5. 승인 대기 세션을 `storage/sessions/plan_<id>.json`에 저장한다.
-6. 필요하면 HitL 검토 화면을 연다.
+6. 와이어프레임을 채팅에 표시하고 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다.
+7. 필요하면 HitL 검토 화면을 연다.
 
 `block_pool_auto`를 선택한 경우 요구사항의 표·지표·매핑·흐름·단계·일정 신호에 따라 블록 타입을 조합하고, 같은 카드 모양을 반복하지 않는다.
 

@@ -23,6 +23,17 @@ const patternLibrary = resolveFirst([
   path.join(skillRoot, "assets", "proposal-pattern-library"),
 ]);
 const args = process.argv.slice(2);
+const projectIndex = args.indexOf("--project");
+const projectArg = projectIndex >= 0 ? args[projectIndex + 1] : null;
+if (projectArg) {
+  const blueprintPath = path.join(path.resolve(projectArg), "blueprint", "slide-blueprint.json");
+  if (fs.existsSync(blueprintPath)) {
+    const blueprint = JSON.parse(fs.readFileSync(blueprintPath, "utf8"));
+    if (blueprint.status !== "approved") {
+      throw new Error("Final PPTX rendering requires an explicitly approved blueprint. Show the wireframe and wait for user approval first.");
+    }
+  }
+}
 const rendererArgs = args.includes("--pattern-library")
   ? args
   : ["--pattern-library", patternLibrary, ...args];

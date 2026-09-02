@@ -61,7 +61,7 @@ function addHeader(slide, model, page, wireframe) {
   const headerTitle = wireframe ? `청사진 | ${model.title}` : model.title;
   slide.background.fill = C.white;
   rect(slide, `top-rule-${suffix}`, { left: 0, top: 0, width: model.canvas.width, height: 10 }, C.blue);
-  text(slide, `eyebrow-${suffix}`, wireframe ? "SLIDE BLUEPRINT · WIREFRAME" : "PROPOSAL SLIDE · ASSET-BASED", { left: portrait ? 36 : 48, top: 26, width: portrait ? 400 : 520, height: 22 }, 13, C.blue, true);
+  if (wireframe) text(slide, `eyebrow-${suffix}`, "SLIDE BLUEPRINT · WIREFRAME", { left: portrait ? 36 : 48, top: 26, width: portrait ? 400 : 520, height: 22 }, 13, C.blue, true);
   const titlePosition = { left: portrait ? 36 : 48, top: 56, width: portrait ? 648 : 980, height: portrait ? 70 : 48 };
   if (wireframe) {
     text(slide, `title-${suffix}`, headerTitle, titlePosition, portrait ? 28 : 36, C.navy, true);
@@ -224,7 +224,6 @@ function renderProcess(slide, block, frame, layout, asset) {
   if (asset && layout.layoutKey.endsWith(":portrait")) {
     rect(slide, `process-divider:${block.blockId}`, { left: frame.left, top: frame.top, width: frame.width, height: 2 }, C.blue, C.blue);
     text(slide, `block-title:${block.blockId}`, roleTitles[block.role], { left: frame.left + 22, top: frame.top + 18, width: 180, height: 24 }, 18, C.navy, true);
-    text(slide, `asset-trace:${block.blockId}`, `asset: ${asset.assetId}`, { left: frame.left + frame.width - 330, top: frame.top + 20, width: 306, height: 16 }, 10, C.gray, true, "right");
     const rail = { left: frame.left + 18, top: frame.top + 58, width: 224, height: frame.height - 78 };
     const gap = 8;
     const itemHeight = (rail.height - gap * Math.max(0, block.steps.length - 1)) / Math.max(1, block.steps.length);
@@ -240,7 +239,6 @@ function renderProcess(slide, block, frame, layout, asset) {
   }
   rect(slide, `block:${block.blockId}`, frame, C.white, asset ? C.white : "#BCD2F1");
   text(slide, `block-title:${block.blockId}`, roleTitles[block.role], { left: frame.left + 22, top: frame.top + 18, width: 180, height: 24 }, 18, C.navy, true);
-  if (asset) text(slide, `asset-trace:${block.blockId}`, `asset: ${asset.assetId}`, { left: frame.left + frame.width - 250, top: frame.top + 20, width: 226, height: 16 }, 10, C.gray, true, "right");
   for (const cell of layout.processCells) {
     if (!asset) rect(slide, `process-cell:${cell.index}`, cell, C.pale, "#BCD2F1", true);
     text(slide, `process-index:${cell.index}`, String(cell.index).padStart(2, "0"), { left: cell.left + 8, top: cell.top + 10, width: cell.width - 16, height: 16 }, 11, C.blue, true, "center");
@@ -314,7 +312,6 @@ function renderGeneric(slide, block, frame) {
 function addFinal(deck, model, layout, assets) {
   const slide = deck.slides.add();
   addHeader(slide, model, 2, false);
-  const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
   const assetByBlock = new Map(assets.map((asset) => [asset.blockId, asset]));
   const applications = [];
   const runtimeFallbacks = [];
@@ -349,8 +346,6 @@ function addFinal(deck, model, layout, assets) {
     else if (block.role === "operation_quality") renderGovernance(slide, block, frame, assetByBlock.get(block.blockId));
     else renderGeneric(slide, block, frame);
   }
-  const footerTop = model.canvas.height - 54;
-  text(slide, "source-footer", `RFP ${displayRequirementId} | 보호 정량지표: ${model.protectedMetrics.map((metric) => metric.valueText).join(", ") || "없음"} | 자산 구조와 제안 문구는 개별 도형으로 편집 가능`, { left: model.canvas.orientation === "portrait" ? 36 : 48, top: footerTop, width: model.canvas.width - 150, height: 18 }, 11, C.gray);
   return { slide, applications, runtimeFallbacks, pictureShapeCount };
 }
 

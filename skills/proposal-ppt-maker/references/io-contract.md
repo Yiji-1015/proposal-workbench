@@ -119,7 +119,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 | `scope_outcome_mapping` | 범위와 효과의 대응 | `left[]`, `right[]`, 선택 `links[]` (`from`, `to`) |
 | `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `step_details[]`(steps와 동일 길이), `outputs[]`; 선택 `tools[]`, `fallbacks[]`, `explanation` |
 | `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
-| `gantt_roadmap` | 기간·작업·마일스톤 | `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
+| `gantt_roadmap` | 근거 있는 기간·작업·마일스톤 | 원문·사용자 지시로 기간 근거가 있을 때만 `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
 
 자동 배치가 타입별 최소 높이를 만족하지 못하면 내용을 축소하지 않고 먼저 시리즈 장표로 나눈다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능한 복잡한 흐름만 `text_explainer`로 전환한다.
 
@@ -153,6 +153,8 @@ node "<skill-root>/scripts/verify-skill.mjs"
 카탈로그의 `aspect_ratio`는 자산이 추출된 원본 도형의 비율이며 슬라이드 방향 제한이 아니다. 가로형 자산도 세로 장표의 블록 안에서 비례 축소, 여백 크롭, 텍스트 교체, 반복 구조 재배치 방식으로 사용할 수 있다. 자산 선택과 폴백 판단 전에는 [asset-selection.md](asset-selection.md)의 방향 독립 규칙을 적용한다. 원본 비율과 슬라이드 방향이 다르다는 이유만으로 `fallback_native_shapes`를 선택하지 않는다.
 
 ## 실행 중간 출력
+
+`wireframe.png`는 사용자 승인용 내부 산출물이다. `source_refs`, `protected_metrics`, 블록 매핑·fallback 정보는 기계 판독용 메타이며 최종 장표의 가시 문구가 아니다. 최종 렌더링은 사용자의 명시 승인 후에만 수행한다.
 
 커스텀 `--output`을 지정하면 같은 폴더에 다음 파일이 생긴다.
 
