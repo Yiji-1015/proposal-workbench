@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "module_id": "asset_c8e2ea7059df0b88b4b0d54a56fedffb207575083f0d2ccfeb9adab2d1ebade4",
+  "asset_kind": "diagram_recipe",
+  "module_type": "hub_spoke",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "hub_spoke",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.533013,
+        "y": 0.654802,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.654802,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 0.432717
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.05517,
+        "w": 0.119131,
+        "h": 0.977179
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "20",
+        "end_id": "21"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.059007,
+        "w": 0.119131,
+        "h": 0.969505
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "20",
+        "end_id": "22"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.70527,
+        "y": 0.704851,
+        "w": 0.122474,
+        "h": 0.993652
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "21",
+        "end_id": "30"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.716924,
+        "w": 0.122474,
+        "h": 0.969505
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "22",
+        "end_id": "28"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.701677,
+        "w": 0.122474,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "22",
+        "end_id": "23"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.5,
+        "y": 1.0,
+        "w": 0.0,
+        "h": 0.228316
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "30",
+        "end_id": "33"
+      }
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.0486
+}

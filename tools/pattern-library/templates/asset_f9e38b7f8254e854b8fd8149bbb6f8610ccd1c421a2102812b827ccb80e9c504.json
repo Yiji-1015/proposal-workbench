@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "module_id": "asset_f9e38b7f8254e854b8fd8149bbb6f8610ccd1c421a2102812b827ccb80e9c504",
+  "asset_kind": "composite_block",
+  "module_type": "hub_spoke",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "hub_spoke",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.411362,
+        "y": 0.110999,
+        "w": 0.032793,
+        "h": 0.349818
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "20",
+        "end_id": "21"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.555085,
+        "y": 0.112372,
+        "w": 0.032793,
+        "h": 0.347071
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "20",
+        "end_id": "22"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.265396,
+        "y": 0.343577,
+        "w": 0.033713,
+        "h": 0.355716
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "21",
+        "end_id": "30"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.554625,
+        "y": 0.347899,
+        "w": 0.033713,
+        "h": 0.347071
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "22",
+        "end_id": "28"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.700034,
+        "y": 0.34244,
+        "w": 0.033713,
+        "h": 0.357988
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "22",
+        "end_id": "23"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.208891,
+        "y": 0.71721,
+        "w": 0.0,
+        "h": 0.081734
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {
+        "start_id": "30",
+        "end_id": "33"
+      }
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.500461,
+        "y": 0.71721,
+        "w": 0.0,
+        "h": 0.081734
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {}
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.79072,
+        "y": 0.71721,
+        "w": 0.0,
+        "h": 0.081734
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {}
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.3637
+}

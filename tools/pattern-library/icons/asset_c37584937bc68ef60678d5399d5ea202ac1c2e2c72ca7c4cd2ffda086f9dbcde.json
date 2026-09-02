@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "module_id": "asset_c37584937bc68ef60678d5399d5ea202ac1c2e2c72ca7c4cd2ffda086f9dbcde",
+  "asset_kind": "icon_asset",
+  "module_type": "icon",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "icon",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.142415,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 1230704,
+          "height": 3182366,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 129321,
+                "y": 50651
+              }
+            },
+            {
+              "lineTo": {
+                "x": 616430,
+                "y": 242476
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1101383,
+                "y": 50651
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1101384,
+                "y": 50651
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 173505
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1176821,
+                "y": 122316
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 173505
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 173506
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 1760917
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 1760917
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1230704,
+                "y": 2852599
+              }
+            },
+            {
+              "lineTo": {
+                "x": 616430,
+                "y": 3182366
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 2852599
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.10508,
+        "y": 0.0,
+        "w": 0.789843,
+        "h": 0.305114
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.10508,
+        "y": 0.00049,
+        "w": 0.789843,
+        "h": 0.305114
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "metrics[]"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.2175
+}

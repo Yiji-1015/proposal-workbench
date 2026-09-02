@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "module_id": "asset_52aed310362bac3c86c14aaa29a4e16261d0e65a9f0b226a6cae867d473459a7",
+  "asset_kind": "media_frame",
+  "module_type": "shell",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "shell",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.41986,
+        "y": 0.418535,
+        "w": 0.16028,
+        "h": 0.162929
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 2401887,
+          "height": 1646238,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 1349375,
+                "y": 506413
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 1349374,
+                "y": 506413
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 1349375,
+                "y": 381353
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 1179761,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 288819,
+                "y": 234098
+              }
+            },
+            {
+              "lineTo": {
+                "x": 616514,
+                "y": 234098
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "media_slot",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "conclusion",
+      "slot": "media_slot"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.8343
+}

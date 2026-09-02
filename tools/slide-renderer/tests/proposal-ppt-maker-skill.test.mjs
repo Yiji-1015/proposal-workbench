@@ -171,17 +171,25 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(readme, /인제스트와 검색은 각각 독립 실행/);
 });
 
-test("empty asset catalog keeps the import contract explicit", async () => {
+test("asset catalog keeps the import contract explicit", async () => {
   const catalogPath = path.resolve(rendererRoot, "..", "pattern-library", "unified-visual-module-catalog.json");
+  const patternRoot = path.dirname(catalogPath);
   const manifestPath = path.resolve(rendererRoot, "..", "pattern-library", "asset-manifest.schema.json");
   const catalog = JSON.parse(await fs.readFile(catalogPath, "utf8"));
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-  assert.deepEqual(catalog, []);
+  assert.ok(Array.isArray(catalog));
   assert.equal(manifest.version, 2);
-  for (const field of ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"]) {
+  const requiredFields = ["module_id", "display_name", "asset_kind", "module_type", "description", "design_traits", "use_cases", "search_tags", "renderer_key", "template", "usage_mode", "render_mode", "provenance_ref", "license", "license_status", "approved_at"];
+  for (const field of requiredFields) {
     assert.ok(manifest.asset_required_fields.includes(field), `missing asset field ${field}`);
   }
   for (const kind of ["block_shell", "diagram_recipe", "composite_block", "icon_asset", "media_frame", "photo_asset"]) assert.ok(manifest.asset_kind_values.includes(kind), `missing asset kind ${kind}`);
   for (const field of ["source_path", "original_file", "raw_text", "raw_texts"]) assert.ok(manifest.forbidden_permanent_fields.includes(field), `missing forbidden field ${field}`);
   assert.ok(manifest.renderer_key_values.includes("responsive_native_template"));
+  for (const asset of catalog) {
+    for (const field of requiredFields) assert.ok(Object.hasOwn(asset, field), `${asset.module_id} missing asset field ${field}`);
+    for (const field of manifest.forbidden_permanent_fields) assert.equal(Object.hasOwn(asset, field), false, `${asset.module_id} contains forbidden field ${field}`);
+    assert.ok(!/[A-Z]:\\\\|\\.pptx\\b|\\.potx\\b/.test(JSON.stringify(asset)), `${asset.module_id} contains source path or filename`);
+    await fs.access(path.join(patternRoot, asset.template));
+  }
 });

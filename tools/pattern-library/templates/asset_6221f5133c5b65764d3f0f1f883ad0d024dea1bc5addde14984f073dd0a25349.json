@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "module_id": "asset_6221f5133c5b65764d3f0f1f883ad0d024dea1bc5addde14984f073dd0a25349",
+  "asset_kind": "block_shell",
+  "module_type": "lanes",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "59",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "77",
+        "kind": "picture",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "lanes",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.002032,
+        "y": 0.069543,
+        "w": 0.994891,
+        "h": 1.0
+      },
+      "fill": "white",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 0.131409
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.431773,
+        "y": 0.238246,
+        "w": 0.509543,
+        "h": 0.227253
+      },
+      "fill": "pale",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.431773,
+        "y": 0.497911,
+        "w": 0.509543,
+        "h": 0.227253
+      },
+      "fill": "pale",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.431773,
+        "y": 0.757575,
+        "w": 0.509543,
+        "h": 0.227253
+      },
+      "fill": "pale",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.004147,
+        "y": 0.680034,
+        "w": 0.423178,
+        "h": 0.187259
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 0.091678,
+        "y": 0.386598,
+        "w": 0.253626,
+        "h": 0.23839
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.5817
+}

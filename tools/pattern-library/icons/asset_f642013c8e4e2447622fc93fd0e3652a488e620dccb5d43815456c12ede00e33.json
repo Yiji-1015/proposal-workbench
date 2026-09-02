@@ -1,0 +1,311 @@
+{
+  "version": 1,
+  "module_id": "asset_f642013c8e4e2447622fc93fd0e3652a488e620dccb5d43815456c12ede00e33",
+  "asset_kind": "icon_asset",
+  "module_type": "icon",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.0,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.04,
+      "w": 0.92,
+      "h": 0.9199999999999999
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "icon",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.242433,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 285,
+          "height": 479,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 285,
+                "y": 323
+              }
+            },
+            {
+              "lineTo": {
+                "x": 222,
+                "y": 323
+              }
+            },
+            {
+              "lineTo": {
+                "x": 64,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 323
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 285,
+          "height": 479,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 0,
+                "y": 156
+              }
+            },
+            {
+              "lineTo": {
+                "x": 63,
+                "y": 156
+              }
+            },
+            {
+              "lineTo": {
+                "x": 221,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 156
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.242433,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 285,
+          "height": 479,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 285,
+                "y": 323
+              }
+            },
+            {
+              "lineTo": {
+                "x": 222,
+                "y": 323
+              }
+            },
+            {
+              "lineTo": {
+                "x": 64,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 323
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 285,
+          "height": 479,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 0,
+                "y": 156
+              }
+            },
+            {
+              "lineTo": {
+                "x": 63,
+                "y": 156
+              }
+            },
+            {
+              "lineTo": {
+                "x": 221,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 285,
+                "y": 479
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 156
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.3347
+}

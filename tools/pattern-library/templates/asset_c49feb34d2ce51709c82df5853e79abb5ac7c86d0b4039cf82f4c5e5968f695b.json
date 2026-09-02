@@ -1,0 +1,515 @@
+{
+  "version": 1,
+  "module_id": "asset_c49feb34d2ce51709c82df5853e79abb5ac7c86d0b4039cf82f4c5e5968f695b",
+  "asset_kind": "diagram_recipe",
+  "module_type": "process_chain",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "161",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "162",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "163",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "164",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "165",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "166",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "167",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "168",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "169",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "170",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "process_chain",
+      "repeat_source": "steps",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": true,
+          "text_slot": "steps[]"
+        }
+      ],
+      "edges": [
+        {
+          "from": "node[n]",
+          "to": "node[n+1]",
+          "kind": "connector",
+          "arrow": "end"
+        }
+      ]
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.021272,
+        "w": 0.907891,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.021359,
+        "w": 0.843563,
+        "h": 0.12997
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.907891,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.021272,
+        "w": 0.285714,
+        "h": 0.130057
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.151329,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.237812,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.324295,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.410778,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.497261,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.583744,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.670227,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.75671,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.843193,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.032164,
+        "y": 0.929677,
+        "w": 0.843563,
+        "h": 0.086715
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.912305,
+        "y": 0.16018,
+        "w": 0.567015,
+        "h": 0.068797
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 0.131825,
+        "h": 0.06472
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.246687,
+        "w": 1.0,
+        "h": 0.068797
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.063523,
+        "w": 0.008086,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {}
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 1.0,
+        "w": 0.943228,
+        "h": 0.090198
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.333194,
+        "w": 1.0,
+        "h": 0.068797
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.419701,
+        "w": 0.714285,
+        "h": 0.068797
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.506209,
+        "w": 0.428571,
+        "h": 0.068797
+      },
+      "fill": "surface",
+      "stroke": "line"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.3203
+}

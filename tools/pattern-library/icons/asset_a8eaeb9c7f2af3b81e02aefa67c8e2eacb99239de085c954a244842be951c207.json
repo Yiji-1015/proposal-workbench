@@ -1,0 +1,460 @@
+{
+  "version": 1,
+  "module_id": "asset_a8eaeb9c7f2af3b81e02aefa67c8e2eacb99239de085c954a244842be951c207",
+  "asset_kind": "icon_asset",
+  "module_type": "icon",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.0,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.04,
+      "w": 0.92,
+      "h": 0.9199999999999999
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "36",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "36",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "icon",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 2844151,
+          "height": 2880180,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 2390187,
+                "y": 1502145
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2844151,
+                "y": 1530794
+              }
+            },
+            {
+              "lineTo": {
+                "x": 102982,
+                "y": 2380283
+              }
+            },
+            {
+              "lineTo": {
+                "x": 104524,
+                "y": 1603708
+              }
+            },
+            {
+              "lineTo": {
+                "x": 777828,
+                "y": 1990661
+              }
+            },
+            {
+              "lineTo": {
+                "x": 648358,
+                "y": 2065410
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 1424249,
+                "y": 58
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2741170,
+                "y": 499921
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2739628,
+                "y": 1276497
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2066324,
+                "y": 889544
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2195793,
+                "y": 814795
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 1349410
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.24986,
+        "y": 0.221517,
+        "w": 0.500281,
+        "h": 0.495545
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 3225370,
+          "height": 3229762,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 1355872,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1607042,
+                "y": 1169019
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1996362,
+                "y": 1567711
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2525816,
+                "y": 1711728
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2475505,
+                "y": 1847275
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1957861,
+                "y": 1706471
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1908290,
+                "y": 2478637
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1632951,
+                "y": 1922407
+              }
+            },
+            {
+              "lineTo": {
+                "x": 726463,
+                "y": 1950491
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1245626,
+                "y": 1581679
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1372109,
+                "y": 754363
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 2844151,
+          "height": 2880180,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 2390187,
+                "y": 1502145
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2844151,
+                "y": 1530794
+              }
+            },
+            {
+              "lineTo": {
+                "x": 102982,
+                "y": 2380283
+              }
+            },
+            {
+              "lineTo": {
+                "x": 104524,
+                "y": 1603708
+              }
+            },
+            {
+              "lineTo": {
+                "x": 777828,
+                "y": 1990661
+              }
+            },
+            {
+              "lineTo": {
+                "x": 648358,
+                "y": 2065410
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 1424249,
+                "y": 58
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2741170,
+                "y": 499921
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2739628,
+                "y": 1276497
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2066324,
+                "y": 889544
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2195793,
+                "y": 814795
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 1349410
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.24986,
+        "y": 0.221517,
+        "w": 0.500281,
+        "h": 0.495545
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 3225370,
+          "height": 3229762,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 1355872,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1607042,
+                "y": 1169019
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1996362,
+                "y": 1567711
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2525816,
+                "y": 1711728
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2475505,
+                "y": 1847275
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1957861,
+                "y": 1706471
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1908290,
+                "y": 2478637
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1632951,
+                "y": 1922407
+              }
+            },
+            {
+              "lineTo": {
+                "x": 726463,
+                "y": 1950491
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1245626,
+                "y": 1581679
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1372109,
+                "y": 754363
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.5564
+}

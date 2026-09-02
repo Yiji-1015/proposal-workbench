@@ -1,0 +1,322 @@
+{
+  "version": 1,
+  "module_id": "asset_193ac7846e75a3b5cb87cb41e8c5bba63f53d78719a7dce69665590ffe9cf548",
+  "asset_kind": "block_shell",
+  "module_type": "lanes",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "57",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "lanes",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.251756,
+        "y": 1.0,
+        "w": 0.58166,
+        "h": 0.234196
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.23785,
+        "y": 1.0,
+        "w": 0.151613,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.257247,
+        "y": 1.0,
+        "w": 0.112819,
+        "h": 0.337242
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.459704,
+        "y": 1.0,
+        "w": 0.151613,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.498846,
+        "y": 1.0,
+        "w": 0.073329,
+        "h": 0.337242
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681557,
+        "y": 1.0,
+        "w": 0.151613,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.712239,
+        "y": 1.0,
+        "w": 0.090249,
+        "h": 0.168621
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.186904,
+        "y": 0.888935,
+        "w": 0.167347,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.193779,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.370949,
+        "y": 0.888935,
+        "w": 0.170751,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.380866,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.553866,
+        "y": 0.888935,
+        "w": 0.16755,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.560644,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.736967,
+        "y": 0.888935,
+        "w": 0.166009,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.7415,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.918527,
+        "y": 0.888935,
+        "w": 0.166645,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.923394,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.042586,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 0.348916
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.888935,
+        "w": 0.174128,
+        "h": 0.911553
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.013567,
+        "y": 0.528042,
+        "w": 0.152652,
+        "h": 0.360893
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "items[]"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 4.1182
+}

@@ -1,0 +1,589 @@
+{
+  "version": 1,
+  "module_id": "asset_0528d8509ba2df4275921cce7717b47b9cd7638f0c4983879fa5fa778353da77",
+  "asset_kind": "block_shell",
+  "module_type": "lanes",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": []
+  },
+  "diagram": {
+    "topology": {
+      "kind": "lanes",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.169299,
+        "y": 0.0,
+        "w": 0.09875,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 1203960,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1203960,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.110691,
+        "y": 1.0,
+        "w": 0.215965,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 2633050,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2031070,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2633050,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.052083,
+        "y": 1.0,
+        "w": 0.333181,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 4062141,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 3460161,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 4062141,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 0.261133,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 1.0,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 1.0,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.296875,
+        "y": 0.186059,
+        "w": 0.651042,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.341146,
+        "y": 1.0,
+        "w": 0.653172,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.385264,
+        "y": 1.0,
+        "w": 0.578854,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 1.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.169299,
+        "y": 0.0,
+        "w": 0.09875,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 1203960,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 1203960,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.110691,
+        "y": 1.0,
+        "w": 0.215965,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 2633050,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2031070,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 2633050,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.052083,
+        "y": 1.0,
+        "w": 0.333181,
+        "h": 1.0
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 4062141,
+          "height": 937260,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 3460161,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 4062141,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 937260
+              }
+            },
+            {
+              "lineTo": {
+                "x": 601980,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 0.261133,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 1.0,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.201486,
+        "y": 1.0,
+        "w": 0.034375,
+        "h": 0.477735
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.296875,
+        "y": 0.186059,
+        "w": 0.651042,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.341146,
+        "y": 1.0,
+        "w": 0.653172,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.385264,
+        "y": 1.0,
+        "w": 0.578854,
+        "h": 0.62788
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 6.0829
+}

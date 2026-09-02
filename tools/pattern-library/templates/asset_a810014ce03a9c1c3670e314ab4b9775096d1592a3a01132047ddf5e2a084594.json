@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "module_id": "asset_a810014ce03a9c1c3670e314ab4b9775096d1592a3a01132047ddf5e2a084594",
+  "asset_kind": "block_shell",
+  "module_type": "matrix",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "60",
+        "kind": "picture",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "60",
+        "kind": "picture",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "matrix",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.678054,
+        "w": 0.854409,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.696439,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.001936,
+        "y": 0.678056,
+        "w": 0.854409,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 0.377919,
+        "h": 0.843401
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.42914,
+        "h": 0.957712
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 0.376573,
+        "h": 0.840397
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.678054,
+        "w": 0.854409,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.696439,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.001936,
+        "y": 0.678056,
+        "w": 0.854409,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 0.377919,
+        "h": 0.843401
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.42914,
+        "h": 0.957712
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    },
+    {
+      "kind": "icon_slot",
+      "bounds": {
+        "x": 1.0,
+        "y": 0.0,
+        "w": 0.376573,
+        "h": 0.840397
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "slot": "icon_slot"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.2553
+}

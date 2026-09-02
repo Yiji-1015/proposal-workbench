@@ -1,0 +1,320 @@
+{
+  "version": 1,
+  "module_id": "asset_baef3a87e062ad2a6c86c5def33134ecffb3822e1ec00cabef215d10199305a8",
+  "asset_kind": "block_shell",
+  "module_type": "matrix",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "9",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "12",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "15",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "16",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "30",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "31",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "matrix",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.042365,
+        "w": 0.304361,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351252,
+        "y": 0.042365,
+        "w": 0.304361,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.042365,
+        "w": 0.306246,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.552562,
+        "w": 0.304361,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351252,
+        "y": 0.552562,
+        "w": 0.304361,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.552562,
+        "w": 0.306246,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.318254,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.169639,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351852,
+        "y": 0.318254,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351252,
+        "y": 0.169639,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.318254,
+        "w": 0.306246,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.169639,
+        "w": 0.306246,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.828451,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.020642,
+        "y": 0.679836,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351252,
+        "y": 0.828451,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.351252,
+        "y": 0.679836,
+        "w": 0.304361,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.828451,
+        "w": 0.306246,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.681863,
+        "y": 0.679836,
+        "w": 0.306246,
+        "h": 0.148487
+      },
+      "fill": "surface",
+      "stroke": "line"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.3637
+}

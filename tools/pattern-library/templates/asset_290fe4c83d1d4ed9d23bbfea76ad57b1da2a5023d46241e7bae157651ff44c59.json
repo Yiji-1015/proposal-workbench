@@ -1,0 +1,383 @@
+{
+  "version": 1,
+  "module_id": "asset_290fe4c83d1d4ed9d23bbfea76ad57b1da2a5023d46241e7bae157651ff44c59",
+  "asset_kind": "composite_block",
+  "module_type": "process_chain",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "15",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "process_chain",
+      "repeat_source": "steps",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": true,
+          "text_slot": "steps[]"
+        }
+      ],
+      "edges": [
+        {
+          "from": "node[n]",
+          "to": "node[n+1]",
+          "kind": "connector",
+          "arrow": "end"
+        }
+      ]
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.041411,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.002395,
+        "y": 0.020817,
+        "w": 0.208702,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.211097,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.276776,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.342455,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.408134,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.473813,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.539492,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.60467,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.670349,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.736028,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.801706,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.867385,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.933064,
+        "y": 0.020817,
+        "w": 0.065679,
+        "h": 0.127274
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.212112,
+        "y": 0.156752,
+        "w": 0.130343,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.342455,
+        "y": 0.326064,
+        "w": 0.229876,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.342455,
+        "y": 0.41072,
+        "w": 0.164197,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.473312,
+        "y": 0.495376,
+        "w": 0.098518,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.506652,
+        "y": 0.664687,
+        "w": 0.393572,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.692497,
+        "y": 0.749343,
+        "w": 0.098518,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.327303,
+        "y": 0.0,
+        "w": 0.030304,
+        "h": 0.063335
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.637509,
+        "y": 0.833999,
+        "w": 0.263098,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.867385,
+        "y": 0.918655,
+        "w": 0.098518,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.243937,
+        "y": 0.241408,
+        "w": 0.229876,
+        "h": 0.067325
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "steps[]"
+    },
+    {
+      "kind": "connector",
+      "bounds": {
+        "x": 0.342455,
+        "y": 0.062163,
+        "w": 0.001859,
+        "h": 0.9786
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "connector": {}
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.3637
+}

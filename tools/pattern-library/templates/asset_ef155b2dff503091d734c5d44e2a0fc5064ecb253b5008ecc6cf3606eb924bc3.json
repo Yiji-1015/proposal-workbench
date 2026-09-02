@@ -1,0 +1,566 @@
+{
+  "version": 1,
+  "module_id": "asset_ef155b2dff503091d734c5d44e2a0fc5064ecb253b5008ecc6cf3606eb924bc3",
+  "asset_kind": "block_shell",
+  "module_type": "matrix",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.0,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.04,
+      "w": 0.92,
+      "h": 0.9199999999999999
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "48",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "49",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "50",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "48",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "49",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "50",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "matrix",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.969848,
+        "w": 0.87454,
+        "h": 0.396986
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 526,
+          "height": 177,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 401,
+                "y": 30
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 117
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.492463,
+        "w": 0.634687,
+        "h": 0.402012
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 381,
+          "height": 178,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 368,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 118
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 0.402012
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 600,
+          "height": 177,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 593,
+                "y": 119
+              }
+            },
+            {
+              "lineTo": {
+                "x": 593,
+                "y": 119
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 117
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.664207,
+        "y": 0.366834,
+        "w": 0.642067,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 387,
+          "height": 444,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 385,
+                "y": 73
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 345,
+                "y": 103
+              }
+            },
+            {
+              "lineTo": {
+                "x": 345,
+                "y": 103
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.845018,
+        "y": 0.683417,
+        "w": 0.350554,
+        "h": 0.527637
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 210,
+          "height": 233,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 0,
+                "y": 160
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 160
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.774908,
+        "y": 0.527637,
+        "w": 0.394834,
+        "h": 0.457286
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 239,
+          "height": 203,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 128,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 128,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.969848,
+        "w": 0.87454,
+        "h": 0.396986
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 526,
+          "height": 177,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 401,
+                "y": 30
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 117
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.492463,
+        "w": 0.634687,
+        "h": 0.402012
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 381,
+          "height": 178,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 368,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 118
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 0.402012
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 600,
+          "height": 177,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 593,
+                "y": 119
+              }
+            },
+            {
+              "lineTo": {
+                "x": 593,
+                "y": 119
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 103,
+                "y": 117
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.664207,
+        "y": 0.366834,
+        "w": 0.642067,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 387,
+          "height": 444,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 385,
+                "y": 73
+              }
+            },
+            {
+              "close": {}
+            },
+            {
+              "moveTo": {
+                "x": 345,
+                "y": 103
+              }
+            },
+            {
+              "lineTo": {
+                "x": 345,
+                "y": 103
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.845018,
+        "y": 0.683417,
+        "w": 0.350554,
+        "h": 0.527637
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 210,
+          "height": 233,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 0,
+                "y": 160
+              }
+            },
+            {
+              "lineTo": {
+                "x": 0,
+                "y": 160
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.774908,
+        "y": 0.527637,
+        "w": 0.394834,
+        "h": 0.457286
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "custom_geometry": [
+        {
+          "width": 239,
+          "height": 203,
+          "commands": [
+            {
+              "moveTo": {
+                "x": 128,
+                "y": 0
+              }
+            },
+            {
+              "lineTo": {
+                "x": 128,
+                "y": 0
+              }
+            },
+            {
+              "close": {}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 0.8503
+}

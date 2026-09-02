@@ -1,0 +1,376 @@
+{
+  "version": 1,
+  "module_id": "asset_d06f9e41961c42c2004bc8ceb79d5ec91e3405cbafd4e3036c7f286525c5168a",
+  "asset_kind": "block_shell",
+  "module_type": "lanes",
+  "renderer_key": "responsive_native_template",
+  "shell": {
+    "container": {
+      "kind": "roundRect",
+      "fill": "white",
+      "stroke": "line"
+    },
+    "header_zone": {
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1.0,
+      "h": 0.18,
+      "text_slot": "title"
+    },
+    "body_zone": {
+      "x": 0.04,
+      "y": 0.22,
+      "w": 0.92,
+      "h": 0.74
+    },
+    "accent_shapes": [
+      {
+        "shape_id": "58",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "66",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "70",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "73",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "58",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "66",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "70",
+        "kind": "shape",
+        "anchor": "left"
+      },
+      {
+        "shape_id": "73",
+        "kind": "shape",
+        "anchor": "left"
+      }
+    ]
+  },
+  "diagram": {
+    "topology": {
+      "kind": "lanes",
+      "repeat_source": "items",
+      "nodes": [
+        {
+          "id": "node",
+          "kind": "roundRect",
+          "repeat": false,
+          "text_slot": "items[]"
+        }
+      ],
+      "edges": []
+    },
+    "variants": {
+      "wide": {
+        "layout": "row",
+        "columns": "all"
+      },
+      "compact": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "tall": {
+        "layout": "column",
+        "columns": 1
+      }
+    }
+  },
+  "style": {
+    "node_fill": "pale",
+    "node_stroke": "primary",
+    "text_color": "navy"
+  },
+  "constraints": {
+    "padding_ratio": 0.05,
+    "gap_ratio": 0.03,
+    "min_font_size": 9,
+    "min_nodes": 2,
+    "max_nodes": 8
+  },
+  "primitives": [
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.172287,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.327417,
+        "h": 0.172576
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.351507,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.051895,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030737,
+        "y": 0.026703,
+        "w": 0.963517,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.423104,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030738,
+        "y": 0.397912,
+        "w": 0.432153,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.803725,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030738,
+        "y": 0.778533,
+        "w": 0.432153,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.663591,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.977592,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.172287,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.327417,
+        "h": 0.172576
+      },
+      "fill": "accent",
+      "stroke": "line",
+      "text_slot": "title"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.351507,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.051895,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030737,
+        "y": 0.026703,
+        "w": 0.963517,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.423104,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030738,
+        "y": 0.397912,
+        "w": 0.432153,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.023886,
+        "y": 0.803725,
+        "w": 0.006851,
+        "h": 0.158177
+      },
+      "fill": "surface",
+      "stroke": "line"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.030738,
+        "y": 0.778533,
+        "w": 0.432153,
+        "h": 0.208561
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.663591,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    },
+    {
+      "kind": "shape",
+      "bounds": {
+        "x": 0.028566,
+        "y": 0.977592,
+        "w": 0.971434,
+        "h": 0.143814
+      },
+      "fill": "surface",
+      "stroke": "line",
+      "text_slot": "items[]"
+    }
+  ],
+  "content_slots": {
+    "title": "string",
+    "steps": "string[]",
+    "items": "string[]",
+    "metrics": "string[]",
+    "conclusion": "string"
+  },
+  "source_aspect_ratio": 1.7539
+}
