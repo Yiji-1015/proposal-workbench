@@ -2,20 +2,125 @@
   "requirement_id": "SEC-204",
   "slide_scope": "requirement",
   "primary_requirement_id": "SEC-204",
-  "requirement_ids": ["SEC-204"],
+  "requirement_ids": [
+    "SEC-204"
+  ],
   "slide_title": "관리자 접근통제 수행 방안",
   "layout_family": "three_column_with_bottom_band",
   "orientation": "portrait",
   "governing_message": "관리자 권한을 정책 기반으로 통제해 보안성과 운영 추적성을 확보합니다.",
   "density": "high",
   "protected_metrics": [
-    { "metric_id": "SEC-204-M1", "label": "점검 주기", "value_text": "분기 1회", "source_refs": ["chunk-7"] }
+    {
+      "metric_id": "SEC-204-M1",
+      "label": "점검 주기",
+      "value_text": "분기 1회",
+      "source_refs": [
+        "chunk-7"
+      ]
+    }
   ],
   "blocks": [
-    { "block_id": "requirement_summary", "role": "requirement_summary", "slot": "left", "visual_category": "summary_cards", "direction": "vertical", "step_count": null, "importance": "mandatory", "content": { "headline": "관리자 권한의 전 생애주기 통제", "bullets": ["최소권한 원칙 적용", "신청·승인 이력 보관"] }, "source_refs": ["SEC-204-A1"] },
-    { "block_id": "main_process", "role": "main_process", "slot": "center", "visual_category": "horizontal_process", "direction": "left_to_right", "step_count": 4, "importance": "mandatory", "content": { "steps": ["권한 신청", "적정성 검토", "승인·부여", "정기 점검"] }, "source_refs": ["SEC-204-A2"] },
-    { "block_id": "operation_quality", "role": "operation_quality", "slot": "right", "visual_category": "governance_checklist", "direction": "vertical", "step_count": null, "importance": "mandatory", "content": { "headline": "통제 및 증적", "bullets": ["승인자 분리", "변경 이력 추적", "미사용 권한 회수"] }, "source_refs": ["SEC-204-A3"] },
-    { "block_id": "technology_comparison", "role": "technology_comparison", "slot": "bottom_center", "visual_category": "two_option_comparison", "direction": "horizontal", "step_count": 2, "importance": "optional", "content": { "options": [{ "label": "수동 관리", "summary": "담당자 점검 중심" }, { "label": "자동 통제", "summary": "정책 기반 탐지·회수" }], "conclusion": "정책 기반 자동 통제를 적용해 탐지와 권한 회수를 일관되게 수행합니다." }, "source_refs": ["SEC-204-A4"] },
-    { "block_id": "metric_highlight", "role": "metric_highlight", "slot": "top_left", "visual_category": "quantitative_metric", "direction": "none", "step_count": null, "importance": "mandatory", "content": { "label": "점검 주기", "value_text": "분기 1회" }, "source_refs": ["SEC-204-M1"] }
-  ]
+    {
+      "block_id": "requirement_summary",
+      "role": "requirement_summary",
+      "slot": "left",
+      "visual_category": "summary_cards",
+      "direction": "vertical",
+      "step_count": null,
+      "importance": "mandatory",
+      "content": {
+        "headline": "관리자 권한의 전 생애주기 통제",
+        "bullets": [
+          "최소권한 원칙 적용",
+          "신청·승인 이력 보관"
+        ]
+      },
+      "source_refs": [
+        "SEC-204-A1"
+      ]
+    },
+    {
+      "block_id": "main_process",
+      "role": "main_process",
+      "slot": "center",
+      "visual_category": "horizontal_process",
+      "direction": "left_to_right",
+      "step_count": 4,
+      "importance": "mandatory",
+      "content": {
+        "steps": [
+          "권한 신청",
+          "적정성 검토",
+          "승인·부여",
+          "정기 점검"
+        ]
+      },
+      "source_refs": [
+        "SEC-204-A2"
+      ]
+    },
+    {
+      "block_id": "operation_quality",
+      "role": "operation_quality",
+      "slot": "right",
+      "visual_category": "governance_checklist",
+      "direction": "vertical",
+      "step_count": null,
+      "importance": "mandatory",
+      "content": {
+        "headline": "통제 및 증적",
+        "bullets": [
+          "승인자 분리",
+          "변경 이력 추적",
+          "미사용 권한 회수"
+        ]
+      },
+      "source_refs": [
+        "SEC-204-A3"
+      ]
+    },
+    {
+      "block_id": "technology_comparison",
+      "role": "technology_comparison",
+      "slot": "bottom_center",
+      "visual_category": "two_option_comparison",
+      "direction": "horizontal",
+      "step_count": 2,
+      "importance": "optional",
+      "content": {
+        "options": [
+          {
+            "label": "수동 관리",
+            "summary": "담당자 점검 중심"
+          },
+          {
+            "label": "자동 통제",
+            "summary": "정책 기반 탐지·회수"
+          }
+        ],
+        "conclusion": "정책 기반 자동 통제를 적용해 탐지와 권한 회수를 일관되게 수행합니다."
+      },
+      "source_refs": [
+        "SEC-204-A4"
+      ]
+    },
+    {
+      "block_id": "metric_highlight",
+      "role": "metric_highlight",
+      "slot": "top_left",
+      "visual_category": "quantitative_metric",
+      "direction": "none",
+      "step_count": null,
+      "importance": "mandatory",
+      "content": {
+        "label": "점검 주기",
+        "value_text": "분기 1회"
+      },
+      "source_refs": [
+        "SEC-204-M1"
+      ]
+    }
+  ],
+  "status": "approved"
 }

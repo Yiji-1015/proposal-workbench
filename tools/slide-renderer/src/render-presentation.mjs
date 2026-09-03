@@ -349,7 +349,7 @@ function addFinal(deck, model, layout, assets) {
   return { slide, applications, runtimeFallbacks, pictureShapeCount };
 }
 
-export async function renderPresentation({ model, layout, patternRoot, outputPptx, wireframePng, finalSlidePng }) {
+export async function renderPresentation({ model, layout, patternRoot, outputPptx, wireframePng, finalSlidePng, wireframeOnly = false }) {
   C = {
     blue: model.theme.primary,
     navy: model.theme.navy,
@@ -366,6 +366,17 @@ export async function renderPresentation({ model, layout, patternRoot, outputPpt
   const assetByBlock = new Map(assets.map((asset) => [asset.blockId, asset]));
   const deck = Presentation.create({ slideSize: { width: model.canvas.width, height: model.canvas.height } });
   const wireframe = addWireframe(deck, model, layout, assetByBlock);
+  // 승인 전 단계에서는 와이어프레임만 내보낸다. 최종 슬라이드와 PPTX는 만들지 않는다.
+  if (wireframeOnly) {
+    await writeBlob(wireframePng, await deck.export({ slide: wireframe, format: "png", scale: 1.25 }));
+    return {
+      assets: assets.map((asset) => ({ ...asset, applied: false, fidelityPassed: false, structureFingerprint: null, requiredMotifs: [], producedMotifs: [] })),
+      slideCount: 1,
+      wireframeOnly: true,
+      pictureShapeCount: 0,
+      runtimeFallbacks: [],
+    };
+  }
   const final = addFinal(deck, model, layout, assets);
   await writeBlob(wireframePng, await deck.export({ slide: wireframe, format: "png", scale: 1.25 }));
   await writeBlob(finalSlidePng, await deck.export({ slide: final.slide, format: "png", scale: 1.25 }));

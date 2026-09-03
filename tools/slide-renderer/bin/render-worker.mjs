@@ -17,6 +17,7 @@ const result = await renderPresentation({
   outputPptx: options.output,
   wireframePng: options.wireframe,
   finalSlidePng: options.final,
+  wireframeOnly: options["wireframe-only"] === "true",
 });
 await fs.writeFile(options.result, JSON.stringify(result, null, 2), "utf8");
 console.log(JSON.stringify({ rendered: true, result: options.result }));

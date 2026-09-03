@@ -38,7 +38,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 3. 첨부 이미지, 명시적으로 전달된 완료 세션, 레퍼런스 없음 중 입력 상태를 확정한다.
 4. `references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다.
 5. 승인 대기 세션을 `storage/sessions/plan_<id>.json`에 저장한다.
-6. 와이어프레임을 채팅에 표시하고 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다.
+6. 와이어프레임을 채팅에 표시하고 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다. 청사진의 `status`는 승인 전까지 `draft`로 둔다. 렌더러가 이 값을 검사해 승인 없는 PPTX 생성을 거부한다.
 7. 필요하면 HitL 검토 화면을 연다.
 
 `block_pool_auto`를 선택한 경우 요구사항의 표·지표·매핑·흐름·단계·일정 신호에 따라 블록 타입을 조합하고, 같은 카드 모양을 반복하지 않는다.

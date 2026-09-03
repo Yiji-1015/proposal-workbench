@@ -51,8 +51,12 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 5. 장표 제목, 거버닝 메시지, 가시 섹션, 결론을 작성한다. 내부 분석 제목을 가시 제목으로 복사하지 않는다.
 6. 병렬 항목을 먼저 내용 도식으로 변환하고, 카탈로그를 `semantic` → `structural` → `decorative` 순으로 검토한다. 방향 차이만으로 자산을 거절하지 않는다.
 7. 선택한 자산 구조를 네이티브 PowerPoint 도형으로 재구성하는 청사진과 매핑을 만든다. 복잡한 흐름은 네이티브 도식을 끝까지 구성하고, 짧은 라벨·상세 `content.explanation`·근거 텍스트로 정보를 최대한 보존한다. 네이티브 도식으로도 읽기·의사결정이 불가능할 때만 `text_explainer`를 선택한다. 최종 `render_mode`는 기본적으로 `native_powerpoint_shapes`여야 한다.
-8. 선택 에셋 고유의 구조가 보이는 첫 와이어프레임을 채팅에 인라인으로 표시한다. 사용자 명시 응답(예: “승인”, “진행”)을 받을 때까지 멈추고, 그 전에는 청사진·세션 상태를 `draft`/`pending`으로 유지한다. 최소 5개의 독립된 내용 상자와 `density: high`를 충족하되 같은 카드 형태를 반복하지 않는다.
-9. 사용자 승인 상태가 확인된 프로젝트만 최종 렌더링한다. 승인 전에는 PPTX 생성 명령을 실행하지 않는다.
+8. 선택 에셋 고유의 구조가 보이는 첫 와이어프레임을 `--wireframe-only`로 만들어 채팅에 인라인으로 표시한다. 이 모드는 와이어프레임 PNG만 만들고 PPTX와 최종 슬라이드는 만들지 않는다. 사용자 명시 응답(예: “승인”, “진행”)을 받을 때까지 멈추고, 그 전에는 청사진·세션 상태를 `draft`/`pending`으로 유지한다. 최소 5개의 독립된 내용 상자와 `density: high`를 충족하되 같은 카드 형태를 반복하지 않는다.
+9. 승인을 받은 뒤에만 `slide-blueprint.json`의 `status`를 `approved`로 바꾸고 최종 렌더링을 실행한다. 렌더러가 `status`를 직접 검사하므로 승인 없이 PPTX를 만들 수 없다.
+
+```powershell
+node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" --wireframe-only
+```
 
 ```powershell
 node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" --output "<output.pptx>"

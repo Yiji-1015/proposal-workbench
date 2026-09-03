@@ -95,6 +95,13 @@ claude plugin install proposal-workbench@proposal-workbench-local
 
 설치 후 `claude plugin details proposal-workbench`로 Skill 8개가 모두 잡혔는지 확인합니다. 새 세션부터 로드됩니다.
 
+> 플러그인 캐시는 저장소의 복사본이며 경로가 버전으로 구분됩니다. 저장소를 고쳐도 `plugin.json`의 버전이 그대로면 `claude plugin install`·`update`·`marketplace update`가 모두 "이미 최신"으로 건너뜁니다. 개발 중에 수정본을 반영하려면 버전을 올리거나 다음처럼 재설치합니다.
+
+```powershell
+claude plugin uninstall proposal-workbench@proposal-workbench-local
+claude plugin install proposal-workbench@proposal-workbench-local
+```
+
 **Codex** — `.codex-plugin/plugin.json`이 있는 저장소 루트를 로컬 marketplace로 등록한 뒤 ChatGPT 데스크톱 앱을 재시작하고 Plugins Directory에서 설치합니다.
 
 ```powershell

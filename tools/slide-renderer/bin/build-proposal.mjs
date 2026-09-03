@@ -8,14 +8,21 @@ import { createLayoutPlan } from "../src/layouts.mjs";
 
 const rendererRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const defaultPatternRoot = path.resolve(rendererRoot, "..", "pattern-library");
+const BOOLEAN_FLAGS = new Set(["wireframe-only"]);
+
 function parseArgs(argv) {
   const values = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (!arg.startsWith("--")) throw new Error(`Unexpected argument: ${arg}`);
+    const key = arg.slice(2);
+    if (BOOLEAN_FLAGS.has(key)) {
+      values[key] = true;
+      continue;
+    }
     const value = argv[index + 1];
     if (!value || value.startsWith("--")) throw new Error(`Missing value for ${arg}`);
-    values[arg.slice(2)] = value;
+    values[key] = value;
     index += 1;
   }
   if (!values.project) throw new Error("--project is required");
@@ -34,6 +41,17 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     readJson(path.join(patternRoot, "unified-visual-module-catalog.json")),
   ]);
   const catalog = Array.isArray(catalogRaw) ? catalogRaw : (catalogRaw.modules ?? catalogRaw.items ?? []);
+  // 승인 게이트는 렌더 진입점에 둔다. 래퍼(run-proposal.mjs)에만 두면 이 CLI를 직접
+  // 호출해 우회할 수 있다. 와이어프레임은 승인을 받기 위해 보여주는 자료이므로
+  // 승인 전에도 만들 수 있어야 한다. 승인 전에 나가면 안 되는 것은 최종 PPTX다.
+  const wireframeOnly = args["wireframe-only"] === true;
+  if (!wireframeOnly && blueprint.status !== "approved") {
+    throw new Error(
+      "Final PPTX rendering requires an explicitly approved blueprint "
+      + `(blueprint.status = ${JSON.stringify(blueprint.status ?? null)}). `
+      + "Render the wireframe with --wireframe-only, show it to the user, and set status to \"approved\" after they approve.",
+    );
+  }
   const model = compileRenderModel({ requirement, blueprint, mapping, catalog });
   const layout = createLayoutPlan(model);
   const customOutput = args.output ? path.resolve(args.output) : null;
@@ -52,13 +70,21 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     path.join(rendererRoot, "bin", "render-worker.mjs"),
     "--model", modelPath, "--layout", layoutPath, "--pattern", patternRoot,
     "--output", outputPptx, "--wireframe", wireframePng, "--final", finalSlidePng,
-    "--result", resultPath,
+    "--result", resultPath, "--wireframe-only", wireframeOnly ? "true" : "false",
   ], { encoding: "utf8", timeout: 120000 });
   let rendered;
   try {
     rendered = JSON.parse(await fs.readFile(resultPath, "utf8"));
   } catch {
     throw new Error(`Render worker failed before producing a result manifest (exit=${worker.status}).\n${worker.stderr}\n${worker.stdout}`);
+  }
+  if (wireframeOnly) {
+    const wireframePngBytes = await fs.readFile(wireframePng);
+    if (wireframePngBytes.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") throw new Error(`Wireframe render failed validation (exit=${worker.status})`);
+    await fs.rm(workerTemp, { recursive: true, force: true });
+    const wireframeResult = { wireframe: wireframePng, requirementId: model.requirementId, orientation: model.canvas.orientation, approvalPending: true };
+    console.log(JSON.stringify(wireframeResult, null, 2));
+    return wireframeResult;
   }
   const png = await fs.readFile(finalSlidePng);
   const pptx = await fs.readFile(outputPptx);

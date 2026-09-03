@@ -22,18 +22,9 @@ const patternLibrary = resolveFirst([
   path.join(workbenchRoot, "tools", "pattern-library"),
   path.join(skillRoot, "assets", "proposal-pattern-library"),
 ]);
+// 승인 게이트는 build-proposal.mjs에 있다. 이 래퍼에만 두면 렌더러를 직접 호출해
+// 우회할 수 있었고, 승인 자료인 와이어프레임까지 함께 막혀 승인 자체가 불가능했다.
 const args = process.argv.slice(2);
-const projectIndex = args.indexOf("--project");
-const projectArg = projectIndex >= 0 ? args[projectIndex + 1] : null;
-if (projectArg) {
-  const blueprintPath = path.join(path.resolve(projectArg), "blueprint", "slide-blueprint.json");
-  if (fs.existsSync(blueprintPath)) {
-    const blueprint = JSON.parse(fs.readFileSync(blueprintPath, "utf8"));
-    if (blueprint.status !== "approved") {
-      throw new Error("Final PPTX rendering requires an explicitly approved blueprint. Show the wireframe and wait for user approval first.");
-    }
-  }
-}
 const rendererArgs = args.includes("--pattern-library")
   ? args
   : ["--pattern-library", patternLibrary, ...args];

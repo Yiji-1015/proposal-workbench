@@ -110,3 +110,40 @@ test("builds approved responsive assets and counts only explicitly mapped photos
   assert.equal(report.picture_shape_count, 1);
   assert.equal(report.selected_assets[0].applied, true);
 });
+
+// 승인 게이트는 래퍼가 아니라 렌더 진입점에 있어야 한다. 래퍼에만 두면 이 CLI를
+// 직접 호출해 우회할 수 있고, 승인 자료인 와이어프레임까지 막히면 승인이 불가능해진다.
+async function unapprovedProject(t) {
+  const rendererRoot = path.resolve(import.meta.dirname, "..");
+  const source = path.join(rendererRoot, "tests", "fixtures", "block-pool-project");
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-gate-"));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const project = path.join(temp, "project");
+  await fs.cp(source, project, { recursive: true });
+  const blueprintPath = path.join(project, "blueprint", "slide-blueprint.json");
+  const blueprint = JSON.parse(await fs.readFile(blueprintPath, "utf8"));
+  delete blueprint.status;
+  await fs.writeFile(blueprintPath, JSON.stringify(blueprint, null, 2), "utf8");
+  return { rendererRoot, temp, project };
+}
+
+test("refuses to render a final PPTX from an unapproved blueprint", async (t) => {
+  const { rendererRoot, temp, project } = await unapprovedProject(t);
+  const output = path.join(temp, "POOL-001.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output], { encoding: "utf8" });
+  assert.notEqual(result.status, 0, "미승인 청사진은 렌더가 실패해야 한다");
+  assert.match(result.stderr, /approved blueprint/i);
+  await assert.rejects(fs.access(output), "승인 전에는 PPTX가 만들어지면 안 된다");
+});
+
+test("renders a wireframe before approval without producing a PPTX", async (t) => {
+  const { rendererRoot, temp, project } = await unapprovedProject(t);
+  const output = path.join(temp, "POOL-001.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output, "--wireframe-only"], { encoding: "utf8" });
+  assert.equal(result.status, 0, `stderr=${result.stderr}\nstdout=${result.stdout}`);
+  assert.equal(JSON.parse(result.stdout).approvalPending, true);
+  const wireframe = await fs.readFile(path.join(temp, "wireframe.png"));
+  assert.equal(wireframe.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  await assert.rejects(fs.access(output), "와이어프레임 단계에서 PPTX가 나오면 안 된다");
+  await assert.rejects(fs.access(path.join(temp, "final-slide.png")), "와이어프레임 단계에서 최종 슬라이드가 나오면 안 된다");
+});
