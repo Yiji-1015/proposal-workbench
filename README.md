@@ -52,7 +52,7 @@ proposal-workbench/
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
-  │  ├─ pattern-library/               ──▶ 사용자 제공 도식 자산 카탈로그 (초기 빈 상태 허용)
+│  ├─ pattern-library/               ──▶ 사용자 제공 도식 자산 카탈로그 (초기 빈 상태 허용)
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
 │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
@@ -82,8 +82,20 @@ proposal-workbench/
 
 ## 3. 빠른 시작 가이드
 
-### 0) Codex 로컬 플러그인 설치
-`.codex-plugin/plugin.json`이 있는 저장소 루트를 로컬 marketplace로 등록한 뒤 ChatGPT 데스크톱 앱을 재시작하고 Plugins Directory에서 설치합니다.
+### 0) 로컬 플러그인 설치
+
+저장소 루트가 곧 플러그인 소스입니다. 스킬은 `tools/slide-renderer`와 `tools/pattern-library`를 플러그인 루트 기준으로 찾으므로 `skills/`만 따로 복사하지 말고 저장소를 통째로 설치합니다.
+
+**Claude Code** — `.claude-plugin/marketplace.json`을 로컬 marketplace로 등록한 뒤 설치합니다. 경로는 `.`이 아니라 `./` 형태여야 합니다.
+
+```powershell
+claude plugin marketplace add ./
+claude plugin install proposal-workbench@proposal-workbench-local
+```
+
+설치 후 `claude plugin details proposal-workbench`로 Skill 8개가 모두 잡혔는지 확인합니다. 새 세션부터 로드됩니다.
+
+**Codex** — `.codex-plugin/plugin.json`이 있는 저장소 루트를 로컬 marketplace로 등록한 뒤 ChatGPT 데스크톱 앱을 재시작하고 Plugins Directory에서 설치합니다.
 
 ```powershell
 codex plugin marketplace add .
