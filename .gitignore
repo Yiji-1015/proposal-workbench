@@ -29,3 +29,7 @@ __pycache__/
 
 # Local recovery snapshots must never become gitlinks/submodules.
 /proposal-workbench-test-recovery-*/
+
+# Local QA scratch and in-progress run data
+tmp/
+storage/work/
