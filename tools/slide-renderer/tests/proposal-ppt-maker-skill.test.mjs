@@ -65,6 +65,9 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   // 내용을 먼저 확정하고 그다음에 그릇을 고르는 순서가 규칙으로 남아 있어야 한다.
   assert.match(skill, /블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다/);
   assert.match(skill, /확정한 내용에 맞는 블록 타입을 고른다/);
+  // 승인은 두 단계다. 1차 구조 승인 없이 2차 상세화를 시작하지 않는다.
+  assert.match(skill, /structure_approved/);
+  assert.match(skill, /2차 승인을 받은 뒤에만.*approved.*최종 렌더링/s);
   // 자산은 구조 레퍼런스이되, 검색 없이 전부 폴백으로 적는 것은 금지다.
   assert.match(skill, /카탈로그를 실제로 검색하지 않고 모든 블록을 `fallback_native_shapes`로 적는 것은 금지/);
   assert.match(skill, /자산 적용이 거부되면 그 사유를 보고하고 네이티브 도형으로 해당 블록을 완성/);
@@ -163,7 +166,9 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /content\.explanation/);
   assert.match(planner, /블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다/);
   assert.match(planner, /확정한 내용에 맞는 블록 타입을 고른다/);
-  assert.match(planner, /자산은 끝까지 찾아보고 근거와 함께 추천한다/);
+  assert.match(planner, /이 Skill은 1차 승인까지만 담당한다/);
+  assert.match(planner, /pending_stage2/);
+  assert.match(planner, /structure_approved/);
   assert.match(planner, /간단한 도식.*부연설명/s);
   assert.match(planner, /가독성 한도까지 정보량/s);
   assert.match(planner, /네이티브 도식.*끝까지 구성/s);

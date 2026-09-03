@@ -7,6 +7,8 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 
 요구사항 ID, 정량지표, 근거와 선택적 구조 레퍼런스를 `slide-blueprint.json`과 `asset-mapping.json`으로 정규화한다. 최종 렌더링은 `tools/slide-renderer`가 담당한다.
 
+승인은 두 번 나눠 받는다. **1차는 이 Skill이 담당하며 블록 구성과 블록별 간단 내용을 확정한다.** 자산 선택과 문구 상세화는 2차에서 `$proposal-ppt-maker`가 맡는다. 한 번에 완성본을 들이밀면 사용자가 구조를 바꾸기 어려워지므로 순서를 지킨다.
+
 ## 비협상 규칙
 
 1. `density`는 반드시 `high`로 둔다.
@@ -27,7 +29,9 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 
 13-1. **확정한 내용에 맞는 블록 타입을 고른다.** 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 일정만 `gantt_roadmap`을 사용한다. 계층 구조는 `architecture`, 순환·환류는 `feedback_loop`, 1:N 연결은 `mapping`, 병렬 역할은 `swimlane`, 통과 기준은 `quality_gate`, 방사형 연결은 `hub_spoke`, 순차 격자는 `process_grid`, 대립하는 선택지는 `comparison`을 쓴다. `comparison`은 두 항목이 실제로 대립할 때만 쓰고 병행·동시 확보에는 쓰지 않는다. `blueprint_flow`의 단계는 일정으로 간주하지 않으며 `steps[]`와 동일 길이의 `step_details[]`를 작성해 각 처리 노드의 세부 문구를 보존한다. `layout_family: "block_pool_auto"`에서는 5~6개 블록을 `slot: "auto"`로 선언한다.
 
-14. **자산은 끝까지 찾아보고 근거와 함께 추천한다.** 카탈로그를 실제로 검색하지 않고 모든 블록을 `fallback_native_shapes`로 적는 것은 금지한다. 블록마다 `display_name`, `description`, `design_traits`, `use_cases`, `search_tags`로 후보를 찾고, 고른 이유와 어떤 구조를 참고할지를 `usage_note`에 남긴다. 맞는 자산이 없으면 무엇을 찾았고 왜 맞지 않았는지를 적고 폴백으로 내린다. 자산은 구조 레퍼런스이며 원본 도형·문구를 그대로 옮기는 수단이 아니다.
+14. **이 Skill은 1차 승인까지만 담당한다.** 1차에서 확정하는 것은 블록 구성과 블록별 간단 내용이다. 자산 선택과 문구 상세화는 2차에서 `$proposal-ppt-maker`가 맡는다. 1차 단계에서 자산을 고르거나 `step_details[]`·`rows[]` 같은 상세 문구를 완성하지 않는다.
+
+14-1. **1차 산출물의 범위.** 블록마다 `visual_category`, `content.headline`, 그리고 그 블록이 무엇을 말할지 한두 문장으로 요약한 `content.summary`를 채운다. `asset-mapping.json`의 각 항목은 `status: "pending_stage2"`로 두고 자산 ID를 적지 않는다. 청사진 `status`는 `draft`로 시작해 1차 승인 시 `structure_approved`로 바꾼다.
 
 ## 선택적 구조 레퍼런스
 
@@ -40,11 +44,11 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 1. 요구사항 ID와 범위를 먼저 확정한다.
 2. 방향을 확인하고 기본 팔레트 또는 사용자가 명시한 팔레트를 적용한다.
 3. 첨부 이미지, 명시적으로 전달된 완료 세션, 레퍼런스 없음 중 입력 상태를 확정한다.
-3-1. **블록별 내용을 확정한다.** 요구사항 원문을 내용 단위로 쪼개고 각 단위가 말할 내용을 문장 수준으로 적는다. 이 단계가 끝나기 전에는 `visual_category`를 정하지 않는다.
-3-2. **확정한 내용마다 그릇과 자산을 고른다.** 내용에 맞는 블록 타입을 정하고, 카탈로그에서 참고할 자산을 찾아 고른 이유를 기록한다. 맞는 자산이 없으면 무엇을 찾았는지와 함께 폴백으로 내린다.
-4. `references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다.
+3-1. **블록별 내용을 확정한다.** 요구사항 원문을 내용 단위로 쪼개고 각 단위가 말할 내용을 한두 문장으로 적는다. 이 단계가 끝나기 전에는 `visual_category`를 정하지 않는다.
+3-2. **확정한 내용마다 그릇을 고른다.** 내용에 맞는 블록 타입을 정한다. 자산은 여기서 고르지 않는다.
+4. `references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다. 자산 매핑은 전부 `status: "pending_stage2"`로 둔다.
 5. 승인 대기 세션을 `storage/sessions/plan_<id>.json`에 저장한다.
-6. 와이어프레임을 채팅에 표시하고 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다. 청사진의 `status`는 승인 전까지 `draft`로 둔다. 렌더러가 이 값을 검사해 승인 없는 PPTX 생성을 거부한다.
+6. **1차 승인을 받는다.** 블록 구성과 블록별 간단 내용을 와이어프레임과 함께 표시하고, 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다. 승인 전 청사진 `status`는 `draft`, 1차 승인 후에는 `structure_approved`로 둔다. 렌더러는 `approved`만 통과시키므로 두 값 모두 PPTX 생성을 막는다.
 7. 필요하면 HitL 검토 화면을 연다.
 
 `block_pool_auto`를 선택한 경우 요구사항의 표·지표·매핑·흐름·단계·일정 신호에 따라 블록 타입을 조합하고, 같은 카드 모양을 반복하지 않는다.
