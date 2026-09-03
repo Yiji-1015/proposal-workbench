@@ -29,6 +29,32 @@ function parseArgs(argv) {
   return args;
 }
 
+// 한국 공공문서 개요 번호 체계. kordoc은 HWP에서 헤딩 스타일이 적용된 문단만 #으로
+// 내보내므로, 장 제목이 표 셀이나 본문 스타일로 작성된 문서는 헤딩이 하나도 잡히지 않는다.
+// 그런 문서의 목차를 복원하기 위한 보조 규칙이다.
+const OUTLINE_PATTERNS = [
+  { level: 1, re: /^[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+\s*\.\s*(.+)$/ },
+  { level: 2, re: /^\d{1,2}\s*\.\s*(.+)$/ },
+  { level: 3, re: /^[가-힣]\s*\.\s*(.+)$/ },
+  { level: 4, re: /^\d{1,2}\s*\)\s*(.+)$/ },
+  { level: 5, re: /^[가-힣]\s*\)\s*(.+)$/ },
+];
+const OUTLINE_MAX_LENGTH = 60;
+
+// ponytail: 한국 공공문서는 제목과 열거 조항이 같은 번호 체계를 쓴다. 길이 컷만으로는
+// "가. 사 업 명 : ..."(제목)과 "가. 캐비넷을 개방한 채 퇴근"(위규 항목)을 구분할 수 없어
+// 열거 조항이 섞여 들어온다. source:"outline"로 표시해 소비자가 걸러 쓰게 두었다.
+// 정밀도가 문제되면 문서별 섹션 밀도나 후속 줄 패턴으로 판별하는 단계로 올린다.
+function matchOutlineHeading(line) {
+  // 표·목록 마크업 줄과 문장은 제목이 아니다.
+  if (/^[<|!\-*>]/.test(line) || line.length > OUTLINE_MAX_LENGTH) return null;
+  for (const { level, re } of OUTLINE_PATTERNS) {
+    const m = line.match(re);
+    if (m && m[1].trim()) return { heading: line.trim(), level, source: "outline" };
+  }
+  return null;
+}
+
 export function extractSectionsFromMarkdown(markdown) {
   const sections = [];
   const lines = markdown.split(/\r?\n/);
@@ -36,18 +62,17 @@ export function extractSectionsFromMarkdown(markdown) {
   let currentText = [];
 
   for (const line of lines) {
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
-    if (headingMatch) {
+    const md = line.match(/^(#{1,6})\s+(.+)$/);
+    // 헤딩 스타일과 개요 번호를 모두 인정한다. 한쪽만 살아있는 문서가 흔하다.
+    const heading = md
+      ? { heading: md[2].trim(), level: md[1].length, source: "markdown" }
+      : matchOutlineHeading(line);
+    if (heading) {
       if (currentSection) {
         currentSection.text = currentText.join("\n").trim();
         sections.push(currentSection);
       }
-      currentSection = {
-        heading: headingMatch[2].trim(),
-        level: headingMatch[1].length,
-        text: "",
-        page: null,
-      };
+      currentSection = { ...heading, text: "", page: null };
       currentText = [];
     } else {
       currentText.push(line);

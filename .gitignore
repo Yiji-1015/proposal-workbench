@@ -18,6 +18,8 @@ storage/index/*
 !storage/index/.gitkeep
 storage/asset_candidates/*
 !storage/asset_candidates/.gitkeep
+storage/runs/*
+!storage/runs/.gitkeep
 
 # Python caches
 __pycache__/
@@ -33,3 +35,4 @@ __pycache__/
 # Local QA scratch and in-progress run data
 tmp/
 storage/work/
+test/
