@@ -16,8 +16,9 @@ const theme = {
 };
 const block = {
   blockId: "main",
-  content: { headline: "품질 검증", bullets: ["설계", "검증", "개선", "재검증"] },
-  steps: ["설계", "검증", "개선", "재검증"],
+  // hub_spoke는 라벨 6개를 요구한다. 부족하면 렌더러가 자리표시자를 만들지 않고 실패한다.
+  content: { headline: "품질 검증", bullets: ["설계", "검증", "개선", "재검증", "배포", "안정화"] },
+  steps: ["설계", "검증", "개선", "재검증", "배포", "안정화"],
   options: [],
 };
 
@@ -230,4 +231,29 @@ test("responsive templates try another variant and fail typed when none fits", (
     theme,
     template: responsiveTemplate({ constraints: { min_node_width: 200, min_node_height: 100, min_nodes: 2, max_nodes: 8 } }),
   }), (error) => error instanceof AssetLayoutError);
+});
+
+test("라벨이 모자라면 자리표시자를 만들지 않고 실패한다", () => {
+  // 렌더러가 "영역 4" 같은 문구를 채워 넣으면 작성자가 쓰지 않은 내용이 제안 장표에 실린다.
+  assert.throws(
+    () => createAssetRecipe({
+      rendererKey: "mapping",
+      block: { blockId: "short", content: { headline: "부족한 라벨", diagram_labels: ["하나", "둘", "셋"] }, steps: [], options: [] },
+      frame,
+      theme,
+    }),
+    /requires at least 4 labels/i,
+  );
+});
+
+test("중앙 라벨은 청사진이 정한 값을 쓴다", () => {
+  // 이전에는 feedback_loop 중앙 문구가 "품질 환류"로 하드코딩되어 청사진을 무시했다.
+  const centered = { blockId: "loop", content: { headline: "구조 변화 최소화", center_label: "유연한 구조", diagram_labels: ["활용", "요건", "변경", "설계"] }, steps: [], options: [] };
+  const texts = (rendererKey, currentBlock) => createAssetRecipe({ rendererKey, block: currentBlock, frame, theme })
+    .primitives.filter((item) => item.kind === "text").map((item) => item.text);
+  const loopTexts = texts("feedback_loop", centered);
+  assert.ok(loopTexts.includes("유연한 구조"), "center_label이 중앙에 반영되어야 한다");
+  assert.equal(loopTexts.includes("품질 환류"), false, "하드코딩 문구가 남아 있으면 안 된다");
+  const noCenter = { ...centered, content: { ...centered.content, center_label: undefined } };
+  assert.ok(texts("feedback_loop", noCenter).includes("구조 변화 최소화"), "center_label이 없으면 headline을 쓴다");
 });

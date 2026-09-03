@@ -78,7 +78,11 @@ function labelsFor(block, minimum = 2) {
         ? block.content.diagram_labels
         : block.content?.bullets ?? [];
   const labels = values.map((value) => String(value)).filter(Boolean);
-  while (labels.length < minimum) labels.push(`영역 ${labels.length + 1}`);
+  // 모자란 라벨을 "영역 N" 같은 자리표시자로 채우면 작성자가 쓰지 않은 문구가 그대로
+  // 제안 장표에 실린다. 채우지 말고 실패시켜 청사진에서 내용을 보완하게 한다.
+  if (labels.length < minimum) {
+    throw new AssetLayoutError(`${block.blockId ?? "block"} requires at least ${minimum} labels for this renderer; found ${labels.length}`);
+  }
   return labels;
 }
 
@@ -134,13 +138,13 @@ function feedbackRecipe(block, frame, theme) {
   const radiusX = frame.width * 0.32;
   const radiusY = frame.height * 0.29;
   primitives.push(primitive("ellipse", "central-loop", { left: center.x - 46, top: center.y - 28, width: 92, height: 56 }, { fill: theme.navy, stroke: theme.navy }));
-  primitives.push(primitive("text", "central-loop-label", { left: center.x - 40, top: center.y - 10, width: 80, height: 22 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, "품질 환류"));
+  primitives.push(primitive("text", "central-loop-label", { left: center.x - 40, top: center.y - 10, width: 80, height: 22 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, block.content?.center_label ?? block.content?.headline ?? "품질 환류"));
   labels.forEach((label, index) => {
     const angle = -Math.PI / 2 + index * (Math.PI * 2 / labels.length);
     const x = center.x + Math.cos(angle) * radiusX;
     const y = center.y + Math.sin(angle) * radiusY;
     primitives.push(primitive("ellipse", `stage-node:${index + 1}`, { left: x - 38, top: y - 24, width: 76, height: 48 }, { fill: index === 0 ? theme.primary : theme.pale, stroke: theme.primary }));
-    primitives.push(primitive("text", `stage-label:${index + 1}`, { left: x - 32, top: y - 9, width: 64, height: 22 }, { color: index === 0 ? theme.white : theme.navy, fontSize: 12, bold: true, alignment: "center" }, label));
+    primitives.push(primitive("text", `stage-label:${index + 1}`, { left: x - 34, top: y - 18, width: 68, height: 36 }, { color: index === 0 ? theme.white : theme.navy, fontSize: label.length > 6 ? 10 : 12, bold: true, alignment: "center" }, label));
   });
   primitives.push(primitive("ellipse", "return-connector", { left: center.x - radiusX - 18, top: center.y - radiusY - 18, width: radiusX * 2 + 36, height: radiusY * 2 + 36 }, { fill: "none", stroke: theme.accent, lineWidth: 3 }));
   return primitives;
@@ -168,7 +172,7 @@ function hubRecipe(block, frame, theme) {
   const primitives = [titlePrimitive(block, frame, theme)];
   const center = { x: frame.left + frame.width / 2, y: frame.top + frame.height / 2 + 14 };
   primitives.push(primitive("ellipse", "central-hub", { left: center.x - 54, top: center.y - 34, width: 108, height: 68 }, { fill: theme.navy, stroke: theme.navy }));
-  primitives.push(primitive("text", "central-hub-label", { left: center.x - 44, top: center.y - 10, width: 88, height: 24 }, { color: theme.white, fontSize: 14, bold: true, alignment: "center" }, block.content?.headline ?? "통합 허브"));
+  primitives.push(primitive("text", "central-hub-label", { left: center.x - 44, top: center.y - 10, width: 88, height: 24 }, { color: theme.white, fontSize: 14, bold: true, alignment: "center" }, block.content?.center_label ?? block.content?.headline ?? "통합 허브"));
   labels.forEach((label, index) => {
     const angle = -Math.PI / 2 + index * (Math.PI * 2 / labels.length);
     const x = center.x + Math.cos(angle) * frame.width * 0.34;
@@ -188,7 +192,7 @@ function mappingRecipe(block, frame, theme) {
   const primitives = [titlePrimitive(block, frame, theme)];
   const circle = { left: frame.left + 28, top: frame.top + frame.height / 2 - 52, width: 104, height: 104 };
   primitives.push(primitive("ellipse", "source-node", circle, { fill: theme.primary, stroke: theme.primary }));
-  primitives.push(primitive("text", "source-node-label", { left: circle.left + 12, top: circle.top + 36, width: 80, height: 32 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, block.content?.headline ?? "핵심"));
+  primitives.push(primitive("text", "source-node-label", { left: circle.left + 12, top: circle.top + 36, width: 80, height: 32 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, block.content?.center_label ?? block.content?.headline ?? "핵심"));
   const listLeft = frame.left + frame.width * 0.42;
   const rowHeight = (frame.height - 62) / labels.length;
   labels.forEach((label, index) => {

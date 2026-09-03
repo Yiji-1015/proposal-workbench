@@ -68,6 +68,18 @@ const BLOCK_TYPE_DEFINITIONS = [
     preferredHeight: { portrait: 240, landscape: 180 },
     contentKind: "roadmap",
   },
+  // 아래 8개는 이미 동작하는 렌더러인데 블록 타입으로 등록되지 않아 block_pool_auto가
+  // 거부했다. 등록 전에는 로드맵을 뺀 5개 타입만 남아, 최소 5블록 규칙과 맞물려
+  // 어떤 요구사항이든 같은 타입 조합이 강제되고 장표가 서로 구분되지 않았다.
+  // 내용 단위마다 어울리는 그릇을 고를 수 있도록 풀을 넓힌다.
+  { id: "process_grid", rendererKey: "process_grid", preferredSpan: "full", minItems: 2, maxItems: 8, minHeight: { portrait: 170, landscape: 130 }, preferredHeight: { portrait: 240, landscape: 180 }, contentKind: "labels" },
+  { id: "comparison", rendererKey: "comparison", preferredSpan: "full", minItems: 2, maxItems: 4, minHeight: { portrait: 160, landscape: 120 }, preferredHeight: { portrait: 230, landscape: 175 }, contentKind: "labels" },
+  { id: "mapping", rendererKey: "mapping", preferredSpan: "half", minItems: 4, maxItems: 6, minHeight: { portrait: 140, landscape: 105 }, preferredHeight: { portrait: 190, landscape: 145 }, contentKind: "labels" },
+  { id: "feedback_loop", rendererKey: "feedback_loop", preferredSpan: "half", minItems: 4, maxItems: 5, minHeight: { portrait: 150, landscape: 115 }, preferredHeight: { portrait: 200, landscape: 155 }, contentKind: "labels" },
+  { id: "quality_gate", rendererKey: "quality_gate", preferredSpan: "full", minItems: 4, maxItems: 6, minHeight: { portrait: 150, landscape: 115 }, preferredHeight: { portrait: 210, landscape: 160 }, contentKind: "labels" },
+  { id: "swimlane", rendererKey: "swimlane", preferredSpan: "full", minItems: 4, maxItems: 6, minHeight: { portrait: 160, landscape: 120 }, preferredHeight: { portrait: 220, landscape: 165 }, contentKind: "labels" },
+  { id: "hub_spoke", rendererKey: "hub_spoke", preferredSpan: "half", minItems: 6, maxItems: 9, minHeight: { portrait: 150, landscape: 115 }, preferredHeight: { portrait: 200, landscape: 155 }, contentKind: "labels" },
+  { id: "architecture", rendererKey: "architecture", preferredSpan: "full", minItems: 4, maxItems: 5, minHeight: { portrait: 180, landscape: 135 }, preferredHeight: { portrait: 250, landscape: 190 }, contentKind: "labels" },
 ];
 
 const DEFINITIONS_BY_ID = new Map(BLOCK_TYPE_DEFINITIONS.map((definition) => [definition.id, definition]));
@@ -219,6 +231,28 @@ export function listBlockTypeDefinitions() {
   return structuredClone(BLOCK_TYPE_DEFINITIONS);
 }
 
+// 라벨형 블록은 렌더러가 labelsFor()로 steps·options·diagram_labels·bullets 중
+// 먼저 채워진 것을 읽는다. 어느 하나만 타입이 요구하는 개수만큼 있으면 된다.
+function validateLabelBlock(type, content) {
+  const definition = DEFINITIONS_BY_ID.get(type);
+  const normalized = structuredClone(content);
+  normalized.headline = stringValue(content.headline, type, "headline");
+  const sources = ["steps", "diagram_labels", "bullets"];
+  const filled = sources.filter((field) => Array.isArray(content[field]) && content[field].length);
+  const optionLabels = Array.isArray(content.options)
+    ? content.options.map((option) => option?.label ?? option?.summary).filter((value) => typeof value === "string" && value.trim())
+    : [];
+  if (!filled.length && !optionLabels.length) {
+    throw new TypeError(`${type} content must provide one of steps, options, diagram_labels, or bullets`);
+  }
+  const count = filled.length ? content[filled[0]].filter(Boolean).length : optionLabels.length;
+  if (count < definition.minItems || count > definition.maxItems) {
+    throw new RangeError(`${type} must contain ${definition.minItems} to ${definition.maxItems} items; found ${count}`);
+  }
+  for (const field of filled) normalized[field] = stringArray(content, type, field, 1, definition.maxItems);
+  return normalized;
+}
+
 export function validateBlockTypeContent(type, content) {
   const normalizedType = typeof type === "string" ? type.trim() : "";
   if (!DEFINITIONS_BY_ID.has(normalizedType)) throw new TypeError(`Unknown block type ${type}`);
@@ -228,5 +262,6 @@ export function validateBlockTypeContent(type, content) {
   if (normalizedType === "scope_outcome_mapping") return validateScopeOutcomeMapping(content);
   if (normalizedType === "blueprint_flow") return validateBlueprintFlow(content);
   if (normalizedType === "chevron_pipeline") return validateChevronPipeline(content);
-  return validateGanttRoadmap(content);
+  if (normalizedType === "gantt_roadmap") return validateGanttRoadmap(content);
+  return validateLabelBlock(normalizedType, content);
 }
