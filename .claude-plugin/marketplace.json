@@ -1,0 +1,17 @@
+{
+  "name": "proposal-workbench-local",
+  "owner": {
+    "name": "Yiji-1015",
+    "url": "https://github.com/Yiji-1015"
+  },
+  "plugins": [
+    {
+      "name": "proposal-workbench",
+      "source": "./",
+      "description": "RFP 분석부터 제안서 PPTX 생성·검수까지 지원하는 제안 업무 자동화 워크벤치.",
+      "version": "2.1.0",
+      "category": "productivity",
+      "keywords": ["proposal", "rfp", "pptx", "hwp", "skills", "hitl"]
+    }
+  ]
+}
