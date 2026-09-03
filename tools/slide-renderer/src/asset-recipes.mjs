@@ -261,11 +261,17 @@ function metricDashboardRecipe(block, frame, theme) {
   const gap = 10;
   const inner = { left: frame.left + 12, top: frame.top + 42, width: frame.width - 24, height: frame.height - 54 };
   const tileWidth = (inner.width - gap * (columns - 1)) / columns;
-  const tileHeight = Math.max(18, (inner.height - gap * (rows - 1)) / Math.max(1, rows));
+  // 타일이 블록 높이를 그대로 채우면 지표가 적을 때 카드 아래쪽이 통째로 빈다.
+  // 짝을 이룬 블록 때문에 행 높이가 커질수록 빈칸도 같이 커진다. 내용에 필요한
+  // 높이로 묶고 남는 공간은 블록 안에서 위아래로 나눈다.
+  const NATURAL_TILE_HEIGHT = 96;
+  const tileHeight = Math.max(18, Math.min(NATURAL_TILE_HEIGHT, (inner.height - gap * (rows - 1)) / Math.max(1, rows)));
+  const gridHeight = tileHeight * rows + gap * (rows - 1);
+  const gridTop = inner.top + Math.max(0, (inner.height - gridHeight) / 2);
   metrics.forEach((metric, index) => {
     const row = Math.floor(index / columns);
     const column = index % columns;
-    const tile = { left: inner.left + column * (tileWidth + gap), top: inner.top + row * (tileHeight + gap), width: tileWidth, height: tileHeight };
+    const tile = { left: inner.left + column * (tileWidth + gap), top: gridTop + row * (tileHeight + gap), width: tileWidth, height: tileHeight };
     primitives.push(primitive("roundRect", `metric-tile:${index + 1}`, tile, { fill: index === 0 ? theme.pale : theme.surface, stroke: theme.accent }));
     primitives.push(primitive("text", `metric-label:${index + 1}`, { left: tile.left + 8, top: tile.top + 6, width: tile.width - 16, height: 16 }, { color: theme.gray, fontSize: 10, bold: true }, metric.label));
     primitives.push(primitive("text", `metric-value:${index + 1}`, { left: tile.left + 8, top: tile.top + 23, width: tile.width - 16, height: Math.max(8, tile.height - 42) }, { color: theme.navy, fontSize: 18, bold: true }, metric.value_text));

@@ -23,6 +23,14 @@ function text(slide, name, value, position, fontSize = 16, color = C.ink, bold =
 function blockTitle(block) { return block.content?.headline || roleTitles[block.role] || block.role; }
 function optionDescription(option) { return option.desc ?? option.summary ?? ""; }
 function bulletText(block) { return Array.isArray(block.content?.bullets) ? block.content.bullets.map((item) => `• ${item}`).join("\n") : ""; }
+// 자산 적용이 실패해 폴백 상자를 그릴 때 steps·bullets만 보면, diagram_labels로만
+// 내용을 쓴 블록이 빈 상자로 나간다. 라벨 출처를 모두 훑는다.
+function fallbackText(block) {
+  if (block.steps?.length) return block.steps.join(" → ");
+  const labels = block.content?.diagram_labels;
+  if (Array.isArray(labels) && labels.length) return labels.map((item) => `• ${item}`).join("\n");
+  return bulletText(block);
+}
 async function loadAssets(model, patternRoot) {
   const root = path.resolve(patternRoot);
   const resolveAssetPath = (reference) => {
@@ -148,7 +156,7 @@ function addWireframe(deck, model, layout, assetByBlock) {
         if (!(error instanceof AssetLayoutError)) throw error;
         rect(slide, `wireframe-fallback:${block.blockId}`, frame, C.white, "#93A2B4");
         text(slide, `wireframe-fallback-title:${block.blockId}`, `[asset fallback · ${rendererKey}]`, { left: frame.left + 14, top: frame.top + 13, width: frame.width - 28, height: 24 }, 16, C.navy, true);
-        text(slide, `wireframe-fallback-content:${block.blockId}`, block.steps.join(" → ") || bulletText(block), { left: frame.left + 14, top: frame.top + 46, width: frame.width - 28, height: Math.max(28, frame.height - 70) }, 16, C.ink);
+        text(slide, `wireframe-fallback-content:${block.blockId}`, fallbackText(block), { left: frame.left + 14, top: frame.top + 46, width: frame.width - 28, height: Math.max(28, frame.height - 70) }, 16, C.ink);
       }
       continue;
     }
