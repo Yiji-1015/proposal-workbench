@@ -87,6 +87,12 @@ function applyAssetRecipe(slide, recipe, asset = null) {
   const shapesByName = new Map();
   let pictureShapeCount = 0;
   for (const item of recipe.primitives) {
+    // 음수·0 크기 도형을 PPTX 라이터에 넘기면 프로세스가 죽는다(WASM 0xC0000409).
+    // 레시피 기하 계산이 틀려도 프로세스가 아니라 이 블록만 폴백되도록 여기서 막는다.
+    const box = item.position;
+    if (!box || !Number.isFinite(box.width) || !Number.isFinite(box.height) || box.width <= 0 || box.height <= 0) {
+      throw new AssetLayoutError(`Recipe primitive ${item.name} has a non-positive size: ${JSON.stringify(box)}`);
+    }
     if (item.kind === "text") {
       const shape = text(slide, item.name, item.text, item.position, item.fontSize ?? 14, item.color ?? C.ink, item.bold ?? false, item.alignment ?? "left");
       shapesByName.set(item.name, shape);

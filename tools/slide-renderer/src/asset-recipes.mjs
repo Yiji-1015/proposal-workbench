@@ -190,15 +190,22 @@ function hubRecipe(block, frame, theme) {
 function mappingRecipe(block, frame, theme) {
   const labels = labelsFor(block, 4).slice(0, 6);
   const primitives = [titlePrimitive(block, frame, theme)];
-  const circle = { left: frame.left + 28, top: frame.top + frame.height / 2 - 52, width: 104, height: 104 };
+  // 원 지름을 104로 고정하면 좁은 프레임에서 목록 시작점(폭의 42%)이 원 안쪽에 들어와
+  // 커넥터 폭이 음수가 된다. 세로형 half 블록(317)에서 항상 -6.86이 나왔고, 음수 크기
+  // 도형은 PPTX 라이터를 죽인다. 원을 프레임에 맞추고 목록은 원 오른쪽 기준으로 잡는다.
+  const circleSize = Math.max(56, Math.min(104, frame.width * 0.28));
+  const circle = { left: frame.left + 20, top: frame.top + frame.height / 2 - circleSize / 2, width: circleSize, height: circleSize };
   primitives.push(primitive("ellipse", "source-node", circle, { fill: theme.primary, stroke: theme.primary }));
-  primitives.push(primitive("text", "source-node-label", { left: circle.left + 12, top: circle.top + 36, width: 80, height: 32 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, block.content?.center_label ?? block.content?.headline ?? "핵심"));
-  const listLeft = frame.left + frame.width * 0.42;
+  const circleRight = circle.left + circle.width;
+  primitives.push(primitive("text", "source-node-label", { left: circle.left + 8, top: circle.top + circleSize / 2 - 16, width: circleSize - 16, height: 32 }, { color: theme.white, fontSize: 13, bold: true, alignment: "center" }, block.content?.center_label ?? block.content?.headline ?? "핵심"));
+  const listLeft = Math.max(frame.left + frame.width * 0.42, circleRight + 16);
+  const listWidth = Math.max(40, frame.left + frame.width - listLeft - 18);
+  const connectorWidth = Math.max(6, listLeft - circleRight - 8);
   const rowHeight = (frame.height - 62) / labels.length;
   labels.forEach((label, index) => {
     const y = frame.top + 46 + index * rowHeight;
-    primitives.push(primitive("text", `mapped-list:${index + 1}`, { left: listLeft, top: y, width: frame.width - (listLeft - frame.left) - 18, height: rowHeight - 4 }, { color: theme.navy, fontSize: 13, bold: index === 0 }, `${index + 1}. ${label}`));
-    primitives.push(primitive("rect", `mapping-connector:${index + 1}`, { left: circle.left + circle.width, top: circle.top + circle.height / 2 - 1, width: listLeft - circle.left - circle.width - 8, height: 2 }, { fill: theme.accent, stroke: theme.accent }));
+    primitives.push(primitive("text", `mapped-list:${index + 1}`, { left: listLeft, top: y, width: listWidth, height: Math.max(12, rowHeight - 4) }, { color: theme.navy, fontSize: 13, bold: index === 0 }, `${index + 1}. ${label}`));
+    primitives.push(primitive("rect", `mapping-connector:${index + 1}`, { left: circleRight, top: circle.top + circle.height / 2 - 1, width: connectorWidth, height: 2 }, { fill: theme.accent, stroke: theme.accent }));
   });
   return primitives;
 }

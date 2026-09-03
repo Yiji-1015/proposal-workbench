@@ -257,3 +257,25 @@ test("중앙 라벨은 청사진이 정한 값을 쓴다", () => {
   const noCenter = { ...centered, content: { ...centered.content, center_label: undefined } };
   assert.ok(texts("feedback_loop", noCenter).includes("구조 변화 최소화"), "center_label이 없으면 headline을 쓴다");
 });
+
+test("어떤 프레임 폭에서도 음수·0 크기 도형을 만들지 않는다", () => {
+  // 음수 크기 도형은 PPTX 라이터를 프로세스째로 죽인다(WASM 0xC0000409).
+  // mapping은 원 지름이 고정이라 세로형 half 블록(317)에서 커넥터 폭이 -6.86이었다.
+  const widths = [240, 280, 317, 400, 648, 1184];
+  const keys = ["process_grid", "comparison", "mapping", "feedback_loop", "quality_gate", "swimlane", "hub_spoke", "architecture"];
+  const wide = {
+    blockId: "w",
+    content: { headline: "제목", center_label: "단일 아키텍처", diagram_labels: ["대용량 데이터 적재·운영", "Columnar 저장 구조", "읽기 성능 최적화", "분석 처리 속도 확보", "다섯", "여섯"] },
+    steps: [],
+    options: [],
+  };
+  for (const rendererKey of keys) {
+    for (const width of widths) {
+      const recipe = createAssetRecipe({ rendererKey, block: wide, frame: { left: 36, top: 200, width, height: 228 }, theme });
+      for (const item of recipe.primitives) {
+        assert.ok(item.position.width > 0, `${rendererKey}@${width} ${item.name} width=${item.position.width}`);
+        assert.ok(item.position.height > 0, `${rendererKey}@${width} ${item.name} height=${item.position.height}`);
+      }
+    }
+  }
+});
