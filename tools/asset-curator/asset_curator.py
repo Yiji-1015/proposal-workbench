@@ -726,8 +726,11 @@ def _bounds_union(shapes: list[dict[str, Any]]) -> dict[str, float]:
         return {"x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0}
     left = min(float(shape["bounds"].get("x", 0)) for shape in visible)
     top = min(float(shape["bounds"].get("y", 0)) for shape in visible)
-    right = max(left + float(shape["bounds"].get("w", 0)) for shape in visible)
-    bottom = max(top + float(shape["bounds"].get("h", 0)) for shape in visible)
+    # 각 도형의 자기 원점에 크기를 더해야 합집합의 오른쪽·아래쪽 끝이 나온다.
+    # 전체 최소값(left/top)에 더하면 도형이 흩어져 있을수록 합집합이 실제보다 작아지고,
+    # 이 값을 정규화 분모로 쓰는 _local_bounds에서 좌표가 1을 넘어간다.
+    right = max(float(shape["bounds"].get("x", 0)) + float(shape["bounds"].get("w", 0)) for shape in visible)
+    bottom = max(float(shape["bounds"].get("y", 0)) + float(shape["bounds"].get("h", 0)) for shape in visible)
     return {"x": left, "y": top, "w": max(0.0, right - left), "h": max(0.0, bottom - top)}
 
 
@@ -1162,7 +1165,13 @@ def _local_bounds(bounds: dict[str, Any], frame: dict[str, Any]) -> dict[str, fl
         "w": float(bounds.get("w", 0)) / width,
         "h": float(bounds.get("h", 0)) / height,
     }
-    return {key: round(min(1.0, max(0.0, value)), 6) for key, value in values.items()}
+    # x·y·w·h를 따로 자르면 x+w가 1을 넘을 수 있다. 렌더러는 블록 프레임을 벗어난
+    # 도형을 거부하므로 사각형 단위로 잘라 x+w <= 1, y+h <= 1을 보장한다.
+    x = min(1.0, max(0.0, values["x"]))
+    y = min(1.0, max(0.0, values["y"]))
+    w = min(1.0 - x, max(0.0, values["w"]))
+    h = min(1.0 - y, max(0.0, values["h"]))
+    return {"x": round(x, 6), "y": round(y, 6), "w": round(w, 6), "h": round(h, 6)}
 
 
 def build_native_template(candidate: dict[str, Any]) -> dict[str, Any]:

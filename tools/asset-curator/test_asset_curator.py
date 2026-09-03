@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 try:
-    from asset_curator import discover_from_manifest, inspect_package, promote_asset
+    from asset_curator import _bounds_union, _local_bounds, discover_from_manifest, inspect_package, promote_asset
 except ModuleNotFoundError as exc:  # The first red phase should fail clearly.
     raise RuntimeError("Task 1 expects tools/asset-curator/asset_curator.py") from exc
 
@@ -364,3 +364,29 @@ class AssetCuratorIngestContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NormalizedBoundsTests(unittest.TestCase):
+    """정규화 좌표가 블록 프레임을 벗어나면 렌더러가 자산을 통째로 거부한다."""
+
+    def test_union_spans_every_shape(self):
+        # 오른쪽·아래쪽 끝을 전체 최소 원점에서 재면 흩어진 도형의 합집합이 너무 작게
+        # 나오고, 그 값을 분모로 쓰는 정규화가 1을 넘는 좌표를 만든다.
+        shapes = [
+            {"bounds": {"x": 0.0, "y": 0.0, "w": 0.2, "h": 0.2}},
+            {"bounds": {"x": 0.8, "y": 0.8, "w": 0.2, "h": 0.2}},
+        ]
+        self.assertEqual(_bounds_union(shapes), {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0})
+
+    def test_local_bounds_keep_the_rect_inside_the_frame(self):
+        frame = {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0}
+        for raw in [
+            {"x": 0.9, "y": 0.9, "w": 0.5, "h": 0.5},
+            {"x": 1.4, "y": 2.0, "w": 1.0, "h": 1.0},
+            {"x": -0.3, "y": -0.1, "w": 0.4, "h": 0.4},
+        ]:
+            local = _local_bounds(raw, frame)
+            self.assertLessEqual(local["x"] + local["w"], 1.000001, raw)
+            self.assertLessEqual(local["y"] + local["h"], 1.000001, raw)
+            self.assertGreaterEqual(local["x"], 0.0, raw)
+            self.assertGreaterEqual(local["y"], 0.0, raw)
