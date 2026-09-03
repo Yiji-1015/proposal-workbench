@@ -368,12 +368,16 @@ function chevronPipelineRecipe(block, frame, theme) {
   const gap = 4;
   const inner = { left: frame.left + 12, top: frame.top + 44, width: frame.width - 24, height: Math.max(20, frame.height - 86) };
   const width = (inner.width - gap * (steps.length - 1)) / Math.max(1, steps.length);
-  const height = Math.max(18, inner.height);
+  // 셰브론은 속이 찬 오각형이 아니라 두꺼운 ">" 획이라, 채워진 띠가 높이에 따라 가로로
+  // 미끄러진다. 상자 전체가 채워지는 높이는 존재하지 않으므로 라벨을 도형 안에 넣으면
+  // 어떤 위치에서도 빈 배경에 걸치는 글자가 생긴다. 라벨은 셰브론 아래 평평한 배경에 둔다.
+  const labelHeight = 16;
+  const height = Math.max(18, inner.height - labelHeight - 4);
   steps.forEach((step, index) => {
     const box = { left: inner.left + index * (width + gap), top: inner.top, width, height };
     const fill = index === 0 ? theme.primary : index % 2 ? theme.pale : theme.surface;
     primitives.push(primitive("chevron", `chevron-step:${index + 1}`, box, { fill, stroke: theme.accent }));
-    primitives.push(primitive("text", `chevron-step-label:${index + 1}`, { left: box.left + 5, top: box.top + height / 2 - 9, width: box.width - 10, height: 18 }, { color: index === 0 ? theme.white : theme.navy, fontSize: Math.min(12, Math.max(8, width / 18)), bold: true, alignment: "center" }, `${index + 1}. ${itemLabel(step)}`));
+    primitives.push(primitive("text", `chevron-step-label:${index + 1}`, { left: box.left, top: box.top + height + 4, width: box.width, height: labelHeight }, { color: theme.navy, fontSize: Math.min(12, Math.max(8, width / 18)), bold: true, alignment: "center" }, `${index + 1}. ${itemLabel(step)}`));
   });
   const validation = [...criteria.map((item) => `기준 ${itemLabel(item)}`), ...gates.map((item) => `Gate ${itemLabel(item)}`)].join(" · ");
   if (validation) primitives.push(primitive("text", "validation-row", { left: frame.left + 14, top: frame.top + frame.height - 24, width: frame.width - 28, height: 14 }, { color: theme.gray, fontSize: 9, bold: true }, validation));

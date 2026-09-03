@@ -56,6 +56,30 @@ test("creates distinct native recipes for the six pool types", () => {
   for (const recipe of recipes) assert.ok(recipe.requiredMotifs.every((motif) => recipe.producedMotifs.includes(motif)));
 });
 
+test("chevron step labels sit below the shape instead of inside it", () => {
+  // 셰브론은 두꺼운 ">" 획이라 상자 전체가 채워지는 높이가 없다. 도형 안에 라벨을 두면
+  // 흰 글자가 빈 배경에 걸쳐 사라진다. 라벨은 도형 아래, 대비가 보장된 색이어야 한다.
+  const recipe = createAssetRecipe({
+    rendererKey: "chevron_pipeline",
+    block: { blockId: "chevron", content: { headline: "단계", steps: ["설계", "검증"] }, steps: [], options: [] },
+    frame,
+    theme,
+  });
+  const byName = (name) => recipe.primitives.find((item) => item.name === name);
+  for (const index of [1, 2]) {
+    const shape = byName(`chevron-step:${index}`);
+    const label = byName(`chevron-step-label:${index}`);
+    assert.ok(shape && label, `chevron ${index} 도형과 라벨이 모두 있어야 한다`);
+    assert.ok(
+      label.position.top >= shape.position.top + shape.position.height,
+      `chevron ${index} 라벨이 도형 아래에 있어야 한다`,
+    );
+    assert.notEqual(label.color, theme.white, `chevron ${index} 라벨은 흰 배경에 놓이므로 흰색이면 안 된다`);
+  }
+  const last = byName("chevron-step-label:2");
+  assert.ok(last.position.top + last.position.height <= frame.top + frame.height, "라벨이 블록 프레임을 넘지 않아야 한다");
+});
+
 test("maps catalog visual modules to pool renderer keys", () => {
   const mappings = {
     metric_bars: "metric_dashboard",
