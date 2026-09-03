@@ -62,7 +62,12 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   assert.match(io, /block_pool_auto/);
   assert.match(io, /content\.explanation.*부연설명/s);
   assert.match(io, /step_details\[\].*동일 길이/s);
-  assert.match(skill, /선택 가능한 블록 풀/);
+  // 내용을 먼저 확정하고 그다음에 그릇을 고르는 순서가 규칙으로 남아 있어야 한다.
+  assert.match(skill, /블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다/);
+  assert.match(skill, /확정한 내용에 맞는 블록 타입을 고른다/);
+  // 자산은 구조 레퍼런스이되, 검색 없이 전부 폴백으로 적는 것은 금지다.
+  assert.match(skill, /카탈로그를 실제로 검색하지 않고 모든 블록을 `fallback_native_shapes`로 적는 것은 금지/);
+  assert.match(skill, /자산 적용이 거부되면 그 사유를 보고하고 네이티브 도형으로 해당 블록을 완성/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);
   assert.match(skill, /요구사항 ID.*가장 먼저/);
@@ -156,7 +161,9 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /slide_scope: \"overview\"/);
   assert.match(planner, /복잡한 아키텍처는 설명 우선/);
   assert.match(planner, /content\.explanation/);
-  assert.match(planner, /visual_category.*블록 타입/);
+  assert.match(planner, /블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다/);
+  assert.match(planner, /확정한 내용에 맞는 블록 타입을 고른다/);
+  assert.match(planner, /자산은 끝까지 찾아보고 근거와 함께 추천한다/);
   assert.match(planner, /간단한 도식.*부연설명/s);
   assert.match(planner, /가독성 한도까지 정보량/s);
   assert.match(planner, /네이티브 도식.*끝까지 구성/s);

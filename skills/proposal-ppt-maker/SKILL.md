@@ -7,6 +7,8 @@ description: RFP, 제안요청서, 요구사항 목록, PDF, DOCX, HWP/HWPX, Mar
 
 승인된 RFP 범위를 요구사항 단위의 제안 장표로 변환한다. 원문 근거와 정량지표를 보존하고, 카탈로그 자산의 시각 구조를 편집 가능한 PowerPoint 네이티브 도형으로 재구성한다.
 
+이 Skill의 산출물은 **네이티브 도형으로 구성한 장표**다. 카탈로그 자산은 원본을 그대로 옮겨오는 부품이 아니라 구조를 참고할 레퍼런스이며, 자산을 그대로 재현하지 못하는 것은 실패가 아니다. 자산은 끝까지 찾아 최선의 후보를 고르되, 적용이 불가능하면 사유를 남기고 네이티브 도형으로 완성한다.
+
 PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. 이 Skill은 `superpowers` 계열 Skill을 요구하거나 호출하지 않는다.
 
 ## 필수 참조
@@ -38,9 +40,15 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 16. **첨부 이미지는 구조 레퍼런스다.** 첨부 이미지에서는 구조와 배치만 참고하고 색상, 타이포그래피, 문구, 업무 내용은 무시한다. 이 Skill은 인제스트나 레퍼런스 검색을 호출하지 않으며, 사용자가 이미지 배치를 별도로 요청하지 않으면 최종 장표에 삽입하지 않는다.
 17. **장표 단위를 구분한다.** 기본은 RFP 개별 요구사항 1건당 1페이지다. 개요 장표만 여러 요구사항을 묶을 수 있으며, 반드시 `slide_scope: "overview"`와 `requirement_ids`를 명시한다. `run_id`나 프로젝트 ID만으로 개별 요구사항 장표로 간주하지 않는다.
 18. **복잡한 아키텍처는 설명 우선으로 판단하되, 네이티브 도식은 끝까지 구성한다.** 간단한 도식과 부연설명을 기본으로 하되, 핵심 출발점·처리·데이터 흐름·통제 지점·사용자 결과를 가능한 한 빠짐없이 `native_diagram`에 구성한다. 도식 라벨은 짧게 축약할 수 있지만 기능·수치·관계는 생략하지 않으며, 상세 문장·근거·예외는 `content.explanation`과 인접 편집 텍스트에 병기한다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능할 때만 `architecture_treatment: "text_explainer"`로 전환한다. 사용자가 나노바나나/imagegen을 허용하면 `generated_visual_with_text`를 보조 시각으로 사용할 수 있지만, 이미지 안의 생성 문구를 사실·수치·근거로 취급하지 않고 설명 텍스트를 함께 제공한다. 텍스트 설명으로도 전달할 수 없을 때만 `architecture_required`와 `상세 아키텍처 필요`를 남긴다.
-19. **선택 가능한 블록 풀에서 요구사항에 맞는 구조를 고른다.** `visual_category`는 `block_pool_auto`에서 블록 타입을 지정하며, 표·기준은 `matrix_table`, 숫자·목표는 `metric_dashboard`, 범위와 효과의 대응은 `scope_outcome_mapping`, 입력·처리·결과 흐름은 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 기간·작업만 `gantt_roadmap`을 선택한다. `blueprint_flow`의 처리 단계를 일정으로 해석하지 않는다. `blueprint_flow`는 `steps[]`와 동일 길이의 `step_details[]`를 채워 각 처리 노드에 세부 문구를 넣는다. 이 레이아웃은 5~6개 블록에 `slot: "auto"`를 사용하고, 기존 고정 레이아웃을 임의로 대체하지 않는다.
+19. **블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다.** 요구사항 원문을 내용 단위로 쪼개 각 블록이 말할 내용을 문장 수준으로 확정한 뒤에 `visual_category`를 정한다. 그릇을 먼저 정하고 내용을 끼워 맞추면 요구사항이 달라도 같은 장표가 나온다.
+
+19-1. **확정한 내용에 맞는 블록 타입을 고른다.** 표·기준은 `matrix_table`, 숫자·목표는 `metric_dashboard`, 범위와 효과의 대응은 `scope_outcome_mapping`, 입력·처리·결과 흐름은 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 기간·작업만 `gantt_roadmap`을 선택한다. 계층 구조는 `architecture`, 순환·환류는 `feedback_loop`, 1:N 연결은 `mapping`, 병렬 역할은 `swimlane`, 통과 기준은 `quality_gate`, 방사형 연결은 `hub_spoke`, 순차 격자는 `process_grid`, 실제로 대립하는 선택지는 `comparison`을 쓴다. `comparison`은 병행·동시 확보에는 쓰지 않는다. `blueprint_flow`의 처리 단계를 일정으로 해석하지 않으며 `steps[]`와 동일 길이의 `step_details[]`를 채운다. 이 레이아웃은 5~6개 블록에 `slot: "auto"`를 사용하고, 기존 고정 레이아웃을 임의로 대체하지 않는다.
 
 20. **승인 자산은 큐레이터 계약으로만 사용한다.** 자산 검색은 파일명이 아니라 `display_name`, `description`, `design_traits`, `use_cases`, `search_tags`를 사용한다. 승인 가능한 종류는 `block_shell`, `diagram_recipe`, `composite_block`, `icon_asset`, `media_frame`, `photo_asset`이며, 구조 자산은 `responsive_native_template`와 블록 로컬 좌표를 따른다. `photo_asset`은 명시적인 `photo_id`와 승인된 라이선스가 있을 때만 사용하고, 선택·로드·적용·충실도 검증을 `selected`, `loaded`, `applied`, `fidelity_passed`로 분리한다. 큐레이터의 선별 전용 결과는 카탈로그에 자동 반영하지 않는다.
+
+20-1. **자산은 끝까지 찾아보고 근거와 함께 기록한다.** 카탈로그를 실제로 검색하지 않고 모든 블록을 `fallback_native_shapes`로 적는 것은 금지한다. 블록마다 후보를 찾아 고른 이유와 참고할 구조를 `usage_note`에 남기고, 맞는 자산이 없으면 무엇을 찾았고 왜 맞지 않았는지를 적은 뒤 폴백으로 내린다.
+
+20-2. **자산 적용이 실패해도 장표는 끝까지 만든다.** 자산은 구조 레퍼런스이지 산출물의 필수 조건이 아니다. 자산 적용이 거부되면 그 사유를 보고하고 네이티브 도형으로 해당 블록을 완성한다. 자산을 적용하지 못했다는 이유로 장표 생성을 중단하지 않는다.
 
 ## 실행 절차
 
@@ -49,7 +57,8 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다. �
 3. 방향을 승인받고, 명시적 팔레트나 템플릿이 없으면 기본 파란 팔레트를 적용한다.
 4. 요구사항별로 원문 사실, 정량지표, 필수 기능, 제약, 제안사가 답해야 할 질문을 내부 분석한다. 모든 정량표현을 `protected_metrics`와 `source_refs`에 보존한다.
 5. 장표 제목, 거버닝 메시지, 가시 섹션, 결론을 작성한다. 내부 분석 제목을 가시 제목으로 복사하지 않는다.
-6. 병렬 항목을 먼저 내용 도식으로 변환하고, 카탈로그를 `semantic` → `structural` → `decorative` 순으로 검토한다. 방향 차이만으로 자산을 거절하지 않는다.
+5-1. **블록별 내용을 확정한다.** 요구사항을 내용 단위로 쪼개 각 블록이 말할 내용을 문장 수준으로 적는다. 이 단계가 끝나기 전에는 `visual_category`를 정하지 않는다.
+6. 확정한 내용마다 그릇을 정한 뒤 카탈로그를 `semantic` → `structural` → `decorative` 순으로 검토해 참고할 자산을 찾는다. 방향 차이만으로 자산을 거절하지 않는다. 블록별로 고른 자산과 그 이유, 또는 맞는 자산이 없다는 판단 근거를 남긴다.
 7. 선택한 자산 구조를 네이티브 PowerPoint 도형으로 재구성하는 청사진과 매핑을 만든다. 복잡한 흐름은 네이티브 도식을 끝까지 구성하고, 짧은 라벨·상세 `content.explanation`·근거 텍스트로 정보를 최대한 보존한다. 네이티브 도식으로도 읽기·의사결정이 불가능할 때만 `text_explainer`를 선택한다. 최종 `render_mode`는 기본적으로 `native_powerpoint_shapes`여야 한다.
 8. 선택 에셋 고유의 구조가 보이는 첫 와이어프레임을 `--wireframe-only`로 만들어 채팅에 인라인으로 표시한다. 이 모드는 와이어프레임 PNG만 만들고 PPTX와 최종 슬라이드는 만들지 않는다. 사용자 명시 응답(예: “승인”, “진행”)을 받을 때까지 멈추고, 그 전에는 청사진·세션 상태를 `draft`/`pending`으로 유지한다. 최소 5개의 독립된 내용 상자와 `density: high`를 충족하되 같은 카드 형태를 반복하지 않는다.
 9. 승인을 받은 뒤에만 `slide-blueprint.json`의 `status`를 `approved`로 바꾸고 최종 렌더링을 실행한다. 렌더러가 `status`를 직접 검사하므로 승인 없이 PPTX를 만들 수 없다.

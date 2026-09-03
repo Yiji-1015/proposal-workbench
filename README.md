@@ -151,6 +151,14 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
 3. **선택적 에셋 선별**: `$proposal-asset-curator` 실행 → 블록 후보를 검토하고 명시적으로 승인한 후보만 `tools/pattern-library`로 승격.
 4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
-5. **장표 기획**: `$proposal-slide-planner` 실행 → 방향 선택 → RFP만 사용하거나 첨부 이미지의 구조·배치 또는 명시적으로 전달한 완료 세션을 선택적으로 참고 → `planner.html`에서 승인.
+5. **장표 기획**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 확정한 내용에 맞는 블록 타입과 참고 자산 선택 → 와이어프레임 표시 후 승인.
 6. **PPTX 생성**: `$proposal-ppt-maker` 실행 → 기본 파란 팔레트로 `deliverables/<id>.pptx` 생성. 사용자가 팔레트나 템플릿을 주면 그 값만 우선 적용.
 7. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
+
+### 자산을 다루는 원칙
+
+장표는 **네이티브 PowerPoint 도형으로 완성**한다. `tools/pattern-library`의 자산은 원본 슬라이드를 그대로 옮겨오는 부품이 아니라 **구조를 참고할 레퍼런스**다. 원본을 픽셀 단위로 재현하는 것은 이 도구의 목표가 아니며, 자산을 그대로 적용하지 못하는 것은 실패가 아니다.
+
+그렇다고 자산 선택을 건너뛰어서는 안 된다. 블록마다 `display_name`·`description`·`design_traits`·`use_cases`·`search_tags`로 카탈로그를 실제로 검색해 최선의 후보를 고르고, 고른 이유를 `usage_note`에 남긴다. 맞는 자산이 없으면 무엇을 찾았고 왜 맞지 않았는지를 적은 뒤 네이티브 도형 폴백으로 진행한다. 검색 없이 모든 블록을 폴백으로 적는 것은 금지한다.
+
+작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 그 내용에 맞는 블록 타입과 자산을 고른다. 그릇을 먼저 정하고 내용을 끼워 맞추면 요구사항이 달라도 같은 장표가 나온다.
