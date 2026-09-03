@@ -5,7 +5,9 @@ description: RFP 요구사항이나 자연어 질의로 SQLite3 슬라이드 색
 
 # Proposal Reference Search
 
-과거 제안서 슬라이드 색인에서 유사 장표를 찾는다. 검색어는 고정 문구가 아니라 사용자가 입력한 임의의 자연어 질의다. BGE-M3 임베딩 API가 설정되어 있으면 semantic 검색을 사용하고, 그렇지 않거나 API가 실패하면 lexical 검색으로 제한한다. 현재 색인은 SQLite3이며 FAISS는 사용하지 않는다. semantic 검색도 SQLite에서 벡터를 읽어 애플리케이션 코드로 cosine similarity를 계산한다.
+과거 제안서 슬라이드 색인에서 유사 장표를 찾는다. **이 색인이 이 워크벤치의 참고 라이브러리다.** 색인은 슬라이드마다 `image_ref`(COM 렌더링 PNG), `title`, `tags`, `layout`, `slide_type`을 들고 있어 사람이 그림을 보고 고를 수 있다. 선택한 슬라이드는 구조 레퍼런스이며 배치와 구성만 참고한다.
+
+이 Skill은 독립 실행한다. 검색 결과를 보고하고 종료하며 장표 기획을 자동으로 호출하지 않는다. 기획에 레퍼런스를 넘길지는 사용자가 세션 ID나 `selected_slide_ids`를 명시적으로 전달해 결정한다. 검색어는 고정 문구가 아니라 사용자가 입력한 임의의 자연어 질의다. BGE-M3 임베딩 API가 설정되어 있으면 semantic 검색을 사용하고, 그렇지 않거나 API가 실패하면 lexical 검색으로 제한한다. 현재 색인은 SQLite3이며 FAISS는 사용하지 않는다. semantic 검색도 SQLite에서 벡터를 읽어 애플리케이션 코드로 cosine similarity를 계산한다.
 
 ## 실행
 

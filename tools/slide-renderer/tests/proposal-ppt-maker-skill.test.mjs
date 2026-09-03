@@ -68,8 +68,9 @@ test("proposal-ppt-maker formalizes scope, bounded execution, honest asset use, 
   // 승인은 두 단계다. 1차 구조 승인 없이 2차 상세화를 시작하지 않는다.
   assert.match(skill, /structure_approved/);
   assert.match(skill, /2차 승인을 받은 뒤에만.*approved.*최종 렌더링/s);
-  // 자산은 구조 레퍼런스이되, 검색 없이 전부 폴백으로 적는 것은 금지다.
-  assert.match(skill, /카탈로그를 실제로 검색하지 않고 모든 블록을 `fallback_native_shapes`로 적는 것은 금지/);
+  // pattern-library 적용 경로는 동결이고, 참고는 슬라이드 레퍼런스로 한다.
+  assert.match(skill, /`tools\/pattern-library` 자산 적용 경로는 동결 상태다/);
+  assert.match(skill, /참고는 슬라이드 레퍼런스로 한다/);
   assert.match(skill, /자산 적용이 거부되면 그 사유를 보고하고 네이티브 도형으로 해당 블록을 완성/);
   assert.match(skill, /scripts\/verify-skill\.mjs/);
   assert.match(skill, /scripts\/run-proposal\.mjs/);
@@ -167,6 +168,9 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다/);
   assert.match(planner, /확정한 내용에 맞는 블록 타입을 고른다/);
   assert.match(planner, /이 Skill은 1차 승인까지만 담당한다/);
+  // 레퍼런스는 선택 사항이며 planner는 스스로 검색을 호출하지 않는다.
+  assert.match(planner, /레퍼런스 없이도 RFP만으로 기획할 수 있다/);
+  assert.match(planner, /동결 상태이므로 사용하지 않는다/);
   assert.match(planner, /pending_stage2/);
   assert.match(planner, /structure_approved/);
   assert.match(planner, /간단한 도식.*부연설명/s);
