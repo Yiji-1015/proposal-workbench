@@ -176,6 +176,13 @@ test("ingest, search, and planning stay independent with optional structure refe
   assert.match(planner, /간단한 도식.*부연설명/s);
   assert.match(planner, /가독성 한도까지 정보량/s);
   assert.match(planner, /네이티브 도식.*끝까지 구성/s);
+  // 장표를 나눌 때 한쪽만 꽉 차면 나누지 않은 것만 못하다.
+  assert.match(planner, /각 장이 스스로 성립해야 하고 분량이 비슷해야 한다/);
+  assert.match(planner, /나눌지 말지는 원문 분량으로 판단하고 근거를 보고한다/);
+  // 인접 요구사항의 내용을 끌어오면 그 요구사항의 장표에 쓸 내용이 남지 않는다.
+  assert.match(planner, /다른 요구사항의 몫을 가져오지 않는다/);
+  assert.match(planner, /경계를 먼저 확인하고 보고한다/);
+  assert.match(maker, /다른 요구사항의 몫을 가져오지 않는다/);
   assert.match(maker, /업무 내용은 무시/);
   assert.match(maker, /최종 장표에 삽입하지 않는다/);
   for (const color of ["#1769E0", "#123B78", "#4A8CF0", "#EEF5FF"]) {
