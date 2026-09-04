@@ -47,8 +47,7 @@ proposal-workbench/
 │  ├─ proposal-reference-search/     ──▶ 독립 SQLite lexical/vector 검색 + HitL Reference Picker
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
 │  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
-│  ├─ proposal-asset-curator/        ──▶ 블록·도식·아이콘 후보 선별 및 승인 자산 승격
-│  └─ proposal-reviewer/             ──▶ 4대 결함(요구사항누락, 수치왜곡, 과장표현, 레이아웃) QA
+│  └─ proposal-asset-curator/        ──▶ 블록·도식·아이콘 후보 선별 및 승인 자산 승격
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
@@ -93,7 +92,7 @@ claude plugin marketplace add ./
 claude plugin install proposal-workbench@proposal-workbench-local
 ```
 
-설치 후 `claude plugin details proposal-workbench`로 Skill 8개가 모두 잡혔는지 확인합니다. 새 세션부터 로드됩니다.
+설치 후 `claude plugin details proposal-workbench`로 Skill 7개가 모두 잡혔는지 확인합니다. 새 세션부터 로드됩니다.
 
 > 플러그인 캐시는 저장소의 복사본이며 경로가 버전으로 구분됩니다. 저장소를 고쳐도 `plugin.json`의 버전이 그대로면 `claude plugin install`·`update`·`marketplace update`가 모두 "이미 최신"으로 건너뜁니다. 개발 중에 수정본을 반영하려면 버전을 올리거나 다음처럼 재설치합니다.
 
@@ -153,7 +152,6 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
 5. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 블록 타입 선택 → `--outline`으로 사각형과 문구만 그린 초안을 표시하고 승인(`status: structure_approved`). 개요 모드는 타입별 내용을 요구하지 않아 첫 초안이 빨리 나온다.
 6. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → 블록마다 참고 자산 검색·선택 → 와이어프레임 재표시 후 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
-7. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
 
 ### 참고 라이브러리는 슬라이드 색인이다
 

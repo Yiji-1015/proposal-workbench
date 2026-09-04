@@ -157,7 +157,7 @@ async function runDoctor() {
     addCheck("sqlite_engine", false, `node:sqlite error: ${err.message}`);
   }
 
-  // 4. Skills Discovery & Frontmatter Check (All 8 skills)
+  // 4. Skills Discovery & Frontmatter Check (All 7 skills)
   const expectedSkills = [
     "document-converter",
     "rfp-analyzer",
@@ -165,7 +165,6 @@ async function runDoctor() {
     "proposal-reference-search",
     "proposal-slide-planner",
     "proposal-ppt-maker",
-    "proposal-reviewer",
     "proposal-asset-curator"
   ];
   for (const s of expectedSkills) {
