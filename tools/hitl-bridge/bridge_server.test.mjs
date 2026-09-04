@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import test from "node:test";
 import path from "node:path";
 
-import { getSelectedSlides, isSafePath, isValidIdentifier, validateDiscoverRequest, validatePromoteRequest } from "./bridge_server.mjs";
+import { getSelectedSlides, isSafePath, isValidIdentifier, resolveSourcePptx, validateDiscoverRequest, validatePromoteRequest } from "./bridge_server.mjs";
 
 test("accepts Korean deck identifiers but rejects path syntax", () => {
   assert.equal(isValidIdentifier("제안서_테스트_abc123"), true);
@@ -106,4 +106,42 @@ test("파이썬 탐지는 필요한 모듈을 가진 인터프리터를 우선�
   // 표준 라이브러리를 요구하면 만족하는 후보를 고른다.
   const stdlib = detectPythonCommand({ require: ["json"] });
   assert.equal(stdlib.satisfiesRequired, true);
+});
+
+test("names the recorded path when the original PPTX has moved", async () => {
+  const missing = path.resolve("storage", "ingest_data", "nope", "gone.pptx");
+  await assert.rejects(
+    () => resolveSourcePptx({ source_path: missing }, "deck_key"),
+    (err) => {
+      assert.match(err.message, /not at the recorded path/);
+      assert.ok(err.message.includes(missing), "기록된 경로를 알려주지 않는다");
+      assert.match(err.message, /re-ingest "deck_key"/);
+      assert.doesNotMatch(err.message, /ENOENT/);
+      return true;
+    },
+  );
+});
+
+test("still tells the user to re-ingest when the path was never recorded", async () => {
+  await assert.rejects(
+    () => resolveSourcePptx({}, "deck_key"),
+    /Original PPTX path is missing/,
+  );
+});
+
+test("rejects a recorded source that is not a PPTX", async () => {
+  await assert.rejects(
+    () => resolveSourcePptx({ source_path: "deck.pdf" }, "deck_key"),
+    /not a PPTX file/,
+  );
+});
+
+test("returns the resolved path when the original is still there", async () => {
+  const tmp = path.resolve(`__probe_${Date.now()}.pptx`);
+  await fs.writeFile(tmp, "x");
+  try {
+    assert.equal(await resolveSourcePptx({ source_path: tmp }, "deck_key"), tmp);
+  } finally {
+    await fs.rm(tmp, { force: true });
+  }
 });

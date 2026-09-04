@@ -203,16 +203,32 @@ function sendAssetProcessError(res, error) {
   sendError(res, status, error.message);
 }
 
+// 내보내기는 원본 PPTX를 COM으로 다시 열어야 한다. 원본이 옮겨지거나 지워지면
+// fs.access의 ENOENT가 그대로 사용자에게 뜨는데, 그것만으로는 무엇을 해야 하는지 알 수 없다.
+// 실제로 원본이 드라이브 루트에서 다른 폴더로 옮겨졌을 때 "ENOENT ... access 'E:\...'"만 떴다.
+// 경로가 아예 없을 때만 안내가 있었고, 훨씬 흔한 이 경우에는 없었다.
+export async function resolveSourcePptx(manifest, sourceKey) {
+  if (!manifest.source_path) throw new Error("Original PPTX path is missing. Re-ingest this deck once.");
+
+  const sourcePptx = path.resolve(manifest.source_path);
+  if (path.extname(sourcePptx).toLowerCase() !== ".pptx") throw new Error("Original source is not a PPTX file.");
+  try {
+    await fs.access(sourcePptx);
+  } catch {
+    throw new Error(
+      `Original PPTX is not at the recorded path: ${sourcePptx}. `
+      + `Put it back there, or re-ingest "${sourceKey}" from where the file is now.`,
+    );
+  }
+  return sourcePptx;
+}
+
 async function exportSelectedSlides(sessionId, session, dataDir) {
   const { sourceKey, slideNumbers } = getSelectedSlides(session);
   const manifestFile = path.join(dataDir, "ingest_data", sourceKey, "manifest.json");
   if (!isSafePath(dataDir, manifestFile)) throw new Error("Access denied.");
   const manifest = JSON.parse(await fs.readFile(manifestFile, "utf8"));
-  if (!manifest.source_path) throw new Error("Original PPTX path is missing. Re-ingest this deck once.");
-
-  const sourcePptx = path.resolve(manifest.source_path);
-  if (path.extname(sourcePptx).toLowerCase() !== ".pptx") throw new Error("Original source is not a PPTX file.");
-  await fs.access(sourcePptx);
+  const sourcePptx = await resolveSourcePptx(manifest, sourceKey);
 
   // 선택 장표 추출은 PowerPoint COM을 쓰므로 win32com이 있는 인터프리터가 필요하다.
   // 그냥 첫 인터프리터를 고르면 pywin32가 없는 번들 파이썬이 잡혀 ModuleNotFoundError로
