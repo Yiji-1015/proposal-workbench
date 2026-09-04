@@ -135,6 +135,23 @@ function applyAssetRecipe(slide, recipe, asset = null) {
     pictureShapeCount,
   };
 }
+function addOutline(deck, model, layout) {
+  const slide = deck.slides.add();
+  addHeader(slide, model, 1, true);
+  for (const block of model.blocks) {
+    const frame = layout.frames[block.blockId];
+    if (!frame) continue;
+    rect(slide, `outline:${block.blockId}`, frame, C.white, "#93A2B4");
+    text(slide, `outline-title:${block.blockId}`, blockTitle(block), { left: frame.left + 16, top: frame.top + 14, width: frame.width - 32, height: 26 }, 17, C.navy, true);
+    const summary = String(block.content?.summary ?? block.content?.explanation ?? "").trim();
+    if (summary) {
+      text(slide, `outline-summary:${block.blockId}`, summary, { left: frame.left + 16, top: frame.top + 46, width: frame.width - 32, height: Math.max(20, frame.height - 74) }, 14, C.ink);
+    }
+    text(slide, `outline-type:${block.blockId}`, block.blockType ?? block.role, { left: frame.left + 16, top: frame.top + frame.height - 24, width: frame.width - 32, height: 16 }, 10, C.gray, true, "right");
+  }
+  return slide;
+}
+
 function addWireframe(deck, model, layout, assetByBlock) {
   const slide = deck.slides.add();
   addHeader(slide, model, 1, true);
@@ -363,7 +380,7 @@ function addFinal(deck, model, layout, assets) {
   return { slide, applications, runtimeFallbacks, pictureShapeCount };
 }
 
-export async function renderPresentation({ model, layout, patternRoot, outputPptx, wireframePng, finalSlidePng, wireframeOnly = false }) {
+export async function renderPresentation({ model, layout, patternRoot, outputPptx, wireframePng, finalSlidePng, wireframeOnly = false, outline = false }) {
   C = {
     blue: model.theme.primary,
     navy: model.theme.navy,
@@ -379,6 +396,13 @@ export async function renderPresentation({ model, layout, patternRoot, outputPpt
   const assets = await loadAssets(model, patternRoot);
   const assetByBlock = new Map(assets.map((asset) => [asset.blockId, asset]));
   const deck = Presentation.create({ slideSize: { width: model.canvas.width, height: model.canvas.height } });
+  // 개요 모드는 도형 없이 사각형과 문구만 그린다. 1차 초안을 빨리 보기 위한 것이라
+  // 자산도 레시피도 쓰지 않는다.
+  if (outline) {
+    const slide = addOutline(deck, model, layout);
+    await writeBlob(wireframePng, await deck.export({ slide, format: "png", scale: 1.25 }));
+    return { assets: [], slideCount: 1, outline: true, wireframeOnly: true, pictureShapeCount: 0, runtimeFallbacks: [] };
+  }
   const wireframe = addWireframe(deck, model, layout, assetByBlock);
   // 승인 전 단계에서는 와이어프레임만 내보낸다. 최종 슬라이드와 PPTX는 만들지 않는다.
   if (wireframeOnly) {

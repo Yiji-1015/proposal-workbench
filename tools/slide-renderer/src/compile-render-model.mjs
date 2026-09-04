@@ -22,12 +22,20 @@ function idList(value, name) {
 
 const ARCHITECTURE_TREATMENTS = new Set(["native_diagram", "text_explainer", "generated_visual_with_text"]);
 
-function normalizeBlock(block) {
+function normalizeBlock(block, outline = false) {
   requireObject(block, "blueprint block");
   const blockId = ownString(block, "block_id", "block_id");
   const visualCategory = ownString(block, "visual_category");
   const blockTypeDefinition = getBlockTypeDefinition(visualCategory);
-  const content = blockTypeDefinition ? validateBlockTypeContent(visualCategory, block.content) : structuredClone(block.content ?? {});
+  // 개요 모드에서는 블록을 사각형과 문구로만 그리므로 타입별 내용 계약을 요구하지
+  // 않는다. 1차 초안에서 표의 rows나 지표의 metrics를 채우려고 자리표시자를 넣을
+  // 필요가 없어진다. 타입 정의는 그대로 두어 레이아웃 폭·높이는 유지한다.
+  const content = blockTypeDefinition && !outline
+    ? validateBlockTypeContent(visualCategory, block.content)
+    : structuredClone(block.content ?? {});
+  if (outline && !String(content.headline ?? "").trim()) {
+    throw new TypeError(`${blockId} content.headline is required in outline mode`);
+  }
   if (content.explanation != null && typeof content.explanation !== "string") throw new TypeError(`content.explanation for ${blockId} must be a string`);
   if (typeof content.explanation === "string") content.explanation = content.explanation.trim();
   const steps = Array.isArray(content.steps) ? content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
@@ -111,7 +119,7 @@ function countMeaningfulAreas(blocks) {
   }, 0);
 }
 
-export function compileRenderModel({ requirement, blueprint, mapping, catalog }) {
+export function compileRenderModel({ requirement, blueprint, mapping, catalog, outline = false }) {
   requireObject(requirement, "requirement");
   requireObject(blueprint, "blueprint");
   requireObject(mapping, "mapping");
@@ -139,7 +147,7 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog })
   const layoutFamily = ownString(blueprint, "layout_family", "blueprint.layout_family");
   if (!Array.isArray(mapping.mappings)) throw new Error("mapping.mappings must be an array");
 
-  const blocks = blueprint.blocks.map(normalizeBlock);
+  const blocks = blueprint.blocks.map((block) => normalizeBlock(block, outline));
   if (layoutFamily === "block_pool_auto") {
     if (blocks.length < 5 || blocks.length > 6) throw new Error("block_pool_auto requires 5 to 6 blocks");
     for (const block of blocks) {

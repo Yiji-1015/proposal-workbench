@@ -147,3 +147,31 @@ test("renders a wireframe before approval without producing a PPTX", async (t) =
   await assert.rejects(fs.access(output), "와이어프레임 단계에서 PPTX가 나오면 안 된다");
   await assert.rejects(fs.access(path.join(temp, "final-slide.png")), "와이어프레임 단계에서 최종 슬라이드가 나오면 안 된다");
 });
+
+test("outline mode draws plain boxes from headline and summary alone", async (t) => {
+  // 1차 초안에서 표의 rows나 지표의 metrics를 채우려고 자리표시자를 넣지 않아도
+  // 되도록, 개요 모드는 타입별 내용 계약을 요구하지 않는다.
+  const rendererRoot = path.resolve(import.meta.dirname, "..");
+  const source = path.join(rendererRoot, "tests", "fixtures", "block-pool-project");
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-outline-"));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const project = path.join(temp, "project");
+  await fs.cp(source, project, { recursive: true });
+  const blueprintPath = path.join(project, "blueprint", "slide-blueprint.json");
+  const blueprint = JSON.parse(await fs.readFile(blueprintPath, "utf8"));
+  blueprint.status = "draft";
+  for (const block of blueprint.blocks) {
+    block.content = { headline: `${block.block_id} 제목`, summary: `${block.block_id} 한 줄 요약입니다.` };
+  }
+  await fs.writeFile(blueprintPath, JSON.stringify(blueprint, null, 2), "utf8");
+  const output = path.join(temp, "POOL-001.pptx");
+  const result = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output, "--outline"], { encoding: "utf8" });
+  assert.equal(result.status, 0, `stderr=${result.stderr}\nstdout=${result.stdout}`);
+  assert.equal(JSON.parse(result.stdout).mode, "outline");
+  const wireframe = await fs.readFile(path.join(temp, "wireframe.png"));
+  assert.equal(wireframe.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  await assert.rejects(fs.access(output), "개요 단계에서 PPTX가 나오면 안 된다");
+  // 같은 청사진을 일반 모드로 돌리면 타입별 내용이 없어 실패해야 한다.
+  const strict = spawnSync(process.execPath, [path.join(rendererRoot, "bin", "build-proposal.mjs"), "--project", project, "--output", output, "--wireframe-only"], { encoding: "utf8" });
+  assert.notEqual(strict.status, 0, "일반 모드는 타입별 내용을 계속 요구해야 한다");
+});
