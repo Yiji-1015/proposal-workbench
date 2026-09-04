@@ -5,7 +5,7 @@ description: RFP, 과업지시서, 공고문을 분석해 업무 흐름, 기능 
 
 # RFP Analyzer
 
-RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다. 요구사항과 원문 근거, 정량 KPI, 제안사 관점의 수행 갭을 분리해 `rfp_analysis.json`과 Markdown 보고서로 만든다.
+RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다. 요구사항과 원문 근거, 정량 KPI, 제안사 관점의 수행 갭을 분리해 하나의 Markdown 보고서로 만든다.
 
 ## 시작 전 확인
 
@@ -19,7 +19,7 @@ RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다
 ## 필수 참조
 
 - `references/rfp-analysis-methodology.md`
-- `references/data-contract-v2.md`의 `RfpAnalysisContract`
+- `references/data-contract-v2.md`의 `SourceRef`·`QuantitativeMetric` — 보고서가 보존해야 할 근거·정량 표기 기준
 - `company_profile/overview.md`, `core_competencies.md`, `gap_criteria.md` (템플릿 표식이 없는 경우에만 자사 자료로 취급)
 
 ## 분석 원칙
@@ -34,17 +34,11 @@ RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다
 
 ## 산출
 
-- `rfp_analysis.json`: 공통 데이터 계약 JSON
-- `RFP_분석보고서.md`: 사업 개요, 업무 흐름, 기능 도메인, KPI, Gap과 리스크
-- `RFP_분석보고서.html`: 위 JSON에서 생성하는 열람용 보고서
+- `RFP_분석보고서.md` 하나만 만든다. 사업 개요, 업무 흐름, 기능 도메인, 정량 조건, 숨은 설계 포인트, Gap과 리스크, 요구사항 전체 목록을 모두 이 파일에 담는다.
 
-JSON을 쓴 뒤 아래를 실행해 HTML을 만들고, 결과 파일을 사용자 화면에 띄운 상태로 보고한다. 요약만 대화에 적고 끝내지 않는다.
+같은 내용을 JSON이나 HTML로 중복 생성하지 않는다. 형식이 나뉘면 한쪽만 고쳐져 내용이 갈라진다. 후속 `proposal-slide-planner`는 파일을 읽는 것이 아니라 넘겨받은 요구사항 ID와 정량지표로 동작하므로 별도 계약 파일이 필요 없다.
 
-```powershell
-node "<plugin-root>/tools/report-viewer/render-analysis.mjs" "<출력폴더>/rfp_analysis.json"
-```
-
-CDN 없이 파일 하나로 열리며, 요구사항 표는 분류 필터와 검색을 제공한다.
+작성을 마치면 이 파일을 사용자 화면에 띄운 상태로 보고한다. 요약만 대화에 적고 끝내지 않는다.
 
 Markdown 보고서 작성 시 다음 절에는 내용을 읽는 기준을 설명하는 짧은 소제목(예: `### 이 절에서 보는 것`)과 1~2문장의 부연설명을 먼저 둔다.
 

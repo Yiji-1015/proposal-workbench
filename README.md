@@ -58,8 +58,7 @@ proposal-workbench/
 │  │  ├─ bridge_server.mjs           ──▶ 세션 API 및 HTML 뷰어 서빙 서버
 │  │  ├─ hitl_launcher.mjs           ──▶ 자동 헬스체크 및 브라우저 오픈 도구
 │  │  └─ public/                     ──▶ 순수 Standalone HTML 뷰어 (picker, planner, ingest)
-│  ├─ doc-converter/                 ──▶ kordoc 기반 문서 파서
-│  └─ report-viewer/                 ──▶ rfp_analysis.json → 자체 완결 HTML 보고서
+│  └─ doc-converter/                 ──▶ kordoc 기반 문서 파서
 │
 ├─ company_profile/                  ──▶ 제안사 역량 프로필 (초기 템플릿 — 표식 제거 전까지 자사 자료로 쓰지 않음)
 │  ├─ README.md                      ──▶ 작성 가이드
@@ -147,7 +146,7 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 인제스트와 검색은 각각 독립 실행하며 장표 기획의 필수 선행 단계가 아니다.
 
-1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/rfp_analysis.json` 및 `RFP_분석보고서.md` 산출.
+1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/RFP_분석보고서.md` 하나만 산출. 요구사항 목록·정량 조건·Gap을 모두 이 파일에 담고 JSON·HTML로 중복 생성하지 않는다.
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
 3. **선택적 에셋 선별**: `$proposal-asset-curator` 실행 → 블록 후보를 검토하고 명시적으로 승인한 후보만 `tools/pattern-library`로 승격.
 4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
