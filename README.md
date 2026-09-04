@@ -151,7 +151,7 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
 3. **선택적 에셋 선별**: `$proposal-asset-curator` 실행 → 블록 후보를 검토하고 명시적으로 승인한 후보만 `tools/pattern-library`로 승격.
 4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
-5. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 블록 타입 선택 → 블록 구성과 간단 내용을 와이어프레임으로 표시하고 승인(`status: structure_approved`).
+5. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 블록 타입 선택 → `--outline`으로 사각형과 문구만 그린 초안을 표시하고 승인(`status: structure_approved`). 개요 모드는 타입별 내용을 요구하지 않아 첫 초안이 빨리 나온다.
 6. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → 블록마다 참고 자산 검색·선택 → 와이어프레임 재표시 후 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
 7. **품질 검수**: `$proposal-reviewer` 실행 → 4대 결함 검수 보고서(`review_report.json`) 산출.
 

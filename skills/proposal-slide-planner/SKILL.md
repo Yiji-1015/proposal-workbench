@@ -31,7 +31,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 
 14. **이 Skill은 1차 승인까지만 담당한다.** 1차에서 확정하는 것은 블록 구성과 블록별 간단 내용이다. 자산 선택과 문구 상세화는 2차에서 `$proposal-ppt-maker`가 맡는다. 1차 단계에서 자산을 고르거나 `step_details[]`·`rows[]` 같은 상세 문구를 완성하지 않는다.
 
-14-1. **1차 산출물의 범위.** 블록마다 `visual_category`, `content.headline`, 그리고 그 블록이 무엇을 말할지 한두 문장으로 요약한 `content.summary`를 채운다. `asset-mapping.json`의 각 항목은 `status: "pending_stage2"`로 두고 자산 ID를 적지 않는다. 청사진 `status`는 `draft`로 시작해 1차 승인 시 `structure_approved`로 바꾼다.
+14-1. **1차 산출물의 범위.** 블록마다 `visual_category`, `content.headline`, 그리고 그 블록이 무엇을 말할지 한두 문장으로 요약한 `content.summary`만 채운다. 표의 `rows`, 지표의 `metrics`, 도식의 `diagram_labels` 같은 타입별 내용은 2차에서 채우며, 통과를 위해 자리표시자를 넣지 않는다. 1차 렌더는 `--outline`으로 실행하면 타입별 내용 없이 사각형과 문구만 그린다. `asset-mapping.json`의 각 항목은 `status: "pending_stage2"`로 두고 자산 ID를 적지 않는다. 청사진 `status`는 `draft`로 시작해 1차 승인 시 `structure_approved`로 바꾼다.
 
 ## 선택적 구조 레퍼런스
 
