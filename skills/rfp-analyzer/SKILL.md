@@ -7,11 +7,20 @@ description: RFP, 과업지시서, 공고문을 분석해 업무 흐름, 기능 
 
 RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다. 요구사항과 원문 근거, 정량 KPI, 제안사 관점의 수행 갭을 분리해 `rfp_analysis.json`과 Markdown 보고서로 만든다.
 
+## 시작 전 확인
+
+분석을 시작하기 전에 다음 두 가지를 사용자에게 확인한다. 확인 없이 이전 실행이 남긴 변환본이나 `storage/`의 기존 산출물을 이번 RFP로 간주하지 않는다.
+
+1. **분석할 RFP 원본.** 사용자가 지정한 파일만 입력으로 쓴다. 작업 폴더에 남아 있는 이전 RFP·변환본이 있으면 이번 건과 같은 문서인지 먼저 묻는다.
+2. **자사 자료.** `company_profile/`의 세 파일 첫 줄에 `<!-- status: template`이 남아 있으면 그 파일은 예시이지 자사 자료가 아니다. 이 상태에서는 내용을 자사 역량으로 읽지 말고, 회사 소개자료·솔루션 소개서·수행 실적처럼 역량을 판단할 수 있는 자료가 있는지 사용자에게 묻는다. 자료를 받으면 `document-converter`로 변환해 참조하고, `company_profile/`에 반영할지도 함께 확인한다.
+
+사용자가 자사 자료를 주지 않겠다고 하면 그대로 진행하되, Gap·리스크 절에 `자사 자료 미제공으로 역량 판단 불가`라고 명시한다. 템플릿 내용을 근거로 Gap을 단정하지 않는다.
+
 ## 필수 참조
 
 - `references/rfp-analysis-methodology.md`
 - `references/data-contract-v2.md`의 `RfpAnalysisContract`
-- `company_profile/overview.md`, `core_competencies.md`, `gap_criteria.md`
+- `company_profile/overview.md`, `core_competencies.md`, `gap_criteria.md` (템플릿 표식이 없는 경우에만 자사 자료로 취급)
 
 ## 분석 원칙
 
