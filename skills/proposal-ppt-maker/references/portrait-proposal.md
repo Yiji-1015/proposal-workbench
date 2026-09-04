@@ -66,7 +66,7 @@
 - 하나의 문장을 다섯 박스로 나누거나 근거 없는 내용을 추가해 개수만 맞추지 않는다.
 - 선택 에셋이 feedback loop, quality gate, hub-spoke, swimlane이면 해당 토폴로지의 노드와 연결 관계를 실제 상자 구조에 반영한다. 최소 수량을 채우기 위해 같은 카드 형태를 반복하지 않는다.
 
-`block_pool_auto`를 사용할 때는 요구사항 내용에 따라 `matrix_table`, `metric_dashboard`, `scope_outcome_mapping`, `blueprint_flow`, `chevron_pipeline`, `gantt_roadmap` 중 필요한 타입을 조합한다. `blueprint_flow`는 `steps[]`마다 동일 순서의 `step_details[]`를 채워 처리 노드 내부의 상세 문구를 보존한다. 자동 배치는 타입별 최소 높이를 우선 보장하며, 세로 공간이 부족하면 내용을 축소하지 않고 먼저 장표를 시리즈로 나눈다. 네이티브 도식을 끝까지 구성해도 전달할 수 없는 경우에만 `text_explainer`로 전환한다.
+`block_pool_auto`를 사용할 때는 요구사항 내용에 따라 필요한 블록 타입을 조합한다. 쓸 수 있는 타입은 `<plugin-root>/references/data-contract-v2.md`의 `BlockType` 표를 본다. `blueprint_flow`는 `steps[]`마다 동일 순서의 `step_details[]`를 채워 처리 노드 내부의 상세 문구를 보존한다. 자동 배치는 타입별 최소 높이를 우선 보장하며, 세로 공간이 부족하면 내용을 축소하지 않고 먼저 장표를 시리즈로 나눈다. 네이티브 도식을 끝까지 구성해도 전달할 수 없는 경우에만 `text_explainer`로 전환한다.
 
 ## 5. 비교와 결론
 

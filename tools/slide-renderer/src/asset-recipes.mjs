@@ -288,6 +288,9 @@ function metricDashboardRecipe(block, frame, theme) {
   return primitives;
 }
 
+// 노드 라벨 상자를 node.height - 8로 잡으면 항목이 많아 노드가 낮아졌을 때 글자 아래가 잘린다.
+// 좌측 4개(32.5px)는 잘리고 우측 3개(45.3px)는 멀쩡한 상태가 실제로 나왔다. 상자를 노드와
+// 같은 크기로 두어 세로 가운데 정렬이 노드 안에서 이뤄지게 한다.
 function scopeOutcomeMappingRecipe(block, frame, theme) {
   const left = block.content?.left ?? [];
   const right = block.content?.right ?? [];
@@ -316,12 +319,12 @@ function scopeOutcomeMappingRecipe(block, frame, theme) {
   left.forEach((item, index) => {
     const node = { left: leftX, top: nodeTop + index * (leftHeight + gap), width: leftWidth, height: leftHeight };
     primitives.push(primitive("roundRect", `scope-node:${index + 1}`, node, { fill: theme.primary, stroke: theme.primary }));
-    primitives.push(primitive("text", `scope-node-label:${index + 1}`, { left: node.left + 6, top: node.top + 4, width: node.width - 12, height: Math.max(6, node.height - 8) }, { color: theme.white, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
+    primitives.push(primitive("text", `scope-node-label:${index + 1}`, { left: node.left + 6, top: node.top, width: node.width - 12, height: node.height }, { color: theme.white, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
   });
   right.forEach((item, index) => {
     const node = { left: rightX, top: nodeTop + index * (rightHeight + gap), width: rightWidth, height: rightHeight };
     primitives.push(primitive("roundRect", `outcome-node:${index + 1}`, node, { fill: theme.pale, stroke: theme.primary }));
-    primitives.push(primitive("text", `outcome-node-label:${index + 1}`, { left: node.left + 6, top: node.top + 4, width: node.width - 12, height: Math.max(6, node.height - 8) }, { color: theme.navy, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
+    primitives.push(primitive("text", `outcome-node-label:${index + 1}`, { left: node.left + 6, top: node.top, width: node.width - 12, height: node.height }, { color: theme.navy, fontSize: 10, bold: true, alignment: "center" }, itemLabel(item)));
   });
   return primitives;
 }

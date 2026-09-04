@@ -110,16 +110,11 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 ### 선택 가능한 블록 풀
 
-`layout_family: "block_pool_auto"`는 서로 다른 5~6개 블록을 `slot: "auto"`로 선언하고, 콘텐츠 성격에 맞춰 full/half 행으로 자동 배치한다. `visual_category`에는 다음 6개 타입만 사용한다.
+`layout_family: "block_pool_auto"`는 서로 다른 5~6개 블록을 `slot: "auto"`로 선언하고, 콘텐츠 성격에 맞춰 full/half 행으로 자동 배치한다.
 
-| 타입 | 선택 신호 | 필수 `content` 필드 |
-|---|---|---|
-| `matrix_table` | 표·기준·검증·역할 | `columns[]`, `rows[]` (`label`, `cells[]`) |
-| `metric_dashboard` | 숫자·목표·증감·성능 | `metrics[]` (`label`, `value_text`) |
-| `scope_outcome_mapping` | 범위와 효과의 대응 | `left[]`, `right[]`, 선택 `links[]` (`from`, `to`) |
-| `blueprint_flow` | 입력·처리·도구·결과 | `inputs[]`, `steps[]`, `step_details[]`(steps와 동일 길이), `outputs[]`; 선택 `tools[]`, `fallbacks[]`, `explanation` |
-| `chevron_pipeline` | 단계·게이트·인수 조건 | `steps[]`; 선택 `criteria[]`, `gates[]` |
-| `gantt_roadmap` | 근거 있는 기간·작업·마일스톤 | 원문·사용자 지시로 기간 근거가 있을 때만 `time_units[]`, `rows[]` (`label`, `start`, `end`); 선택 `milestones[]` |
+**쓸 수 있는 `visual_category`와 타입별 필수 `content` 필드는 `<plugin-root>/references/data-contract-v2.md`의 `BlockType` 표 하나만 본다.** 그 표는 `tools/slide-renderer/src/block-types.mjs`에서 생성하므로 렌더러가 실제로 받는 값과 항상 같다. 여기에 목록을 옮겨 적으면 렌더러가 타입을 추가해도 이 문서만 뒤처져, 실제로는 통과하는 청사진을 틀렸다고 판단하게 된다.
+
+`blueprint_flow`는 `steps[]`와 `step_details[]`를 동일 길이로 채워 처리 노드마다 세부 문구를 보존한다. `gantt_roadmap`은 원문이나 사용자 지시에 기간 근거가 있을 때만 쓴다.
 
 자동 배치가 타입별 최소 높이를 만족하지 못하면 내용을 축소하지 않고 먼저 시리즈 장표로 나눈다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능한 복잡한 흐름만 `text_explainer`로 전환한다.
 

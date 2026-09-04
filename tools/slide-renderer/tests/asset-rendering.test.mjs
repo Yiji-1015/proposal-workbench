@@ -279,3 +279,32 @@ test("어떤 프레임 폭에서도 음수·0 크기 도형을 만들지 않는�
     }
   }
 });
+
+// ponytail: 글꼴 메트릭을 재지 않는다. 라벨 상자를 노드와 같은 크기로 두어 세로 정렬이 노드
+// 안에서 이뤄지게 하는 것으로 갈음한다. 상자를 노드보다 작게 잡으면(-8 인세트) 항목이 많아
+// 노드가 낮아졌을 때 글자 아래가 잘렸다. 실제 값을 재야 하면 렌더 PNG 비교로 올린다.
+test("scope_outcome_mapping 라벨 상자는 노드 전체를 쓴다", () => {
+  const frame = { left: 0, top: 0, width: 317, height: 206 };
+  const block = {
+    content: {
+      headline: "레드팀 검증",
+      left: [{ label: "인젝션 우회" }, { label: "역할 탈취" }, { label: "검열 회피" }, { label: "요청 폭주" }],
+      right: [{ label: "규칙 보완" }, { label: "결과 기록" }, { label: "방안 확립" }],
+    },
+  };
+  const { primitives } = createAssetRecipe({ rendererKey: "scope_outcome_mapping", block, frame, theme });
+  const nodes = new Map(primitives.filter((p) => /^(scope|outcome)-node:/.test(p.name))
+    .map((p) => [p.name.replace("-node:", ":"), p.position]));
+  const labels = primitives.filter((p) => /^(scope|outcome)-node-label:/.test(p.name));
+  assert.equal(labels.length, 7);
+  for (const label of labels) {
+    const node = nodes.get(label.name.replace("-node-label:", ":"));
+    assert.ok(node, `${label.name}에 대응하는 노드가 없다`);
+    assert.equal(label.position.top, node.top, `${label.name} 상자가 노드보다 아래에서 시작한다`);
+    assert.equal(label.position.height, node.height, `${label.name} 상자가 노드보다 낮다`);
+  }
+  // 항목이 많은 쪽이 더 낮은 노드를 받는다는 사실 자체는 유지된다.
+  const leftHeight = nodes.get("scope:1").height;
+  const rightHeight = nodes.get("outcome:1").height;
+  assert.ok(leftHeight < rightHeight, "좌측 4개가 우측 3개보다 낮아야 한다");
+});
