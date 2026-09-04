@@ -89,3 +89,21 @@ test("ingest asset UI exposes discovery, overlay, dialog, metadata, and final ap
   }
   assert.match(ingestHtml, /최종 승인·에셋화/);
 });
+
+test("파이썬 탐지는 필요한 모듈을 가진 인터프리터를 우선한다", async () => {
+  // 첫 인터프리터를 무조건 고르면 pywin32 없는 파이썬이 잡혀 COM 렌더링과 PPTX
+  // 추출이 조용히 실패한다. 실제로 번들 파이썬(3.12)이 먼저 잡혀 그렇게 됐다.
+  const { detectPythonCommand } = await import("../verify-workbench.mjs");
+  const plain = detectPythonCommand();
+  if (!plain) return; // 파이썬이 없는 환경에서는 검사할 것이 없다.
+  assert.equal(plain.satisfiesRequired, true, "요구 모듈이 없으면 항상 만족으로 본다");
+
+  // 어떤 파이썬에도 없는 모듈을 요구하면 실행 가능한 후보로 물러나되 사실대로 알린다.
+  const impossible = detectPythonCommand({ require: ["module_that_cannot_exist_9f3a"] });
+  assert.ok(impossible, "요구를 만족하지 못해도 실행 가능한 파이썬은 돌려준다");
+  assert.equal(impossible.satisfiesRequired, false, "만족하지 못했음을 숨기지 않는다");
+
+  // 표준 라이브러리를 요구하면 만족하는 후보를 고른다.
+  const stdlib = detectPythonCommand({ require: ["json"] });
+  assert.equal(stdlib.satisfiesRequired, true);
+});

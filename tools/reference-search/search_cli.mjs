@@ -37,8 +37,19 @@ export async function executeSearch(query, size = 7, sessionId = null, dataDir =
   return { session, sessionFilePath, sid };
 }
 
+// 모르는 플래그를 조용히 무시하면 --db 같은 오타로 엉뚱한 색인을 검색하고도
+// 아무 경고가 없다. 실제로 --db로 테스트 색인을 지정했다고 착각한 채 기본 색인을
+// 검색한 일이 있었다.
+const KNOWN_FLAGS = new Set(["query", "q", "size", "session", "data-dir"]);
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const unknown = Object.keys(args).filter((key) => !KNOWN_FLAGS.has(key));
+  if (unknown.length) {
+    console.error(`Error: unknown option${unknown.length > 1 ? "s" : ""} ${unknown.map((key) => `--${key}`).join(", ")}.`);
+    console.error(`Supported: ${[...KNOWN_FLAGS].map((key) => `--${key}`).join(", ")}`);
+    process.exit(1);
+  }
   const query = args.query || args.q;
   if (!query || typeof query !== "string" || !query.trim()) {
     console.error("Error: --query <search_text> is required and cannot be empty.");

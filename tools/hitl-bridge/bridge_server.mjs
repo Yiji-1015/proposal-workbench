@@ -214,8 +214,14 @@ async function exportSelectedSlides(sessionId, session, dataDir) {
   if (path.extname(sourcePptx).toLowerCase() !== ".pptx") throw new Error("Original source is not a PPTX file.");
   await fs.access(sourcePptx);
 
-  const python = detectPythonCommand();
+  // 선택 장표 추출은 PowerPoint COM을 쓰므로 win32com이 있는 인터프리터가 필요하다.
+  // 그냥 첫 인터프리터를 고르면 pywin32가 없는 번들 파이썬이 잡혀 ModuleNotFoundError로
+  // 끝나고, 사용자는 어느 인터프리터가 문제인지 알 수 없다.
+  const python = detectPythonCommand({ require: ["win32com.client"] });
   if (!python) throw new Error("Python runtime not found. Run node tools/verify-workbench.mjs.");
+  if (!python.satisfiesRequired) {
+    throw new Error(`PPTX export needs pywin32 (win32com), but ${python.cmd} does not have it. Install it there, or set PROPOSAL_WORKBENCH_PYTHON to an interpreter that does.`);
+  }
 
   const deliverablesDir = path.join(dataDir, "deliverables");
   const fileName = `${sessionId}-selected-${Date.now()}-${randomUUID().slice(0, 8)}.pptx`;

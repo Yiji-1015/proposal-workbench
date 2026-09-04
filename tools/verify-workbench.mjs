@@ -53,7 +53,23 @@ function discoverBundledPythonCommands() {
   }
 }
 
-export function detectPythonCommand() {
+function pythonVersionOf(cmd) {
+  const res = spawnSync(cmd, ["-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"], { encoding: "utf8", windowsHide: true });
+  return res.status === 0 && res.stdout.trim() ? res.stdout.trim() : null;
+}
+
+function pythonHasModules(cmd, modules) {
+  if (!modules.length) return true;
+  const probe = modules.map((name) => `import ${name}`).join("; ");
+  return spawnSync(cmd, ["-c", probe], { encoding: "utf8", windowsHide: true }).status === 0;
+}
+
+// 후보 중 첫 번째로 실행되는 파이썬을 고르면, 그 인터프리터에 필요한 모듈이 없을 때
+// 기능이 조용히 죽는다. 실제로 번들 파이썬(3.12)이 먼저 잡혀 pywin32가 없는 탓에
+// PowerPoint COM 렌더링과 피커의 PPTX 추출이 실패했고, 정작 같은 PC의 py(3.13)에는
+// pywin32가 있었다. require를 주면 그 모듈을 가진 후보를 우선 고르고, 하나도 없으면
+// 기존처럼 실행 가능한 첫 후보로 물러난다.
+export function detectPythonCommand({ require: requiredModules = [] } = {}) {
   const localPython = process.platform === "win32"
     ? path.join(workbenchRoot, ".venv", "Scripts", "python.exe")
     : path.join(workbenchRoot, ".venv", "bin", "python");
@@ -63,13 +79,14 @@ export function detectPythonCommand() {
     ...discoverBundledPythonCommands(),
     ...(process.platform === "win32" ? ["py", "python", "python3"] : ["python3", "python"]),
   ].filter(Boolean);
+  let firstWorking = null;
   for (const cmd of candidates) {
-    const res = spawnSync(cmd, ["-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"], { encoding: "utf8", windowsHide: true });
-    if (res.status === 0 && res.stdout.trim()) {
-      return { cmd, version: res.stdout.trim() };
-    }
+    const version = pythonVersionOf(cmd);
+    if (!version) continue;
+    if (!firstWorking) firstWorking = { cmd, version };
+    if (pythonHasModules(cmd, requiredModules)) return { cmd, version, satisfiesRequired: true };
   }
-  return null;
+  return firstWorking ? { ...firstWorking, satisfiesRequired: requiredModules.length === 0 } : null;
 }
 
 async function runDoctor() {
@@ -93,7 +110,9 @@ async function runDoctor() {
   );
 
   // 2. Python Version & Packages Check
-  const py = detectPythonCommand();
+  // 워크벤치 스크립트가 실제로 필요로 하는 모듈을 가진 인터프리터를 우선 고른다.
+  // 그래야 Doctor가 보고하는 인터프리터와 인제스트·피커가 실제로 쓰는 인터프리터가 같다.
+  const py = detectPythonCommand({ require: ["pptx", "win32com.client"] });
   if (py) {
     const pyCmd = typeof py === "string" ? py : py.cmd;
     const pyVer = typeof py === "string" ? "detected" : py.version;
@@ -116,7 +135,7 @@ async function runDoctor() {
       comCheck.status === 0,
       comCheck.status === 0
         ? "win32com available (PowerPoint COM rendering enabled)"
-        : `win32com not available. For PowerPoint COM rendering, run:\n${pythonInstallCommand(pyCmd)}\nOtherwise headless text/structure extraction will be used.`,
+        : `win32com not available in ${pyCmd}. Install it there:\n${pythonInstallCommand(pyCmd)}\nOr point the workbench at an interpreter that already has it:\n$env:PROPOSAL_WORKBENCH_PYTHON = 'py'\nOtherwise headless text/structure extraction will be used.`,
     );
   } else {
     addCheck(
