@@ -58,9 +58,10 @@ proposal-workbench/
 │  │  ├─ bridge_server.mjs           ──▶ 세션 API 및 HTML 뷰어 서빙 서버
 │  │  ├─ hitl_launcher.mjs           ──▶ 자동 헬스체크 및 브라우저 오픈 도구
 │  │  └─ public/                     ──▶ 순수 Standalone HTML 뷰어 (picker, planner, ingest)
-│  └─ doc-converter/                 ──▶ kordoc 기반 문서 파서
+│  ├─ doc-converter/                 ──▶ kordoc 기반 문서 파서
+│  └─ report-viewer/                 ──▶ rfp_analysis.json → 자체 완결 HTML 보고서
 │
-├─ company_profile/                  ──▶ 제안사 역량 프로필 (범용 플러그인)
+├─ company_profile/                  ──▶ 제안사 역량 프로필 (초기 템플릿 — 표식 제거 전까지 자사 자료로 쓰지 않음)
 │  ├─ README.md                      ──▶ 작성 가이드
 │  ├─ overview.md                    ──▶ 회사 개요 & 주력 제품
 │  ├─ core_competencies.md           ──▶ 강점 기술 스택

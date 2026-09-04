@@ -36,6 +36,15 @@ RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다
 
 - `rfp_analysis.json`: 공통 데이터 계약 JSON
 - `RFP_분석보고서.md`: 사업 개요, 업무 흐름, 기능 도메인, KPI, Gap과 리스크
+- `RFP_분석보고서.html`: 위 JSON에서 생성하는 열람용 보고서
+
+JSON을 쓴 뒤 아래를 실행해 HTML을 만들고, 결과 파일을 사용자 화면에 띄운 상태로 보고한다. 요약만 대화에 적고 끝내지 않는다.
+
+```powershell
+node "<plugin-root>/tools/report-viewer/render-analysis.mjs" "<출력폴더>/rfp_analysis.json"
+```
+
+CDN 없이 파일 하나로 열리며, 요구사항 표는 분류 필터와 검색을 제공한다.
 
 Markdown 보고서 작성 시 다음 절에는 내용을 읽는 기준을 설명하는 짧은 소제목(예: `### 이 절에서 보는 것`)과 1~2문장의 부연설명을 먼저 둔다.
 
