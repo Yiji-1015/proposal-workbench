@@ -85,19 +85,25 @@ export interface RfpAnalysisContract {
 export interface SlideBlock {
   block_id: string;          // 장표 내부 고유 블록 ID
   role: "requirement_summary" | "main_process" | "operation_quality" | "technology_comparison" | "metric_highlight";
-  slot: "top" | "left" | "center" | "right" | "bottom_center" | "generic";
-  visual_category: "process" | "hub_spoke" | "comparison" | "mapping" | "quality_gate" | "card_grid";
+  slot: "top" | "left" | "center" | "right" | "bottom_center" | "generic" | "auto";
+                             // block_pool_auto에서는 반드시 "auto"
+  span?: "full" | "half";    // block_pool_auto 전용. 연속한 half 두 개가 한 줄을 이룬다
+  visual_category: BlockType; // 아래 14종. 등록되지 않은 값은 렌더러가 거부한다
   direction?: "left_to_right" | "vertical" | "horizontal" | "none";
   importance?: "mandatory" | "optional";
   architecture_treatment?: "native_diagram" | "text_explainer" | "generated_visual_with_text";
   step_count?: number;       // steps/options 수와 일치 필수
   content: {
-    headline?: string;
+    headline?: string;       // 개요(--outline) 모드에서는 필수
+    summary?: string;        // 1차 승인용. 그 블록이 무엇을 말할지 한두 문장
     bullets?: string[];
     steps?: string[];
-    flow_steps?: string[];    // 복잡한 아키텍처 설명의 읽기 순서
-    explanation?: string;      // text_explainer/generated_visual_with_text에서 필수
+    step_details?: string[]; // blueprint_flow에서 steps와 같은 길이
+    flow_steps?: string[];   // 복잡한 아키텍처 설명의 읽기 순서
+    explanation?: string;    // native_diagram의 상세 부연설명으로 선택, 나머지는 필수
     options?: { label: string; desc: string; tag?: string }[];
+    rows?: unknown[];        // matrix_table
+    metrics?: unknown[];     // metric_dashboard
     diagram_labels?: string[];
     conclusion?: string;     // 비교 블록 결론 필수
   };
@@ -112,7 +118,8 @@ export interface SlideBlueprintContract {
   slide_title: string;
   governing_message?: string; // 세로형(portrait)일 때 필수, 반드시 ~니다. 종결
   orientation: "landscape" | "portrait";
-  layout_family: "three_column_with_bottom_band" | "generic_grid";
+  layout_family: "block_pool_auto" | "three_column_with_bottom_band" | "generic_grid";
+                             // block_pool_auto는 블록 5~6개만 허용한다
   density: "high";            // 제안서는 high 필수
   theme: {
     primary: string;          // 기본: #1769E0
@@ -129,9 +136,35 @@ export interface SlideBlueprintContract {
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];
   reference_slide_ids?: string[];
-  status?: "draft" | "approved";
+  status?: "draft" | "structure_approved" | "approved";
+                             // draft -> 1차 승인 시 structure_approved -> 2차 승인 시 approved.
+                             // 렌더러는 approved만 최종 PPTX로 통과시킨다
 }
 ```
+
+
+### `BlockType` — 렌더러에 등록된 14종
+
+이 표는 `tools/slide-renderer/src/block-types.mjs`의 등록 내용이다. 여기 없는 값을 쓰면 렌더러가 거부한다.
+
+| visual_category | 쓰는 자리 | 기본 span | 항목 수 | content 종류 |
+| --- | --- | --- | ---: | --- |
+| `matrix_table` | 표·검증 기준 | full | 1~10 | table |
+| `metric_dashboard` | 지표 | half | 1~6 | metrics |
+| `scope_outcome_mapping` | 범위와 효과 | half | 1~6 | mapping |
+| `blueprint_flow` | 입력·처리·결과 흐름 | full | 2~8 | flow |
+| `chevron_pipeline` | 단계·게이트 | half | 2~8 | pipeline |
+| `gantt_roadmap` | 근거 있는 일정만 | full | 2~12 | roadmap |
+| `process_grid` | 순차 격자 | full | 2~8 | labels |
+| `comparison` | 실제로 대립하는 선택지만 | full | 2~4 | labels |
+| `mapping` | 1:N 연결 | half | 4~6 | labels |
+| `feedback_loop` | 순환·환류 | half | 4~5 | labels |
+| `quality_gate` | 통과 기준 | full | 4~6 | labels |
+| `swimlane` | 병렬 역할 | full | 4~6 | labels |
+| `hub_spoke` | 방사형 연결 | half | 6~9 | labels |
+| `architecture` | 계층 구조 | full | 4~5 | labels |
+
+`content` 종류별로 2차에서 채우는 필드가 다르다. `table`은 `rows`, `metrics`는 `metrics`, `flow`는 `steps`와 `step_details`, `labels`는 `diagram_labels`를 쓴다. 1차 승인 단계에서는 `headline`과 `summary`만 채우고 나머지는 비워 둔다.
 
 ---
 

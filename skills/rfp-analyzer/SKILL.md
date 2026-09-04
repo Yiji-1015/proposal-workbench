@@ -19,7 +19,7 @@ RFP를 단순 요약하지 않고 고객의 실제 업무 흐름을 복원한다
 ## 필수 참조
 
 - `references/rfp-analysis-methodology.md`
-- `references/data-contract-v2.md`의 `SourceRef`·`QuantitativeMetric` — 보고서가 보존해야 할 근거·정량 표기 기준
+- `<plugin-root>/references/data-contract-v2.md`의 `SourceRef`·`QuantitativeMetric` — 보고서가 보존해야 할 근거·정량 표기 기준
 - `company_profile/overview.md`, `core_competencies.md`, `gap_criteria.md` (템플릿 표식이 없는 경우에만 자사 자료로 취급)
 
 ## 분석 원칙

@@ -78,7 +78,12 @@ function addHeader(slide, model, page, wireframe) {
     titleShape.text = headerTitle;
     titleShape.text.style = { fontFamily: "Malgun Gothic", fontSize: portrait ? 28 : 36, color: C.navy, bold: true, alignment: "left" };
   }
-  text(slide, `subtitle-${suffix}`, wireframe ? "내용 구조·배치·asset 매핑 승인용 초안" : (model.governingMessage || model.requirementSummary), { left: portrait ? 36 : 48, top: portrait ? 128 : 108, width: portrait ? 648 : 1120, height: portrait ? 42 : 34 }, portrait ? 15 : 16, C.gray);
+  // 와이어프레임이 고정 문구로 지배 메시지를 덮으면, 1차에서 확정해야 할 그 한 줄을
+  // 사용자가 보지 못한 채 구조를 승인하게 된다. 초안이라는 사실은 상단 눈썹 문구가
+  // 이미 말하고 있으므로, 있을 때는 실제 메시지를 보여준다.
+  const subtitle = model.governingMessage || model.requirementSummary
+    || (wireframe ? "내용 구조·배치·asset 매핑 승인용 초안" : "");
+  text(slide, `subtitle-${suffix}`, subtitle, { left: portrait ? 36 : 48, top: portrait ? 128 : 108, width: portrait ? 648 : 1120, height: portrait ? 42 : 34 }, portrait ? 15 : 16, C.gray);
   const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
   text(slide, `requirement-id-${suffix}`, displayRequirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
   text(slide, `page-${suffix}`, String(page).padStart(2, "0"), { left: model.canvas.width - 92, top: model.canvas.height - 36, width: 54, height: 18 }, 12, C.blue, true, "right");
