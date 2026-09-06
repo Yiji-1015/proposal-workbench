@@ -145,7 +145,7 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
   const layoutFamily = ownString(blueprint, "layout_family", "blueprint.layout_family");
   const agentAuthored = layoutFamily === "agent_authored";
   const blocks = blueprint.blocks.map((block) => normalizeBlock(block, outline, agentAuthored));
-  if (agentAuthored && blocks.length > 8) throw new Error("agent_authored supports 5 to 8 semantic blocks per slide");
+  if (agentAuthored && blocks.length > 6) throw new Error("agent_authored supports 5 to 6 semantic blocks per slide");
   if (agentAuthored && !outline) {
     for (const block of blocks) {
       if (typeof block.content?.headline !== "string" || !block.content.headline.trim()) throw new Error(`agent_authored block ${block.blockId} requires content.headline`);

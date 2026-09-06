@@ -169,6 +169,12 @@ test("keeps approval-critical blueprint validation", () => {
   const badMessage = fixture();
   badMessage.blueprint.governing_message = "관리자 권한 통제";
   assert.throws(() => compileRenderModel(badMessage), /must end in 니다\./i);
+  const tooMany = agentFixture();
+  tooMany.blueprint.blocks.push(
+    { block_id: "extra-1", role: "extra", content: { headline: "extra 1" } },
+    { block_id: "extra-2", role: "extra", content: { headline: "extra 2" } },
+  );
+  assert.throws(() => compileRenderModel({ ...tooMany, outline: true }), /5 to 6 semantic blocks/i);
 });
 
 test("outline mode accepts headline and summary without detailed type fields", () => {

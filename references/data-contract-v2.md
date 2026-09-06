@@ -136,7 +136,7 @@ export interface SlideBlueprintContract {
     line?: string;            // 기본: #C8D2DF
     white?: string;           // 기본: #FFFFFF
   };
-  blocks: SlideBlock[];       // 최소 5개의 독립된 내용 상자
+  blocks: SlideBlock[];       // 5~6개의 독립된 내용 상자
   shape_plan?: AgentShapePlan; // agent_authored에서 필수
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];
