@@ -157,7 +157,7 @@ async function runDoctor() {
     addCheck("sqlite_engine", false, `node:sqlite error: ${err.message}`);
   }
 
-  // 4. Production skills. Curator/pattern-library are experimental and not a core health dependency.
+  // 4. Production skills.
   const expectedSkills = [
     "document-converter",
     "rfp-analyzer",
@@ -180,7 +180,7 @@ async function runDoctor() {
     }
   }
 
-  addCheck("core_asset_independence", true, "slide rendering does not require pattern-library, ingest, search, SQLite, or embeddings");
+  addCheck("core_asset_independence", true, "slide rendering does not require ingest, search, SQLite, or embeddings");
 
   // 5. Zero-CDN / Offline UI Integrity Check
   const htmlFiles = ["index.html", "picker.html", "planner.html", "ingest.html"];

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synthetic package tests for the native PPTX/POTX asset reader."""
+"""Synthetic package tests for the native PPTX/POTX package reader used by ingest."""
 
 import sys
 import json
@@ -9,10 +9,8 @@ import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-try:
-    from asset_curator import _bounds_union, _local_bounds, discover_from_manifest, inspect_package, promote_asset
-except ModuleNotFoundError as exc:  # The first red phase should fail clearly.
-    raise RuntimeError("Task 1 expects tools/asset-curator/asset_curator.py") from exc
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pptx_package_reader import inspect_package
 
 
 P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
@@ -188,7 +186,7 @@ def write_fixture(path: Path, source_type: str = "pptx", rich: bool = True) -> P
     return path
 
 
-class AssetCuratorPackageTests(unittest.TestCase):
+class PackageReaderTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = TemporaryDirectory()
         root = Path(self.temp.name)
@@ -229,105 +227,16 @@ class AssetCuratorPackageTests(unittest.TestCase):
         self.assertEqual(by_id["41"]["exclusion_reason"], "zero_size")
 
 
-class AssetCuratorDiscoveryTests(unittest.TestCase):
-    def setUp(self) -> None:
-        self.temp = TemporaryDirectory()
-        self.root = Path(self.temp.name)
-        self.source = write_fixture(self.root / "source.pptx", rich=True)
-        self.data_dir = self.root / "storage"
-        self.source_key = "fixture"
-        slide_dir = self.data_dir / "ingest_data" / self.source_key / "slides"
-        slide_dir.mkdir(parents=True)
-        (slide_dir / "slide-1.png").write_bytes(b"rendered")
-        self.manifest = self.data_dir / "ingest_data" / self.source_key / "manifest.json"
-        self.manifest.write_text(json.dumps({
-            "status": "completed",
-            "source_path": str(self.source),
-            "source_key": self.source_key,
-            "source_type": "pptx",
-            "total_slides": 1,
-            "extract": {"status": "completed", "completed": 1},
-            "render": {"status": "completed", "completed": 1, "total": 1},
-            "slides": [{"slide_no": 1, "image_ref": f"/storage/ingest_data/{self.source_key}/slides/slide-1.png"}],
-        }, ensure_ascii=False), encoding="utf-8")
-
-    def tearDown(self) -> None:
-        self.temp.cleanup()
-
-    def test_selection_report_is_safe_and_evidence_is_complete(self):
-        report = discover_from_manifest(self.manifest, self.data_dir)
-        self.assertGreaterEqual(report["candidate_count"], 1)
-        self.assertNotIn("SAMPLE", json.dumps(report, ensure_ascii=False))
-        self.assertEqual(report["evidence"]["status"], "complete")
-        candidate_id = report["candidates"][0]["candidate_id"]
-        self.assertTrue((self.data_dir / "asset_candidates" / candidate_id / "candidate.json").is_file())
-        self.assertNotIn("score", json.dumps(report, ensure_ascii=False).lower())
-
-    def test_warning_and_partial_evidence_are_distinct(self):
-        manifest = json.loads(self.manifest.read_text(encoding="utf-8"))
-        manifest["render"]["status"] = "failed"
-        manifest["render"]["exit_code"] = 1
-        self.manifest.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
-        warning = discover_from_manifest(self.manifest, self.data_dir)
-        self.assertEqual(warning["evidence"]["status"], "warning")
-        (self.data_dir / "ingest_data" / self.source_key / "slides" / "slide-1.png").unlink()
-        partial = discover_from_manifest(self.manifest, self.data_dir)
-        self.assertEqual(partial["evidence"]["status"], "partial")
-
-    def test_promote_removes_source_text_and_keeps_catalog_native(self):
-        report = discover_from_manifest(self.manifest, self.data_dir)
-        candidate = next(item for item in report["candidates"] if item["template_ready"])
-        request = {
-            "module_id": "fixture_process_001",
-            "display_name": "단계형 프로세스 블록",
-            "module_type": "process_chain",
-            "asset_kind": "composite_block",
-            "description": "업무 단계를 순차적으로 설명하는 반응형 블록입니다.",
-            "design_traits": ["네이티브 컨테이너", "연결선 흐름"],
-            "use_cases": ["업무 흐름"],
-            "search_tags": ["프로세스", "단계"],
-            "usage_mode": "structural",
-            "license": "user-provided",
-            "license_status": "user_confirmed",
-        }
-        pattern_root = self.root / "pattern-library"
-        result = promote_asset(candidate["candidate_id"], request, self.data_dir, pattern_root)
-        self.assertEqual(result["status"], "promoted")
-        catalog = json.loads((pattern_root / "unified-visual-module-catalog.json").read_text(encoding="utf-8"))
-        self.assertEqual(catalog[0]["asset_kind"], "composite_block")
-        template = (pattern_root / "templates" / "fixture_process_001.json").read_text(encoding="utf-8")
-        self.assertNotIn("원본 문구", template)
-        self.assertEqual(json.loads((self.data_dir / "asset_candidates" / candidate["candidate_id"] / "candidate.json").read_text(encoding="utf-8"))["lifecycle_status"], "promoted")
-
-    def test_source_text_request_is_rejected_before_permanent_write(self):
-        report = discover_from_manifest(self.manifest, self.data_dir)
-        candidate = next(item for item in report["candidates"] if item["template_ready"])
-        request = {
-            "module_id": "fixture_leak_001",
-            "display_name": "누출 테스트",
-            "module_type": "process_chain",
-            "asset_kind": "composite_block",
-            "description": "source text를 포함하면 안 됩니다.",
-            "design_traits": ["테스트"],
-            "use_cases": ["테스트"],
-            "search_tags": ["테스트"],
-            "usage_mode": "structural",
-        }
-        with self.assertRaisesRegex(ValueError, "source text"):
-            promote_asset(candidate["candidate_id"], request, self.data_dir, self.root / "pattern-library")
-        self.assertFalse((self.root / "pattern-library" / "unified-visual-module-catalog.json").exists())
-
-
-class AssetCuratorIngestContractTests(unittest.TestCase):
+class IngestContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         ingest_dir = Path(__file__).resolve().parents[1] / "ppt-ingest"
         sys.path.insert(0, str(ingest_dir))
-        spec = importlib.util.spec_from_file_location("asset_curator_extract_contract", ingest_dir / "extract_slide_structure.py")
+        spec = importlib.util.spec_from_file_location("package_reader_extract_contract", ingest_dir / "extract_slide_structure.py")
         cls.extract_module = importlib.util.module_from_spec(spec)
         assert spec and spec.loader
         spec.loader.exec_module(cls.extract_module)
-        pipeline_spec = importlib.util.spec_from_file_location("asset_curator_ingest_contract", ingest_dir / "ingest_pipeline.py")
+        pipeline_spec = importlib.util.spec_from_file_location("package_reader_ingest_contract", ingest_dir / "ingest_pipeline.py")
         cls.pipeline_module = importlib.util.module_from_spec(pipeline_spec)
         assert pipeline_spec and pipeline_spec.loader
         pipeline_spec.loader.exec_module(cls.pipeline_module)
@@ -364,29 +273,3 @@ class AssetCuratorIngestContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-class NormalizedBoundsTests(unittest.TestCase):
-    """정규화 좌표가 블록 프레임을 벗어나면 렌더러가 자산을 통째로 거부한다."""
-
-    def test_union_spans_every_shape(self):
-        # 오른쪽·아래쪽 끝을 전체 최소 원점에서 재면 흩어진 도형의 합집합이 너무 작게
-        # 나오고, 그 값을 분모로 쓰는 정규화가 1을 넘는 좌표를 만든다.
-        shapes = [
-            {"bounds": {"x": 0.0, "y": 0.0, "w": 0.2, "h": 0.2}},
-            {"bounds": {"x": 0.8, "y": 0.8, "w": 0.2, "h": 0.2}},
-        ]
-        self.assertEqual(_bounds_union(shapes), {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0})
-
-    def test_local_bounds_keep_the_rect_inside_the_frame(self):
-        frame = {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0}
-        for raw in [
-            {"x": 0.9, "y": 0.9, "w": 0.5, "h": 0.5},
-            {"x": 1.4, "y": 2.0, "w": 1.0, "h": 1.0},
-            {"x": -0.3, "y": -0.1, "w": 0.4, "h": 0.4},
-        ]:
-            local = _local_bounds(raw, frame)
-            self.assertLessEqual(local["x"] + local["w"], 1.000001, raw)
-            self.assertLessEqual(local["y"] + local["h"], 1.000001, raw)
-            self.assertGreaterEqual(local["x"], 0.0, raw)
-            self.assertGreaterEqual(local["y"], 0.0, raw)

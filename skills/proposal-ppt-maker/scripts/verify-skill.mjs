@@ -37,7 +37,7 @@ const renderer = await resolveFirst([
   path.join(skillRoot, "scripts", "proposal-slide-renderer", "bin", "build-proposal.mjs"),
 ].filter(Boolean));
 add("renderer", await exists(renderer), await exists(renderer) ? "native slide renderer found" : "native slide renderer is missing");
-add("catalog-independent", true, "core rendering does not require pattern-library, ingest, search, SQLite, or embeddings");
+add("catalog-independent", true, "core rendering does not require ingest, search, SQLite, or embeddings");
 
 try {
   const { discoverArtifactTools } = await import(pathToFileURL(artifactRuntimePath).href);

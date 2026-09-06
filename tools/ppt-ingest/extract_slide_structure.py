@@ -15,11 +15,8 @@ from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 
-WORKBENCH_ROOT = Path(__file__).resolve().parents[2]
-ASSET_CURATOR_DIR = WORKBENCH_ROOT / "tools" / "asset-curator"
-if str(ASSET_CURATOR_DIR) not in sys.path:
-    sys.path.insert(0, str(ASSET_CURATOR_DIR))
-from asset_curator import describe_source, extract_index_slides
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pptx_package_reader import describe_source, extract_index_slides
 
 
 def emu_to_px(v: int) -> int:

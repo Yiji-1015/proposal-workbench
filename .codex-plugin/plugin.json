@@ -1,7 +1,7 @@
 {
   "name": "proposal-workbench",
   "version": "2.1.0+codex.20260906093127",
-  "description": "Asset-independent native PowerPoint proposal core with 6 production skills, optional SQLite reference search, and an isolated experimental curator.",
+  "description": "Asset-independent native PowerPoint proposal core with 6 production skills and optional SQLite reference search.",
   "author": {
     "name": "Yiji-1015",
     "url": "https://github.com/Yiji-1015"

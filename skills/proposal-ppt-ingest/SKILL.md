@@ -45,13 +45,7 @@ python tools/ppt-ingest/ingest_pipeline.py --source "<path-to-deck.pptx-or-templ
 - `--data-dir <path>`: 기본 `storage/` 대신 사용할 데이터 루트
 - `--skip-com-render`: PowerPoint COM PNG 렌더링 생략
 
-기존 호출 호환을 위해 `--pptx`도 같은 입력 인자로 지원한다. 인제스트 후 사용자가 에셋 후보를 요청할 때만 다음 선택적 큐레이션을 실행한다.
-
-```powershell
-python tools/asset-curator/asset_curator.py discover --manifest "storage/ingest_data/<source_key>/manifest.json" --data-dir storage
-```
-
-이 명령은 블록·도식·아이콘·사진 프레임 후보와 `selected`·`deferred`·`rejected` 판정만 만들며 `tools/pattern-library`를 변경하지 않는다. 원본 PPTX/POTX는 `source_path`에서만 읽고 영구 자산으로 복사하지 않는다.
+기존 호출 호환을 위해 `--pptx`도 같은 입력 인자로 지원한다. 원본 PPTX/POTX는 `source_path`에서만 읽고 복사하지 않는다.
 
 처리가 끝나면 필요할 때 다음으로 인제스트 뷰어를 연다.
 
@@ -65,9 +59,8 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://127.0.0.1:5274/ingest.ht
 - `storage/ingest_data/<source_key>/slides/`
 - `storage/ingest_data/<source_key>/html/`
 - `storage/index/slides.sqlite3`
-- `storage/asset_candidates/<candidate_id>/candidate.json` (선택적 큐레이션 시 생성되며 Git에 포함하지 않음)
 
-매니페스트에는 원본 편집 장표와 에셋 후보를 다시 읽을 수 있도록 `source_path`와 `source_type`을 저장한다. 각 슬라이드에는 `layout_id`와 `master_id`를 기록한다. 원본 PPTX/POTX가 이동·삭제되면 피커 미리보기와 검색은 계속 가능하지만 원본 구조 추출과 PPTX 다운로드는 불가능하므로 새 위치에서 한 번 다시 인제스트한다.
+매니페스트에는 원본 편집 장표를 다시 읽을 수 있도록 `source_path`와 `source_type`을 저장한다. 각 슬라이드에는 `layout_id`와 `master_id`를 기록한다. 원본 PPTX/POTX가 이동·삭제되면 피커 미리보기와 검색은 계속 가능하지만 원본 구조 추출과 PPTX 다운로드는 불가능하므로 새 위치에서 한 번 다시 인제스트한다.
 
 매니페스트의 `render`, `extract`, `embedding`, `index` 상태를 그대로 보고한다. 임베딩 API가 없으면 lexical 검색용 메타데이터만 생성하며 semantic 검색 성공으로 표시하지 않는다. lexical 검색 품질을 위해 각 장표에서 제목·번호형 소제목·본문을 함께 분석해 `slide_type`(overview/architecture/strategy/requirements 등), 핵심 주제 태그, 검색용 요약을 만든다. 제목이 `제안 개요`처럼 넓어도 본문에 포함된 RAG·아키텍처·대시보드 같은 세부 주제가 색인되며, 임베딩 API가 설정되면 이 검색용 요약과 원문을 함께 임베딩한다.
 

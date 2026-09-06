@@ -68,7 +68,9 @@ test("planner treats references as optional metadata", async () => {
   assert.match(ingest, /독립 인제스트/);
   assert.match(search, /proposal-slide-planner.*호출하지 않는다/s);
   assert.match(readme, /인제스트와 검색은 각각 독립 실행/);
-  assert.match(readme, /실험 격리/);
+  // 에셋 큐레이터와 pattern-library는 제거됐다. 문서가 다시 언급하면 되살아난 것이다.
+  assert.doesNotMatch(readme, /proposal-asset-curator|pattern-library|asset_candidates/);
+  assert.doesNotMatch(ingest, /asset-curator|asset_candidates/);
   assert.match(dataContract, /asset-mapping\.json`은 코어 계약에 없다/);
 });
 

@@ -46,12 +46,10 @@ proposal-workbench/
 │  ├─ proposal-ppt-ingest/           ──▶ 독립 PPTX/POTX 분해, COM 렌더링, BGE-M3 + SQLite 색인
 │  ├─ proposal-reference-search/     ──▶ 독립 SQLite lexical/vector 검색 + HitL Reference Picker
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
-│  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
-│  └─ proposal-asset-curator/        ──▶ 실험 보관: 코어에서 사용하지 않는 자산 연구 도구
+│  └─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
-│  ├─ pattern-library/               ──▶ 실험 보관: 코어 런타임과 분리된 기존 자산 카탈로그
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
 │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
@@ -73,7 +71,6 @@ proposal-workbench/
    ├─ sessions/                      ──▶ HitL 세션 교환 JSON 파일
    ├─ ingest_data/                   ──▶ 색인 슬라이드 PNG, HTML, 매니페스트
    ├─ index/                         ──▶ SQLite 슬라이드 색인 DB
-   ├─ asset_candidates/              ──▶ 로컬 에셋 후보·익명화 검토 데이터 (Git 제외)
    └─ deliverables/                  ──▶ 최종 생성 PPTX 및 검수 보고서
 ```
 
@@ -83,7 +80,7 @@ proposal-workbench/
 
 ### 0) 로컬 플러그인 설치
 
-저장소 루트가 곧 플러그인 소스입니다. PPT 코어는 `tools/slide-renderer`만 사용하며 `tools/pattern-library`, 인제스트, 검색 색인이 없어도 작동합니다. 도구 경로를 함께 유지하기 위해 저장소를 통째로 설치합니다.
+저장소 루트가 곧 플러그인 소스입니다. PPT 코어는 `tools/slide-renderer`만 사용하며 인제스트, 검색 색인이 없어도 작동합니다. 도구 경로를 함께 유지하기 위해 저장소를 통째로 설치합니다.
 
 **Claude Code** — `.claude-plugin/marketplace.json`을 로컬 marketplace로 등록한 뒤 설치합니다. 경로는 `.`이 아니라 `./` 형태여야 합니다.
 
@@ -92,7 +89,7 @@ claude plugin marketplace add ./
 claude plugin install proposal-workbench@proposal-workbench-local
 ```
 
-설치 후 `claude plugin details proposal-workbench`로 6개 운영 Skill과 실험 보관 중인 curator가 표시되는지 확인합니다. 새 세션부터 로드됩니다.
+설치 후 `claude plugin details proposal-workbench`로 6개 Skill이 표시되는지 확인합니다. 새 세션부터 로드됩니다.
 
 > 플러그인 캐시는 저장소의 복사본이며 경로가 버전으로 구분됩니다. 저장소를 고쳐도 `plugin.json`의 버전이 그대로면 `claude plugin install`·`update`·`marketplace update`가 모두 "이미 최신"으로 건너뜁니다. 개발 중에 수정본을 반영하려면 버전을 올리거나 다음처럼 재설치합니다.
 
@@ -157,12 +154,6 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 과거 장표를 참고하는 경로는 **`ppt-ingest` → 슬라이드 PNG + SQLite 색인 → `$proposal-reference-search` → `picker.html`** 하나다. 색인은 슬라이드마다 `image_ref`, `title`, `tags`, `layout`, `slide_type`을 들고 있어 사람이 그림을 보고 고를 수 있다. 고른 슬라이드는 **구조 레퍼런스**이며, 장표는 그 구조를 참고해 네이티브 도형으로 다시 만든다.
 
 **이 경로는 장표 기획의 필수 선행 단계가 아니다.** 인제스트·검색·기획은 각각 독립 실행한다. 기획은 RFP만으로도 가능하며, 사용자가 완료된 검색 세션이나 `selected_slide_ids`를 명시적으로 전달했을 때만 레퍼런스를 참고한다.
-
-> **실험 격리: `proposal-asset-curator`와 `tools/pattern-library`**
->
-> `$proposal-asset-curator`가 만드는 `responsive_native_template` 자산을 렌더링에 직접 적용하는 경로는 현재 **실험적이며 사용하지 않는다.** 실측 결과 템플릿 252개 중 208개가 좌표 범위를 벗어났고(좌표 정규화 버그는 수정했으나 기존 템플릿은 재인제스트가 필요), 60%는 텍스트 슬롯이 2개 이하라 자산을 적용하면 블록 내용이 소실된다. 원본 글꼴 크기도 추출 단계에서 유실된다.
->
-> 코드와 카탈로그는 연구 재개 가능성을 위해 보관하지만 코어 설치·검증·렌더링 경로에서는 참조하지 않는다. 과거 장표를 참고하려면 위의 독립 슬라이드 색인을 쓴다.
 
 ### 네이티브 도식을 만드는 원칙
 
