@@ -5,7 +5,7 @@ description: RFP와 승인된 슬라이드 청사진을 편집 가능한 네이�
 
 # Proposal PPT Maker
 
-승인된 RFP 범위와 `slide-blueprint.json`을 편집 가능한 PowerPoint 네이티브 도형 장표로 변환한다. 내장 도식 레시피만으로 완전하게 작동하며 에셋 카탈로그, 검색 색인, SQLite, 임베딩 또는 `asset-mapping.json`을 요구하지 않는다.
+승인된 RFP 범위와 `slide-blueprint.json`을 편집 가능한 PowerPoint 네이티브 도형 장표로 변환한다. AI가 장표마다 도형·관계·좌표를 직접 저작하며 에셋 카탈로그, 고정 도식 레시피, 검색 색인, SQLite, 임베딩 또는 `asset-mapping.json`을 요구하지 않는다.
 
 승인은 두 번 나눠 받는다. 1차는 `$proposal-slide-planner`가 블록 구성과 간단 내용을 확정한다. 이 Skill은 `status: "structure_approved"` 이후 상세 문구와 네이티브 도식을 완성해 2차 승인을 받고, 청사진을 `status: "approved"`로 바꾼 뒤 최종 렌더링한다.
 
@@ -14,6 +14,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 ## 필수 참조
 
 - 입력·출력 JSON을 만들기 전에 [references/io-contract.md](references/io-contract.md)를 전체 읽는다.
+- 자유 배치 도형 계획을 만들기 전에 [references/agent-authored-layout.md](references/agent-authored-layout.md)를 전체 읽는다.
 - 세로형 장표는 [references/portrait-proposal.md](references/portrait-proposal.md)를 전체 읽는다.
 - 사용자가 서브에이전트를 명시적으로 요청한 경우만 [references/agent-execution-contract.md](references/agent-execution-contract.md)를 읽고 계약을 검증한다.
 
@@ -24,9 +25,9 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 3. `source_refs`, 원문 인용, 제작 메모와 보호 지표는 JSON·검수 메타에 보존하고 최종 가시 문구에는 구현·운영·활용 언어만 쓴다.
 4. 기간 근거가 없으면 로드맵을 만들지 않는다. 비교 블록은 `content.conclusion`에 적용 방향을 쓴다.
 5. `portrait`에는 `니다.`로 끝나는 `governing_message`가 필수다.
-6. `density: high`와 5~6개의 독립 내용 블록을 유지한다. 같은 카드 모양을 반복하지 않는다.
-7. 블록 내용을 먼저 상세화한 뒤 `visual_category`를 확정한다. `visual_category`가 내장 `renderer_key`를 직접 선택한다.
-8. `block_pool_auto`에서는 한 장의 `visual_category`가 모두 달라야 한다. 프로세스·허브·게이트·매핑·레인·표·지표 등 의미에 맞는 서로 다른 topology를 조합한다.
+6. `density: high`와 5~8개의 독립 내용 블록을 유지한다. 같은 카드 모양을 반복하지 않는다.
+7. 신규 장표는 `layout_family: "agent_authored"`와 `shape_plan`을 사용한다. AI가 전체 메시지와 블록 관계를 보고 네이티브 도형, 크기, 좌표, 연결을 직접 결정한다.
+8. `composition_signature`와 `design_rationale`로 구조 선택을 설명한다. 인접 장표와 같은 구조 서명이 반복되면 의미상 필수인 경우가 아니면 다시 구성한다. 고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용이다.
 9. 세 개 이상의 병렬 항목은 단순 불릿 대신 도식 노드, 레인, 매핑 또는 표로 표현한다.
 10. 최종 도식은 원·사각형·선·텍스트 등 편집 가능한 네이티브 PowerPoint 도형이어야 한다. 사용자가 요청한 사진·로고와 허용한 생성 이미지만 예외다.
 11. 복잡한 구조도 먼저 `native_diagram`과 편집 가능한 `content.explanation`으로 구성한다. 읽기 어려운 경우만 `text_explainer`, 사용자 허용 시만 `generated_visual_with_text`를 쓴다.
@@ -50,7 +51,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 ```
 
 1. `structure_approved` 청사진의 상세 콘텐츠를 채운다.
-2. 서로 다른 내장 도식 조합으로 와이어프레임을 렌더링해 채팅에 표시한다.
+2. 장표별 `shape_plan`을 직접 저작하고 와이어프레임을 렌더링해 채팅에 표시한다.
 3. 2차 명시 승인을 받은 뒤 `status: "approved"`로 바꾼다.
 4. 최종 PPTX와 PNG를 생성하고 시각 QA를 수행한다.
 
@@ -58,7 +59,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" --output "<output-dir>"
 ```
 
-결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. 보고서는 `native_diagrams`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
+결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. 보고서는 `native_shape_plan`, `composition_signature`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
 
 ## 설치 검증
 
@@ -74,7 +75,8 @@ node "<skill-root>/scripts/verify-skill.mjs"
 
 - 승인 전 최종 렌더링 금지
 - 최종 장표 `density: high`, 내용 상자 5개 이상
-- `block_pool_auto`의 `visual_category` 중복 없음
+- `agent_authored`의 모든 블록이 도형과 편집 가능한 텍스트로 표현됨
+- 도형이 안전 영역 안에 있고 연결선 참조가 유효함
 - 보호 정량지표 보존
 - 사진·로고 예외가 없으면 `embedded_media_count: 0`, `picture_shape_count: 0`
 - PowerPoint 검증을 할 수 없으면 `generated_pending_powerpoint_review`로 보고

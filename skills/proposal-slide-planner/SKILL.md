@@ -11,10 +11,10 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 
 ## 비협상 규칙
 
-1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 상자 5~6개로 둔다.
-2. `layout_family: "block_pool_auto"`에서는 모든 블록을 `slot: "auto"`로 선언하고 한 장 안의 `visual_category`를 서로 다르게 쓴다. 같은 카드 토폴로지 반복으로 개수를 채우지 않는다.
-3. 내용을 먼저 확정한 뒤 그릇을 고른다. 각 블록의 `content.headline`과 `content.summary`를 정한 다음 의미에 맞는 `visual_category`를 선택한다.
-4. 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 일정만 `gantt_roadmap`을 사용한다. 계층은 `architecture`, 순환은 `feedback_loop`, 1:N은 `mapping`, 병렬 역할은 `swimlane`, 통과 기준은 `quality_gate`, 방사형 연결은 `hub_spoke`, 순차 격자는 `process_grid`, 실제 대립 항목은 `comparison`을 사용한다.
+1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 단위 5~8개로 둔다.
+2. 신규 청사진은 `layout_family: "agent_authored"`를 기본으로 쓴다. 고정 `visual_category`, `slot`, 카드 템플릿을 선택하지 않는다.
+3. 각 블록에 `content.headline`, `content.summary`, 자유 서술형 `visual_intent`, `content_priority`, `composition_constraints`를 기록한다. 이 값은 도형 이름이 아니라 전달할 의미, 강조 순서, 관계를 설명한다.
+4. 표·검증·흐름·계층·순환·1:N·병렬 역할 같은 관계를 분석하되 미리 정해진 토폴로지 enum으로 환원하지 않는다. 메이커 에이전트가 장표 전체의 주도 도식을 결정한다.
 5. 기간·마일스톤 근거가 없으면 로드맵을 만들지 않는다. 비교에는 `content.conclusion`으로 적용 방향을 쓴다.
 6. `slide_scope: "requirement"`는 개별 요구사항 1건과 단일 `requirement_ids`를 사용한다. 여러 요구사항을 묶는 개요만 `slide_scope: "overview"`로 둔다.
 7. 한 요구사항을 여러 장으로 나눌 때 각 장이 원문 근거만으로 5개 블록을 채우고 비슷한 분량으로 스스로 성립해야 한다. 자리표시자나 반복 문장이 필요하면 나누지 않는다.
@@ -50,8 +50,8 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 1. 요구사항 ID, 범위와 인접 요구사항 경계를 확정한다.
 2. 방향과 팔레트를 확정한다.
 3. 원문을 내용 단위로 나누고 블록별 `headline`과 `summary`를 쓴다.
-4. 각 내용에 맞는 서로 다른 `visual_category`를 배정한다.
-5. `<plugin-root>/references/data-contract-v2.md`에 맞춰 `slide-blueprint.json`을 만든다. 초기 `status`는 `draft`다.
+4. 블록별 `visual_intent`, 우선순위와 서로 연결되어야 하는 관계를 작성한다. 도형과 좌표는 이 단계에서 고정하지 않는다.
+5. `<plugin-root>/references/data-contract-v2.md`의 `agent_authored` 계약에 맞춰 `slide-blueprint.json`을 만든다. 초기 `status`는 `draft`다.
 6. `--outline` 와이어프레임을 보여주고 1차 승인을 받는다. 승인 후 `status`를 `structure_approved`로 바꾼다.
 7. 사용자 승인 후에만 `$proposal-ppt-maker`로 상세 문구와 최종 PPTX를 만든다.
 

@@ -8,7 +8,7 @@
   "slide_scope": { "count": 4, "orientation": "portrait" },
   "palette": { "primary": "#1769E0", "navy": "#123B78" },
   "reference_context": { "mode": "none", "selected_slide_ids": [], "notes": [] },
-  "native_topology_constraints": ["unique_visual_category_per_slide", "editable_powerpoint_shapes"],
+  "layout_constraints": ["agent_authored_shape_plan", "distinct_composition_signature", "editable_powerpoint_shapes"],
   "forbidden_actions": ["start_localhost", "create_review_ppt", "expand_requirement_scope", "require_asset_catalog"],
   "time_budget_minutes": 30,
   "max_review_rounds": 1,
@@ -20,6 +20,6 @@
 node "<skill-root>/scripts/validate-agent-brief.mjs" --brief "<brief.json>"
 ```
 
-필수 필드는 `requirement_ids`, `slide_scope`, `palette`, `reference_context`, `native_topology_constraints`, `forbidden_actions`, `time_budget_minutes`, `max_review_rounds`, `completion_criteria`다. `max_review_rounds`는 0 또는 1이어야 한다.
+필수 필드는 `requirement_ids`, `slide_scope`, `palette`, `reference_context`, `layout_constraints`, `forbidden_actions`, `time_budget_minutes`, `max_review_rounds`, `completion_criteria`다. `max_review_rounds`는 0 또는 1이어야 한다.
 
-서브에이전트는 대상 ID, 장표 수, 방향, 팔레트, 선택 레퍼런스, 네이티브 토폴로지 제약, 금지 작업과 시간 예산을 시작 응답에서 확인한다. 범위 밖 문제는 수정하지 않고 상위 에이전트에게 보고한다.
+빌더 서브에이전트는 요구사항별로 의미 블록과 `shape_plan`을 저작한다. 한 명의 리뷰어가 렌더 PNG에서 겹침·잘림·반복 구성을 검사하며 수정 라운드는 최대 1회다. 메인 에이전트가 결과를 결합하고 계약·산출물 검증을 수행한다. 범위 밖 문제는 수정하지 않고 상위 에이전트에게 보고한다.

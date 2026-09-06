@@ -38,19 +38,20 @@
 - `orientation`: `landscape` 또는 `portrait`
 - `density`: `high`
 - `blocks[]`: 최소 5개
+- `shape_plan`: `layout_family: "agent_authored"`에서 필수
 
 `portrait`에는 `니다.`로 끝나는 `governing_message`가 필수다. `protected_metrics[]`는 `metric_id`, `label`, `value_text`, `source_refs[]`를 가진다. `theme`을 생략하면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF` 중심의 기본 팔레트를 사용한다.
 
-각 블록은 다음을 가진다.
+신규 `agent_authored` 블록은 다음을 가진다.
 
-- `block_id`, `role`, `slot`, `visual_category`, `direction`, `importance`
+- `block_id`, `role`
 - `content`
 - `source_refs[]`
-- 선택적 `architecture_treatment`: `native_diagram`, `text_explainer`, `generated_visual_with_text`
+- 선택적 `visual_intent`, `content_priority`, `composition_constraints[]`, `direction`, `importance`
 
-`text_explainer`와 `generated_visual_with_text`는 `content.explanation`이 필수다. 비교 블록은 `content.conclusion`이 필요하다. `block_pool_auto`는 5~6개 블록, 모두 `slot: "auto"`, 한 장 안에서 서로 다른 `visual_category`를 요구한다.
+`shape_plan`은 `design_rationale`, `composition_signature`, `primitives[]`를 가진다. 각 primitive는 `kind`, 고유 `name`, `block_id`, `position`과 종류별 텍스트·스타일·연결 정보를 가진다. 상세 계약은 `agent-authored-layout.md`를 따른다.
 
-쓸 수 있는 `visual_category`와 타입별 필수 콘텐츠는 `<plugin-root>/references/data-contract-v2.md`의 `BlockType` 표를 따른다. `visual_category`가 내장 `renderer_key`를 직접 선택하므로 별도의 자산 매핑은 없다. 예를 들어 `blueprint_flow`, `feedback_loop`, `mapping`, `swimlane`, `quality_gate`, `architecture`, `matrix_table`, `metric_dashboard`는 각각 다른 네이티브 도식 토폴로지를 만든다.
+기존 `block_pool_auto` 입력은 5~6개 블록, 모두 `slot: "auto"`, 서로 다른 `visual_category`를 요구한다. 이 경로와 `BlockType` 표는 하위 호환용이며 신규 장표는 사용하지 않는다.
 
 ## 선택적 `reference_context`
 
@@ -82,7 +83,7 @@
 
 - `wireframe.png`: 2차 승인용 구조 미리보기
 - `final-slide.png`: 완성 장표 미리보기
-- `verification-report.json`: 방향, 레이아웃, `density`, `content_box_count`, `native_diagrams`, `reference_context`, 산출물 경로와 렌더 상태
+- `verification-report.json`: 방향, 레이아웃, `density`, `content_box_count`, `native_shape_plan`, `composition_signature`, `reference_context`, 산출물 경로와 렌더 상태
 
 `source_refs`, `protected_metrics`, 레퍼런스 메모는 기계 판독 메타이며 최종 장표의 가시 문구가 아니다.
 

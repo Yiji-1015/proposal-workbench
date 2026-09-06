@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { loadArtifactTool } from "./artifact-tool-runtime.mjs";
 import { AssetLayoutError, createAssetRecipe } from "./asset-recipes.mjs";
+import { agentShapeRecipe } from "./agent-shape-plan.mjs";
 
 const { Presentation, PresentationFile } = await loadArtifactTool();
 
@@ -55,7 +56,7 @@ function addHeader(slide, model, page, wireframe) {
   text(slide, `requirement-id-${suffix}`, displayRequirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
   text(slide, `page-${suffix}`, String(page).padStart(2, "0"), { left: model.canvas.width - 92, top: model.canvas.height - 36, width: 54, height: 18 }, 12, C.blue, true, "right");
 }
-function applyAssetRecipe(slide, recipe, asset = null) {
+export function applyNativeShapePlan(slide, recipe, asset = null) {
   const shapesByName = new Map();
   let pictureShapeCount = 0;
   for (const item of recipe.primitives) {
@@ -77,13 +78,14 @@ function applyAssetRecipe(slide, recipe, asset = null) {
       continue;
     }
     if (item.kind === "connector" && item.from && item.to && shapesByName.has(item.from) && shapesByName.has(item.to)) {
-      slide.shapes.connect(shapesByName.get(item.from), shapesByName.get(item.to), {
+      const connector = slide.shapes.connect(shapesByName.get(item.from), shapesByName.get(item.to), {
         kind: item.connectorKind ?? "straight",
         fromSide: item.fromSide,
         toSide: item.toSide,
         line: { style: "solid", fill: item.stroke ?? C.accent, width: item.lineWidth ?? 1 },
         head: { type: "arrow", width: "sm", length: "sm" },
       });
+      connector.name = item.name;
       continue;
     }
     const geometry = item.custom_geometry ? "custom" : item.kind === "connector" ? "line" : item.kind;
@@ -127,6 +129,10 @@ function addOutline(deck, model, layout) {
 function addWireframe(deck, model, layout) {
   const slide = deck.slides.add();
   addHeader(slide, model, 1, true);
+  if (model.layoutFamily === "agent_authored") {
+    applyNativeShapePlan(slide, agentShapeRecipe(model.shapePlan));
+    return slide;
+  }
   for (const block of model.blocks) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
@@ -144,7 +150,7 @@ function addWireframe(deck, model, layout) {
     if (rendererKey) {
       try {
         const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
-        applyAssetRecipe(slide, recipe);
+        applyNativeShapePlan(slide, recipe);
         text(slide, `wireframe-mapping:${block.blockId}`, `native · ${rendererKey}`, { left: frame.left + 14, top: frame.top + 31, width: frame.width - 28, height: 9 }, 8, C.gray, true, "right");
       } catch (error) {
         if (!(error instanceof AssetLayoutError)) throw error;
@@ -316,6 +322,10 @@ function addFinal(deck, model, layout) {
   addHeader(slide, model, 2, false);
   const runtimeFallbacks = [];
   let pictureShapeCount = 0;
+  if (model.layoutFamily === "agent_authored") {
+    const application = applyNativeShapePlan(slide, agentShapeRecipe(model.shapePlan));
+    return { slide, runtimeFallbacks, pictureShapeCount: application.pictureShapeCount };
+  }
   for (const block of model.blocks) {
     const frame = layout.frames[block.blockId];
     if (!frame) continue;
@@ -327,7 +337,7 @@ function addFinal(deck, model, layout) {
     if (rendererKey) {
       try {
         const recipe = createAssetRecipe({ rendererKey, block, frame, theme: model.theme });
-        const application = applyAssetRecipe(slide, recipe);
+        const application = applyNativeShapePlan(slide, recipe);
         pictureShapeCount += application.pictureShapeCount;
       } catch (error) {
         if (!(error instanceof AssetLayoutError)) throw error;

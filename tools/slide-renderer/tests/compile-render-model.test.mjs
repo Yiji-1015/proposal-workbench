@@ -30,6 +30,28 @@ function fixture() {
   return { requirement, blueprint };
 }
 
+function agentFixture() {
+  const inputs = fixture();
+  inputs.blueprint.layout_family = "agent_authored";
+  inputs.blueprint.blocks = ["intent", "scope", "flow", "control", "outcome"].map((blockId) => ({
+    block_id: blockId,
+    role: blockId,
+    content: { headline: `${blockId} headline` },
+  }));
+  inputs.blueprint.shape_plan = {
+    design_rationale: "요구사항의 원인에서 효과로 이어지는 비대칭 세로 흐름을 사용한다.",
+    composition_signature: "portrait-asymmetric-spine-v1",
+    primitives: inputs.blueprint.blocks.flatMap((block, index) => {
+      const top = 180 + index * 190;
+      return [
+        { kind: index === 2 ? "ellipse" : "roundRect", name: `${block.block_id}-surface`, block_id: block.block_id, position: { left: 48 + index * 12, top, width: 600 - index * 24, height: 142 }, fill: index === 2 ? "pale" : "white", stroke: "line" },
+        { kind: "text", name: `${block.block_id}-text`, block_id: block.block_id, position: { left: 72 + index * 12, top: top + 34, width: 552 - index * 24, height: 56 }, text: `${block.content.headline}${index === 0 ? " · 분기 1회" : ""}`, color: "ink", font_size: 18, bold: true },
+      ];
+    }),
+  };
+  return inputs;
+}
+
 test("compiles the native core without mapping, catalog, ingest, or search", () => {
   const model = compileRenderModel(fixture());
   assert.equal(model.requirementId, "SEC-204");
@@ -57,6 +79,57 @@ test("records user-supplied references as metadata only", () => {
     selectedSlideIds: ["deck-a_s003"],
     notes: [{ blockId: "flow", referenceId: "deck-a_s003", usageNote: "입력-처리-출력 배치만 참고" }],
   });
+});
+
+test("compiles an agent-authored native shape plan without fixed visual categories", () => {
+  const model = compileRenderModel(agentFixture());
+  assert.equal(model.layoutFamily, "agent_authored");
+  assert.equal(model.blocks[0].visualCategory, "agent_authored");
+  assert.equal(model.blocks[0].blockTypeDefinition, null);
+  assert.equal(model.shapePlan.primitives.length, 10);
+  assert.equal(model.shapePlan.compositionSignature, "portrait-asymmetric-spine-v1");
+  assert.match(model.shapePlan.structureFingerprint, /^[0-9a-f]{16}$/);
+  assert.deepEqual(model.nativeDiagrams, []);
+});
+
+test("rejects invalid agent-authored geometry before rendering", () => {
+  const outside = agentFixture();
+  outside.blueprint.shape_plan.primitives[0].position.left = -1;
+  assert.throws(() => compileRenderModel(outside), /safe area/i);
+
+  const image = agentFixture();
+  image.blueprint.shape_plan.primitives[0].kind = "image";
+  assert.throws(() => compileRenderModel(image), /unsupported.*kind/i);
+
+  const duplicate = agentFixture();
+  duplicate.blueprint.shape_plan.primitives[1].name = duplicate.blueprint.shape_plan.primitives[0].name;
+  assert.throws(() => compileRenderModel(duplicate), /name must be unique/i);
+
+  const missingMetric = agentFixture();
+  missingMetric.blueprint.shape_plan.primitives[1].text = missingMetric.blueprint.blocks[0].content.headline;
+  assert.throws(() => compileRenderModel(missingMetric), /protected metric.*분기 1회/i);
+
+  const missingSummary = agentFixture();
+  missingSummary.blueprint.blocks[0].content.summary = "승인된 상세 요약";
+  assert.throws(() => compileRenderModel(missingSummary), /content\.summary.*intent/i);
+
+  const missingVisual = agentFixture();
+  missingVisual.blueprint.shape_plan.primitives[0].kind = "line";
+  assert.throws(() => compileRenderModel(missingVisual), /non-text visual shape.*intent/i);
+
+  const invalidConnector = agentFixture();
+  invalidConnector.blueprint.shape_plan.primitives.push({
+    kind: "connector", name: "invalid-connector", block_id: "flow",
+    position: { left: 120, top: 700, width: 200, height: 10 },
+    from: "intent-surface", to: "scope-surface", connector_kind: "curved",
+  });
+  assert.throws(() => compileRenderModel(invalidConnector), /unsupported connector_kind/i);
+});
+
+test("accepts an explicit empty reference selection", () => {
+  const inputs = agentFixture();
+  inputs.blueprint.reference_context = { mode: "none", selected_slide_ids: [], notes: [] };
+  assert.deepEqual(compileRenderModel(inputs).referenceContext.selectedSlideIds, []);
 });
 
 test("rejects repeated native topology within one block-pool slide", () => {
@@ -103,4 +176,11 @@ test("outline mode accepts headline and summary without detailed type fields", (
   for (const block of inputs.blueprint.blocks) block.content = { headline: block.block_id, summary: "블록의 간단 내용" };
   assert.doesNotThrow(() => compileRenderModel({ ...inputs, outline: true }));
   assert.throws(() => compileRenderModel(inputs));
+});
+
+test("agent-authored outline can precede detailed shape planning", () => {
+  const inputs = agentFixture();
+  delete inputs.blueprint.shape_plan;
+  assert.doesNotThrow(() => compileRenderModel({ ...inputs, outline: true }));
+  assert.throws(() => compileRenderModel(inputs), /shape_plan/);
 });

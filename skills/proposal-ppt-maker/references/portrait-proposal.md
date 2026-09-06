@@ -48,11 +48,8 @@
 
 모든 텍스트 그룹을 채운 사각형 안에 넣지 않는다. 한 장에서 하나의 주도 도식이 흐름을 만들도록 한다.
 
-- 병렬 전략 3개 이상: chain 또는 repeated nodes
-- 통제항목: wheel 또는 hub-spoke
-- 두 실행 축: comparison 또는 convergence
-- 단계: process, lifecycle, roadmap
-- 구성요소: architecture 또는 hierarchy
+- 병렬 전략, 통제항목, 두 실행 축, 단계, 구성요소의 관계를 먼저 파악하고 그 관계가 한눈에 드러나는 구성을 직접 설계한다.
+- chain, hub-spoke, convergence, lifecycle, hierarchy 같은 명칭은 사고를 돕는 예시일 뿐 선택해야 할 고정 레시피가 아니다.
 
 불릿 옆에 장식 자산을 놓는 것보다 불릿 자체를 도식 노드의 라벨로 바꾸는 방식을 우선한다.
 
@@ -66,7 +63,7 @@
 - 하나의 문장을 다섯 박스로 나누거나 근거 없는 내용을 추가해 개수만 맞추지 않는다.
 - 선택 에셋이 feedback loop, quality gate, hub-spoke, swimlane이면 해당 토폴로지의 노드와 연결 관계를 실제 상자 구조에 반영한다. 최소 수량을 채우기 위해 같은 카드 형태를 반복하지 않는다.
 
-`block_pool_auto`를 사용할 때는 요구사항 내용에 따라 필요한 블록 타입을 조합한다. 쓸 수 있는 타입은 `<plugin-root>/references/data-contract-v2.md`의 `BlockType` 표를 본다. `blueprint_flow`는 `steps[]`마다 동일 순서의 `step_details[]`를 채워 처리 노드 내부의 상세 문구를 보존한다. 자동 배치는 타입별 최소 높이를 우선 보장하며, 세로 공간이 부족하면 내용을 축소하지 않고 먼저 장표를 시리즈로 나눈다. 네이티브 도식을 끝까지 구성해도 전달할 수 없는 경우에만 `text_explainer`로 전환한다.
+신규 장표는 `agent_authored`와 `shape_plan`을 사용한다. 블록 타입 표나 자동 배치에 맞추지 말고 720×1280 본문 안전 영역 안에서 시선 흐름과 정보 위계를 직접 설계한다. 세로 공간이 부족하면 글자를 축소하지 않고 먼저 내용을 정리하거나 근거가 충분할 때 장표를 시리즈로 나눈다.
 
 ## 5. 비교와 결론
 

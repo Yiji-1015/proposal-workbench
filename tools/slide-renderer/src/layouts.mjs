@@ -115,6 +115,13 @@ function processCells(model, frames) {
 }
 
 export function createLayoutPlan(model) {
+  if (model.layoutFamily === "agent_authored") {
+    return {
+      layoutKey: `agent_authored:${model.canvas.orientation}`,
+      frames: model.shapePlan?.blockFrames ? structuredClone(model.shapePlan.blockFrames) : genericFrames(model),
+      processCells: [],
+    };
+  }
   const registered = model.layoutFamily === "three_column_with_bottom_band";
   const pool = model.layoutFamily === "block_pool_auto";
   const templateFrames = pool ? poolFrames(model) : registered ? registeredFrames(model) : genericFrames(model);

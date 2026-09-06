@@ -116,6 +116,14 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       renderer_key: item.rendererKey,
       render_mode: "native_powerpoint_shapes",
     })),
+    native_shape_plan: model.shapePlan ? {
+      render_mode: "agent_authored_native_shapes",
+      composition_signature: model.shapePlan.compositionSignature,
+      structure_fingerprint: model.shapePlan.structureFingerprint,
+      design_rationale: model.shapePlan.designRationale,
+      primitive_count: model.shapePlan.primitives.length,
+      shape_names: model.shapePlan.primitives.map((primitive) => primitive.name),
+    } : null,
     reference_context: {
       mode: model.referenceContext.mode,
       selected_slide_ids: model.referenceContext.selectedSlideIds,

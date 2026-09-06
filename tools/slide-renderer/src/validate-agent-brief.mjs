@@ -13,7 +13,8 @@ export function validateAgentBrief(brief) {
   if (!brief.slide_scope || !Number.isInteger(brief.slide_scope.count) || brief.slide_scope.count < 1) throw new Error("slide_scope.count must be a positive integer");
   if (!brief.palette || !/^#[0-9A-Fa-f]{6}$/.test(brief.palette.primary ?? "") || !/^#[0-9A-Fa-f]{6}$/.test(brief.palette.navy ?? "")) throw new Error("palette.primary and palette.navy must be #RRGGBB colors");
   if (!brief.reference_context || !["none", "user_provided"].includes(brief.reference_context.mode)) throw new Error("reference_context.mode must be none or user_provided");
-  nonEmptyArray(brief.native_topology_constraints, "native_topology_constraints");
+  const layoutConstraints = brief.layout_constraints ?? brief.native_topology_constraints;
+  nonEmptyArray(layoutConstraints, "layout_constraints");
   nonEmptyArray(brief.forbidden_actions, "forbidden_actions");
   if (!Number.isFinite(brief.time_budget_minutes) || brief.time_budget_minutes <= 0) throw new Error("time_budget_minutes must be positive");
   if (![0, 1].includes(brief.max_review_rounds)) throw new Error("max_review_rounds must be 0 or 1");

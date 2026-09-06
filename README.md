@@ -149,8 +149,8 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/RFP_분석보고서.md` 하나만 산출. 요구사항 목록·정량 조건·Gap을 모두 이 파일에 담고 JSON·HTML로 중복 생성하지 않는다.
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
 3. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
-4. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 서로 다른 블록 타입 선택 → `--outline` 초안 승인(`status: structure_approved`).
-5. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → 내장 네이티브 도식으로 와이어프레임 재표시 후 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
+4. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용·우선순위·관계 확정** → `--outline` 초안 승인(`status: structure_approved`).
+5. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → AI가 장표별 네이티브 도형과 좌표를 직접 저작 → 와이어프레임 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
 
 ### 참고 라이브러리는 슬라이드 색인이다
 
@@ -166,11 +166,11 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 ### 네이티브 도식을 만드는 원칙
 
-장표는 **내장 레시피가 만드는 네이티브 PowerPoint 도형으로 완성**한다. 청사진의 `visual_category`가 흐름·허브·게이트·매핑·레인·표·지표 같은 렌더러를 직접 선택한다. `block_pool_auto`에서는 한 장 안의 타입 중복을 금지해 요구사항마다 다른 도식 조합이 나오도록 한다.
+신규 장표는 **AI가 `shape_plan`에 직접 저작한 네이티브 PowerPoint 도형으로 완성**한다. `layout_family: "agent_authored"`에서 도형 종류·크기·좌표·연결과 구성 서명을 장표마다 결정하며, 고정 레시피나 `visual_category`를 선택하지 않는다. 기존 레시피 경로는 과거 청사진 하위 호환용으로만 보관한다.
 
 사용자가 레퍼런스를 전달했으면 `reference_context.notes`에 어떤 구조를 참고했는지 남긴다. 참고할 것이 없으면 별도 파일이나 검색 세션 없이 RFP 근거만으로 구성한다.
 
-작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 그 내용에 맞는 블록 타입을 고른다. 그릇을 먼저 정하고 내용을 끼워 맞추면 요구사항이 달라도 같은 장표가 나온다.
+작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 의미 관계와 시선 흐름에 맞춰 전체 구성을 설계한다. `composition_signature`가 인접 장표와 사실상 같으면 의미상 필수인지 검토하고 다시 배치한다.
 
 ### 승인을 두 번 나누는 이유
 

@@ -30,6 +30,8 @@ test("계약 문서의 블록 타입 표가 렌더러 등록 내용과 같다", 
 
 test("계약 문서가 렌더러의 레이아웃 패밀리와 승인 상태를 담는다", () => {
   assert.match(contract, /block_pool_auto/);
+  assert.match(contract, /agent_authored/);
+  assert.match(contract, /shape_plan/);
   assert.match(contract, /"draft" \| "structure_approved" \| "approved"/);
   assert.match(contract, /span\?: "full" \| "half"/);
 });

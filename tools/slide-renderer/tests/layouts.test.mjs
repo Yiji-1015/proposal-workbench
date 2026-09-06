@@ -94,6 +94,31 @@ test("falls back to a bounded generic grid for an unknown layout family", () => 
   for (const frame of Object.values(plan.frames)) assert.ok(frame.left >= 0 && frame.top >= 0 && frame.left + frame.width <= 1280 && frame.top + frame.height <= 720);
 });
 
+test("preserves agent-authored frames instead of applying a fixed grid", () => {
+  const authoredFrames = {
+    requirement_summary: { left: 44, top: 180, width: 300, height: 120 },
+    main_process: { left: 180, top: 340, width: 460, height: 280 },
+  };
+  const plan = createLayoutPlan(model({
+    layoutFamily: "agent_authored",
+    canvas: { width: 720, height: 1280, orientation: "portrait" },
+    shapePlan: { blockFrames: authoredFrames },
+  }));
+  assert.equal(plan.layoutKey, "agent_authored:portrait");
+  assert.deepEqual(plan.frames, authoredFrames);
+  assert.deepEqual(plan.processCells, []);
+});
+
+test("uses a temporary outline grid before an agent-authored shape plan exists", () => {
+  const plan = createLayoutPlan(model({
+    layoutFamily: "agent_authored",
+    canvas: { width: 720, height: 1280, orientation: "portrait" },
+    shapePlan: null,
+  }));
+  assert.equal(plan.layoutKey, "agent_authored:portrait");
+  assert.equal(Object.keys(plan.frames).length, 5);
+});
+
 test("packs full and half pool blocks inside a portrait canvas", () => {
   const plan = createLayoutPlan({
     layoutFamily: "block_pool_auto",

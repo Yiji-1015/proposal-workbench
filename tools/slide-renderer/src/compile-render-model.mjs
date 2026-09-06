@@ -1,4 +1,5 @@
 import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
+import { normalizeAgentShapePlan } from "./agent-shape-plan.mjs";
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -21,11 +22,13 @@ function idList(value, name) {
 
 const ARCHITECTURE_TREATMENTS = new Set(["native_diagram", "text_explainer", "generated_visual_with_text"]);
 
-function normalizeBlock(block, outline = false) {
+function normalizeBlock(block, outline = false, agentAuthored = false) {
   requireObject(block, "blueprint block");
   const blockId = ownString(block, "block_id", "block_id");
-  const visualCategory = ownString(block, "visual_category");
-  const blockTypeDefinition = getBlockTypeDefinition(visualCategory);
+  const visualCategory = agentAuthored
+    ? (typeof block.visual_category === "string" && block.visual_category.trim() ? block.visual_category.trim() : "agent_authored")
+    : ownString(block, "visual_category");
+  const blockTypeDefinition = agentAuthored ? null : getBlockTypeDefinition(visualCategory);
   const content = blockTypeDefinition && !outline
     ? validateBlockTypeContent(visualCategory, block.content)
     : structuredClone(block.content ?? {});
@@ -50,10 +53,13 @@ function normalizeBlock(block, outline = false) {
   return {
     blockId,
     role: ownString(block, "role"),
-    slot: ownString(block, "slot"),
+    slot: agentAuthored ? (typeof block.slot === "string" && block.slot.trim() ? block.slot.trim() : "free") : ownString(block, "slot"),
     visualCategory,
     direction: typeof block.direction === "string" ? block.direction : "none",
     importance: typeof block.importance === "string" ? block.importance : "optional",
+    visualIntent: typeof block.visual_intent === "string" ? block.visual_intent.trim() : "",
+    contentPriority: typeof block.content_priority === "string" ? block.content_priority.trim() : "supporting",
+    compositionConstraints: Array.isArray(block.composition_constraints) ? block.composition_constraints.map((item) => String(item).trim()).filter(Boolean) : [],
     architectureTreatment,
     content,
     steps,
@@ -85,12 +91,21 @@ function countMeaningfulAreas(blocks) {
   }, 0);
 }
 
+function collectVisibleContent(value, path = "content") {
+  if (typeof value === "string" && value.trim()) return [{ field: path.replace(/^content\.?/, ""), value: value.trim() }];
+  if (Array.isArray(value)) return value.flatMap((item, index) => collectVisibleContent(item, `${path}[${index}]`));
+  if (value && typeof value === "object") return Object.entries(value).flatMap(([key, item]) => collectVisibleContent(item, `${path}.${key}`));
+  return [];
+}
+
 function normalizeReferenceContext(value, blockIds) {
   if (value == null) return { mode: "none", selectedSlideIds: [], notes: [] };
   requireObject(value, "blueprint.reference_context");
   const mode = ownString(value, "mode", "blueprint.reference_context.mode");
   if (!["none", "user_provided"].includes(mode)) throw new Error("blueprint.reference_context.mode must be none or user_provided");
-  const selectedSlideIds = value.selected_slide_ids == null ? [] : idList(value.selected_slide_ids, "blueprint.reference_context.selected_slide_ids");
+  const selectedSlideIds = value.selected_slide_ids == null || (Array.isArray(value.selected_slide_ids) && value.selected_slide_ids.length === 0)
+    ? []
+    : idList(value.selected_slide_ids, "blueprint.reference_context.selected_slide_ids");
   if (mode === "none" && selectedSlideIds.length) throw new Error("reference_context mode none cannot include selected_slide_ids");
   const notes = value.notes == null ? [] : value.notes.map((note, index) => {
     requireObject(note, `blueprint.reference_context.notes[${index}]`);
@@ -128,7 +143,14 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
   const density = blueprint.density ?? "high";
   if (density !== "high") throw new Error(`blueprint.density must be high for proposal slides; received ${density}`);
   const layoutFamily = ownString(blueprint, "layout_family", "blueprint.layout_family");
-  const blocks = blueprint.blocks.map((block) => normalizeBlock(block, outline));
+  const agentAuthored = layoutFamily === "agent_authored";
+  const blocks = blueprint.blocks.map((block) => normalizeBlock(block, outline, agentAuthored));
+  if (agentAuthored && blocks.length > 8) throw new Error("agent_authored supports 5 to 8 semantic blocks per slide");
+  if (agentAuthored && !outline) {
+    for (const block of blocks) {
+      if (typeof block.content?.headline !== "string" || !block.content.headline.trim()) throw new Error(`agent_authored block ${block.blockId} requires content.headline`);
+    }
+  }
   if (layoutFamily === "block_pool_auto") {
     if (blocks.length < 5 || blocks.length > 6) throw new Error("block_pool_auto requires 5 to 6 blocks");
     for (const block of blocks) {
@@ -151,17 +173,30 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
   if (meaningfulAreaCount < 5) throw new Error(`blueprint must contain at least 5 meaningful areas across nodes, lanes, steps, conclusions, and text regions; found ${meaningfulAreaCount}`);
   const referenceContext = normalizeReferenceContext(blueprint.reference_context, blockIds);
   const orientation = blueprint.orientation === "portrait" ? "portrait" : "landscape";
+  const canvas = orientation === "portrait" ? { width: 720, height: 1280, orientation } : { width: 1280, height: 720, orientation };
+  const theme = normalizeTheme(blueprint.theme ?? {});
+  const protectedMetrics = Array.isArray(blueprint.protected_metrics)
+    ? blueprint.protected_metrics.map((metric) => ({ metricId: metric.metric_id, label: metric.label, valueText: String(metric.value_text), sourceRefs: [...(metric.source_refs ?? [])] }))
+    : [];
+  const shapePlan = agentAuthored && !outline
+    ? normalizeAgentShapePlan(blueprint.shape_plan, {
+      canvas,
+      blockIds,
+      blockRequiredTexts: new Map(blocks.map((block) => [block.blockId, collectVisibleContent(block.content)])),
+      protectedMetricValues: protectedMetrics.map((metric) => metric.valueText),
+      theme,
+    })
+    : null;
   let governingMessage = "";
   if (orientation === "portrait") {
     governingMessage = ownString(blueprint, "governing_message", "blueprint.governing_message");
     if (!/니다\.$/.test(governingMessage)) throw new Error("blueprint.governing_message for portrait slides must end in 니다.");
   } else if (typeof blueprint.governing_message === "string") governingMessage = blueprint.governing_message.trim();
-  const protectedMetrics = Array.isArray(blueprint.protected_metrics)
-    ? blueprint.protected_metrics.map((metric) => ({ metricId: metric.metric_id, label: metric.label, valueText: String(metric.value_text), sourceRefs: [...(metric.source_refs ?? [])] }))
-    : [];
-  const nativeDiagrams = blocks
-    .filter((block) => block.blockTypeDefinition?.rendererKey)
-    .map((block) => ({ blockId: block.blockId, rendererKey: block.blockTypeDefinition.rendererKey, visualCategory: block.visualCategory }));
+  const nativeDiagrams = agentAuthored
+    ? []
+    : blocks
+      .filter((block) => block.blockTypeDefinition?.rendererKey)
+      .map((block) => ({ blockId: block.blockId, rendererKey: block.blockTypeDefinition.rendererKey, visualCategory: block.visualCategory }));
   return {
     requirementId,
     slideScope,
@@ -173,13 +208,14 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     title: ownString(blueprint, "slide_title", "blueprint.slide_title"),
     layoutFamily,
     density,
-    canvas: orientation === "portrait" ? { width: 720, height: 1280, orientation } : { width: 1280, height: 720, orientation },
+    canvas,
     protectedMetrics,
-    theme: normalizeTheme(blueprint.theme ?? {}),
+    theme,
     contentBoxCount: blocks.length,
     meaningfulAreaCount,
     blocks,
     nativeDiagrams,
+    shapePlan,
     referenceContext,
   };
 }

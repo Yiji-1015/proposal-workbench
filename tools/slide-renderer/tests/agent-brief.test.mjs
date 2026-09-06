@@ -8,7 +8,7 @@ function validBrief() {
     slide_scope: { count: 4, orientation: "portrait" },
     palette: { primary: "#1769E0", navy: "#123B78" },
     reference_context: { mode: "none", selected_slide_ids: [], notes: [] },
-    native_topology_constraints: ["unique_visual_category_per_slide"],
+    layout_constraints: ["agent_authored_shape_plan", "distinct_composition_signature"],
     forbidden_actions: ["start_localhost", "create_review_ppt", "expand_validation_infrastructure"],
     time_budget_minutes: 30,
     max_review_rounds: 1,

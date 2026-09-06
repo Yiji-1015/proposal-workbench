@@ -24,8 +24,8 @@ test("maker contract is asset-independent and native-first", async () => {
     assert.match(skill, new RegExp(phrase.replace(".", "\\.")));
   }
   assert.match(skill, /요구하지 않는다/);
-  assert.match(skill, /visual_category.*renderer_key.*직접 선택/s);
-  assert.match(skill, /한 장의 `visual_category`가 모두 달라야 한다/);
+  assert.match(skill, /layout_family: "agent_authored".*shape_plan/s);
+  assert.match(skill, /고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용/);
   assert.match(skill, /proposal-ppt-ingest.*proposal-reference-search.*독립 도구/s);
   assert.match(skill, /reference_context/);
   assert.match(skill, /embedded_media_count: 0/);
@@ -33,14 +33,14 @@ test("maker contract is asset-independent and native-first", async () => {
 
   for (const input of ["input/requirement.json", "blueprint/slide-blueprint.json"]) assert.ok(io.includes(input));
   assert.doesNotMatch(io, /mapping\/asset-mapping\.json/);
-  assert.match(io, /visual_category.*내장 `renderer_key`를 직접 선택/s);
+  assert.match(io, /`shape_plan`은 `design_rationale`, `composition_signature`, `primitives\[\]`/);
   assert.match(io, /세션·SQLite·원본 파일·미리보기 이미지를 로드하지 않는다/);
   for (const output of ["wireframe.png", "final-slide.png", "verification-report.json", ".pptx"]) assert.ok(io.includes(output));
-  for (const field of ["native_diagrams", "reference_context", "content_box_count"]) assert.ok(io.includes(field));
+  for (const field of ["native_shape_plan", "composition_signature", "reference_context", "content_box_count"]) assert.ok(io.includes(field));
 
-  assert.match(metadata, /built-in native shape renderers/i);
+  assert.match(metadata, /agent_authored and shape_plan/i);
   assert.match(metadata, /never require ingest, search, an asset catalog, or asset mapping/i);
-  for (const field of ["requirement_ids", "slide_scope", "palette", "reference_context", "native_topology_constraints", "forbidden_actions", "time_budget_minutes", "max_review_rounds", "completion_criteria"]) {
+  for (const field of ["requirement_ids", "slide_scope", "palette", "reference_context", "layout_constraints", "forbidden_actions", "time_budget_minutes", "max_review_rounds", "completion_criteria"]) {
     assert.ok(contract.includes(field), `missing agent contract field ${field}`);
   }
 });
@@ -57,7 +57,7 @@ test("planner treats references as optional metadata", async () => {
   assert.match(planner, /레퍼런스 없이도 RFP만으로 완전하게 기획한다/);
   assert.match(planner, /검색, 인제스트, SQLite, 임베딩, 에셋 카탈로그를 호출하거나 요구하지 않는다/);
   assert.match(planner, /asset-mapping\.json`을 만들지 않는다/);
-  assert.match(planner, /한 장 안의 `visual_category`를 서로 다르게 쓴다/);
+  assert.match(planner, /layout_family: "agent_authored"/);
   assert.match(planner, /reference_context/);
   assert.match(planner, /세션 파일을 열거나 완료 상태를 재확인하지 않으며/);
   assert.match(ingest, /독립 인제스트/);
@@ -73,7 +73,7 @@ test("agent brief validates native topology contract", () => {
     slide_scope: { count: 1, orientation: "portrait" },
     palette: { primary: "#1769E0", navy: "#123B78" },
     reference_context: { mode: "none", selected_slide_ids: [], notes: [] },
-    native_topology_constraints: ["unique_visual_category_per_slide"],
+    layout_constraints: ["agent_authored_shape_plan"],
     forbidden_actions: ["require_asset_catalog"],
     time_budget_minutes: 20,
     max_review_rounds: 1,

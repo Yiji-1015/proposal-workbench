@@ -84,11 +84,14 @@ export interface RfpAnalysisContract {
 ```typescript
 export interface SlideBlock {
   block_id: string;          // 장표 내부 고유 블록 ID
-  role: "requirement_summary" | "main_process" | "operation_quality" | "technology_comparison" | "metric_highlight";
-  slot: "top" | "left" | "center" | "right" | "bottom_center" | "generic" | "auto";
+  role: string;               // 내용의 의미 역할
+  slot?: "top" | "left" | "center" | "right" | "bottom_center" | "generic" | "auto";
                              // block_pool_auto에서는 반드시 "auto"
   span?: "full" | "half";    // block_pool_auto 전용. 연속한 half 두 개가 한 줄을 이룬다
-  visual_category: BlockType; // 아래 14종. 등록되지 않은 값은 렌더러가 거부한다
+  visual_category?: BlockType; // block_pool_auto 하위 호환 경로에서만 사용
+  visual_intent?: string;     // 전달할 관계와 시각적 역할을 자유 서술
+  content_priority?: "primary" | "secondary" | "supporting";
+  composition_constraints?: string[];
   direction?: "left_to_right" | "vertical" | "horizontal" | "none";
   importance?: "mandatory" | "optional";
   architecture_treatment?: "native_diagram" | "text_explainer" | "generated_visual_with_text";
@@ -118,8 +121,8 @@ export interface SlideBlueprintContract {
   slide_title: string;
   governing_message?: string; // 세로형(portrait)일 때 필수, 반드시 ~니다. 종결
   orientation: "landscape" | "portrait";
-  layout_family: "block_pool_auto" | "three_column_with_bottom_band" | "generic_grid";
-                             // block_pool_auto는 블록 5~6개만 허용한다
+  layout_family: "agent_authored" | "block_pool_auto" | "three_column_with_bottom_band" | "generic_grid";
+                             // 신규 기본값은 agent_authored, 나머지는 하위 호환
   density: "high";            // 제안서는 high 필수
   theme: {
     primary: string;          // 기본: #1769E0
@@ -133,6 +136,7 @@ export interface SlideBlueprintContract {
     white?: string;           // 기본: #FFFFFF
   };
   blocks: SlideBlock[];       // 최소 5개의 독립된 내용 상자
+  shape_plan?: AgentShapePlan; // agent_authored에서 필수
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];
   reference_context?: {
@@ -144,9 +148,31 @@ export interface SlideBlueprintContract {
                              // draft -> 1차 승인 시 structure_approved -> 2차 승인 시 approved.
                              // 렌더러는 approved만 최종 PPTX로 통과시킨다
 }
+
+export interface NativeShapePrimitive {
+  kind: "text" | "rect" | "roundRect" | "ellipse" | "diamond" | "line" | "connector";
+  name: string;               // 장표 안에서 고유
+  block_id: string;           // 실제 SlideBlock 참조
+  position: { left: number; top: number; width: number; height: number };
+  text?: string;
+  fill?: string; stroke?: string; color?: string;
+  line_width?: number; font_size?: number; bold?: boolean;
+  alignment?: "left" | "center" | "right";
+  from?: string; to?: string;
+  from_side?: "left" | "right" | "top" | "bottom";
+  to_side?: "left" | "right" | "top" | "bottom";
+}
+
+export interface AgentShapePlan {
+  design_rationale: string;
+  composition_signature: string;
+  primitives: NativeShapePrimitive[]; // 최소 10개, 모든 블록에 도형+텍스트 포함
+}
 ```
 
-`block_pool_auto`에서는 한 장 안의 `visual_category`를 모두 다르게 사용한다. `visual_category`가 내장 네이티브 렌더러를 직접 선택하며 `asset-mapping.json`은 코어 계약에 없다. `reference_context`는 과거 장표에서 참고한 구조를 설명할 뿐 렌더링 의존성이 아니다.
+신규 장표는 `agent_authored`와 `shape_plan`을 사용한다. AI가 전체 의미 구조를 보고 네이티브 도형과 좌표를 직접 저작하며 고정 `visual_category`나 레시피를 선택하지 않는다. 모든 블록은 최소 한 도형과 편집 가능한 텍스트로 표현되어야 하고, 도형은 본문 안전 영역 안에 있어야 한다. `asset-mapping.json`은 코어 계약에 없다. `reference_context`는 과거 장표에서 참고한 구조를 설명할 뿐 렌더링 의존성이 아니다.
+
+`block_pool_auto`에서는 한 장 안의 `visual_category`를 모두 다르게 사용한다. 아래 `BlockType` 표와 직접 렌더러 선택은 기존 청사진 하위 호환용이다.
 
 
 ### `BlockType` — 렌더러에 등록된 14종

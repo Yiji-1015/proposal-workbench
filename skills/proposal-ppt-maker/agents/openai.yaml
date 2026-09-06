@@ -1,7 +1,7 @@
 interface:
   display_name: "Proposal PPT Maker"
   short_description: "RFP를 고밀도 네이티브 제안 PPTX로 변환"
-  default_prompt: "Use $proposal-ppt-maker. Confirm requirement IDs first, then orientation. Use the built-in blue palette unless the user provides a palette or template. Build varied editable diagrams with the built-in native shape renderers. Treat user-provided past slides as optional structure references only; never require ingest, search, an asset catalog, or asset mapping. Show the wireframe inline in chat, then wait for explicit user approval before final rendering. Keep RFP, source, evidence, reference, and other production metadata out of visible final slide copy. For 8 slides or fewer, execute directly with at most one review round."
+  default_prompt: "Use $proposal-ppt-maker. Confirm requirement IDs first, then orientation. Use the built-in blue palette unless the user provides a palette or template. Author a distinct editable native-shape composition for each slide with layout_family agent_authored and shape_plan; do not select a fixed recipe or visual-category template. Treat user-provided past slides as optional structure references only; never require ingest, search, an asset catalog, or asset mapping. Show the wireframe inline in chat, then wait for explicit user approval before final rendering. Keep RFP, source, evidence, reference, and other production metadata out of visible final slide copy. For 8 slides or fewer, execute directly with at most one review round unless the user explicitly requests subagents."
 
 policy:
   allow_implicit_invocation: true
