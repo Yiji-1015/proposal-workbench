@@ -1092,7 +1092,10 @@ def candidate_signature(candidate: dict[str, Any]) -> str:
         "topology": _topology_kind(shapes, candidate.get("module_type")),
         "text_slots": _text_slot_signature(shapes),
     }
-    return f"sha256:{hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()}"
+    digest = hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return f"sha256:{digest}"
 
 
 def curate_candidate(candidate: dict[str, Any]) -> tuple[str, str, list[str]]:
