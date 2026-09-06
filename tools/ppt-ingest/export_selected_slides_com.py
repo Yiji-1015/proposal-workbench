@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import shutil
 from pathlib import Path
 from uuid import uuid4
 
@@ -20,8 +21,8 @@ def parse_slide_numbers(value: str) -> list[int]:
 def export_selected_slides(pptx_path: str, output_pptx: str, slide_numbers: list[int]) -> Path:
     source_path = Path(pptx_path).resolve()
     output_path = Path(output_pptx).resolve()
-    if not source_path.is_file() or source_path.suffix.lower() != ".pptx":
-        raise FileNotFoundError(f"PPTX file not found: {source_path}")
+    if not source_path.is_file() or source_path.suffix.lower() not in {".ppt", ".pptx"}:
+        raise FileNotFoundError(f"PPT/PPTX file not found: {source_path}")
     if source_path == output_path or (output_path.exists() and source_path.samefile(output_path)):
         raise ValueError("Source and output PPTX paths must be different.")
     if not slide_numbers or any(number < 1 for number in slide_numbers):
@@ -48,16 +49,38 @@ def export_selected_slides(pptx_path: str, output_pptx: str, slide_numbers: list
         if invalid:
             raise ValueError(f"Slide number exceeds deck size ({total}): {invalid[0]}")
 
-        source.SaveCopyAs(str(temp_path), 24)  # ppSaveAsOpenXMLPresentation
-        source.Close()
-        source = None
+        if source_path.suffix.lower() == ".pptx":
+            # 일부 정상 PPTX도 PowerPoint의 SaveCopyAs가 실패한다. 원본 바이트를
+            # 그대로 복제하면 재직렬화가 필요 없고, 이후 복사본만 COM으로 편집한다.
+            source.Close()
+            source = None
+            shutil.copy2(source_path, temp_path)
+        else:
+            source.SaveCopyAs(str(temp_path), 24)  # ppSaveAsOpenXMLPresentation
+            source.Close()
+            source = None
 
         exported = powerpoint.Presentations.Open(str(temp_path), ReadOnly=0, Untitled=0, WithWindow=0)
         selected = set(slide_numbers)
-        for slide_number in range(total, 0, -1):
-            if slide_number not in selected:
-                exported.Slides(slide_number).Delete()
-        exported.Save()
+        try:
+            for slide_number in range(total, 0, -1):
+                if slide_number not in selected:
+                    exported.Slides(slide_number).Delete()
+            exported.Save()
+        except Exception:
+            # Mark-as-final/정책 보호가 있는 파일은 복사본도 삭제 편집을 거부한다.
+            # 새 프레젠테이션에 선택 장표만 삽입하면 원본은 그대로 두면서 추출할 수 있다.
+            exported.Close()
+            exported = powerpoint.Presentations.Add(WithWindow=0)
+            for slide_number in sorted(slide_numbers):
+                inserted = exported.Slides.InsertFromFile(
+                    str(source_path), exported.Slides.Count, slide_number, slide_number
+                )
+                if inserted != 1:
+                    raise RuntimeError(f"PowerPoint could not insert slide {slide_number}.")
+            if temp_path.exists():
+                temp_path.unlink()
+            exported.SaveAs(str(temp_path), 24)  # ppSaveAsOpenXMLPresentation
         succeeded = True
     finally:
         for handle, method in ((exported, "Close"), (source, "Close"), (powerpoint, "Quit")):
