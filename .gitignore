@@ -16,8 +16,6 @@ storage/ingest_data/*
 !storage/ingest_data/.gitkeep
 storage/index/*
 !storage/index/.gitkeep
-storage/asset_candidates/*
-!storage/asset_candidates/.gitkeep
 storage/runs/*
 !storage/runs/.gitkeep
 

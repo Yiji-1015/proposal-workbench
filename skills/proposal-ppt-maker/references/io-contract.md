@@ -2,7 +2,7 @@
 
 ## Runtime boundary
 
-코어 렌더링 의존성은 `tools/slide-renderer`와 Codex 번들의 `@oai/artifact-tool`뿐이다. `tools/pattern-library`, `proposal-ppt-ingest`, `proposal-reference-search`, SQLite, 임베딩과 검색 세션은 필요하지 않다.
+코어 렌더링 의존성은 `tools/slide-renderer`와 Codex 번들의 `@oai/artifact-tool`뿐이다. `proposal-ppt-ingest`, `proposal-reference-search`, SQLite, 임베딩과 검색 세션은 필요하지 않다.
 
 ```text
 <requirement-project>/
