@@ -81,11 +81,16 @@
 └─ verification-report.json
 ```
 
-- `wireframe.png`: 2차 승인용 구조 미리보기
-- `final-slide.png`: 완성 장표 미리보기
+- `<requirement-id>.pptx`: 슬라이드 2장이다. 1번은 `청사진 | <제목>` 와이어프레임, 2번이 최종 장표다. 1번은 의도적으로 포함한다. 채팅이나 PNG를 보지 않고 PPTX만 여는 검토자도 같은 파일에서 구조 의도를 확인할 수 있어야 하기 때문이다. 제안서 원고에 합칠 때는 2번 슬라이드만 가져간다.
+- `wireframe.png`: 2차 승인용 구조 미리보기. PPTX 1번 슬라이드와 같은 내용이다.
+- `final-slide.png`: 완성 장표 미리보기. PPTX 2번 슬라이드와 같은 내용이다.
 - `verification-report.json`: 방향, 레이아웃, `density`, `content_box_count`, `native_shape_plan`, `composition_signature`, `reference_context`, 산출물 경로와 렌더 상태
 
 `source_refs`, `protected_metrics`, 레퍼런스 메모는 기계 판독 메타이며 최종 장표의 가시 문구가 아니다.
+
+### 장표 경계
+
+한 PPTX는 한 청사진만 담는다. requirement 장표는 요구사항 하나, overview 장표는 `requirement_ids`에 적힌 묶음 하나다. 여러 요구사항을 한 PPTX나 한 슬라이드에 합치지 않고, 한 요구사항을 여러 PPTX로 나누지도 않는다. 제안서 합본은 요구사항별 PPTX의 2번 슬라이드를 순서대로 모아 만든다. 합본 과정에서 다른 요구사항의 문구나 도형을 옮겨 붙이지 않는다.
 
 ## Close-out과 검증
 

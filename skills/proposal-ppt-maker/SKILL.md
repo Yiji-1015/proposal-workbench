@@ -61,7 +61,7 @@ node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" -
 
 여러 장을 만들 때는 한 상위 폴더 아래 요구사항별 하위 폴더로 출력한다. 렌더러가 그 폴더의 검수 보고서를 읽어 구조 반복을 검사한다.
 
-결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. 보고서는 `native_shape_plan`, `composition_signature`, `structure_repeat_check`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
+결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. PPTX는 두 장이다. 1번은 `청사진 | <제목>` 와이어프레임이고 2번이 최종 장표다. 1번은 PPTX만 여는 검토자를 위해 의도적으로 넣는 것이며, 제안서 원고에 합칠 때는 2번만 가져간다. 한 PPTX에는 청사진 하나만 담고, 합본은 요구사항별 2번 슬라이드를 모아 만든다. 보고서는 `native_shape_plan`, `composition_signature`, `structure_repeat_check`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
 
 렌더러 플래그는 다음과 같다.
 
@@ -83,6 +83,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 ## 완료 조건
 
 - 승인 전 최종 렌더링 금지
+- PPTX는 청사진 슬라이드 1장과 최종 장표 1장으로 구성되고, 한 PPTX에 청사진 하나만 담김
 - 신규 장표는 `layout_family: "agent_authored"`, 인접 장표와 다른 구조 지문
 - 최종 장표 `density: high`, 내용 상자 5개 이상
 - `agent_authored`의 모든 블록이 도형과 편집 가능한 텍스트로 표현됨
