@@ -166,11 +166,11 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 ### 네이티브 도식을 만드는 원칙
 
-신규 장표는 **AI가 `shape_plan`에 직접 저작한 네이티브 PowerPoint 도형으로 완성**한다. `layout_family: "agent_authored"`에서 도형 종류·크기·좌표·연결과 구성 서명을 장표마다 결정하며, 고정 레시피나 `visual_category`를 선택하지 않는다. 기존 레시피 경로는 과거 청사진 하위 호환용으로만 보관한다.
+신규 장표는 **AI가 `shape_plan`에 직접 저작한 네이티브 PowerPoint 도형으로 완성**한다. `layout_family: "agent_authored"`에서 도형 종류·크기·좌표·연결과 구성 서명을 장표마다 결정하며, 고정 레시피나 `visual_category`를 선택하지 않는다. 기존 레시피 경로는 과거 청사진 하위 호환용으로만 보관하며, 렌더러가 `--legacy-layout` 없이는 열지 않는다. 세로형 하위 호환 경로는 블록을 항상 1열로 쌓기 때문에 내용만 바뀐 같은 장표가 나온다.
 
 사용자가 레퍼런스를 전달했으면 `reference_context.notes`에 어떤 구조를 참고했는지 남긴다. 참고할 것이 없으면 별도 파일이나 검색 세션 없이 RFP 근거만으로 구성한다.
 
-작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 의미 관계와 시선 흐름에 맞춰 전체 구성을 설계한다. `composition_signature`가 인접 장표와 사실상 같으면 의미상 필수인지 검토하고 다시 배치한다.
+작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 의미 관계와 시선 흐름에 맞춰 전체 구성을 설계한다. 렌더러가 출력 상위 폴더의 다른 검수 보고서와 `structure_fingerprint`·`composition_signature`를 비교해 반복 구성을 렌더 실패로 막는다. 같은 구조가 의미상 필수일 때만 `--allow-repeat-structure`로 통과시킨다.
 
 ### 승인을 두 번 나누는 이유
 

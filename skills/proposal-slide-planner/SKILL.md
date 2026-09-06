@@ -12,7 +12,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 ## 비협상 규칙
 
 1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 단위 5~8개로 둔다.
-2. 신규 청사진은 `layout_family: "agent_authored"`를 기본으로 쓴다. 고정 `visual_category`, `slot`, 카드 템플릿을 선택하지 않는다.
+2. 신규 청사진은 `layout_family: "agent_authored"`를 쓴다. 고정 `visual_category`, `slot`, 카드 템플릿을 선택하지 않는다. `block_pool_auto`를 비롯한 하위 호환 값은 렌더러가 거부한다.
 3. 각 블록에 `content.headline`, `content.summary`, 자유 서술형 `visual_intent`, `content_priority`, `composition_constraints`를 기록한다. 이 값은 도형 이름이 아니라 전달할 의미, 강조 순서, 관계를 설명한다.
 4. 표·검증·흐름·계층·순환·1:N·병렬 역할 같은 관계를 분석하되 미리 정해진 토폴로지 enum으로 환원하지 않는다. 메이커 에이전트가 장표 전체의 주도 도식을 결정한다.
 5. 기간·마일스톤 근거가 없으면 로드맵을 만들지 않는다. 비교에는 `content.conclusion`으로 적용 방향을 쓴다.

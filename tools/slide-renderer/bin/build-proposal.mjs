@@ -7,7 +7,7 @@ import { compileRenderModel } from "../src/compile-render-model.mjs";
 import { createLayoutPlan } from "../src/layouts.mjs";
 
 const rendererRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BOOLEAN_FLAGS = new Set(["wireframe-only", "outline"]);
+const BOOLEAN_FLAGS = new Set(["wireframe-only", "outline", "legacy-layout", "allow-repeat-structure"]);
 
 function parseArgs(argv) {
   const values = {};
@@ -29,6 +29,39 @@ function parseArgs(argv) {
 }
 async function readJson(file) { return JSON.parse(await fs.readFile(file, "utf8")); }
 
+// 반복 구조 검사는 인접 장표의 검수 보고서를 근거로 한다. 산출물은 보통 한 폴더 아래에
+// 요구사항별로 모이므로, 출력 위치의 상위 폴더를 훑어 다른 요구사항의 지문을 모은다.
+async function collectPeerStructures(root, selfRequirementId, selfReportPath, maxDepth = 3) {
+  const peers = [];
+  async function walk(dir, level) {
+    if (level > maxDepth) return;
+    let entries;
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(full, level + 1);
+        continue;
+      }
+      if (entry.name !== "verification-report.json" || path.resolve(full) === path.resolve(selfReportPath)) continue;
+      try {
+        const report = JSON.parse(await fs.readFile(full, "utf8"));
+        const plan = report.native_shape_plan;
+        if (!plan || report.requirement_id === selfRequirementId) continue;
+        peers.push({ report: full, requirementId: report.requirement_id, fingerprint: plan.structure_fingerprint, signature: plan.composition_signature });
+      } catch {
+        continue;
+      }
+    }
+  }
+  await walk(root, 1);
+  return peers;
+}
+
 export async function buildProposal(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   const project = path.resolve(args.project);
@@ -49,6 +82,16 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       + "Render the wireframe with --wireframe-only, show it to the user, and set status to \"approved\" after they approve.",
     );
   }
+  // 문서는 오래전부터 신규 장표를 agent_authored로 규정했지만 렌더러가 레거시 경로를
+  // 말없이 받아줬다. 그래서 매번 통과가 쉬운 block_pool_auto로 되돌아갔고, 세로형에서
+  // 1열 스택 하나로만 찍혀 나왔다. 하위 호환 청사진은 이제 명시적으로 요구해야 열린다.
+  if (blueprint.layout_family !== "agent_authored" && args["legacy-layout"] !== true) {
+    throw new Error(
+      `layout_family ${JSON.stringify(blueprint.layout_family ?? null)} is a backward-compatible path and always produces the same fixed composition. `
+      + "Author layout_family \"agent_authored\" with a shape_plan for new slides, "
+      + "or pass --legacy-layout to render an existing blueprint on the old path.",
+    );
+  }
   const model = compileRenderModel({ requirement, blueprint, outline });
   const layout = createLayoutPlan(model);
   const customOutput = args.output ? path.resolve(args.output) : null;
@@ -57,6 +100,22 @@ export async function buildProposal(argv = process.argv.slice(2)) {
   const wireframePng = customOutput ? path.join(sidecarRoot, "wireframe.png") : path.join(project, "preview", "wireframe.png");
   const finalSlidePng = customOutput ? path.join(sidecarRoot, "final-slide.png") : path.join(project, "preview", "final-slide.png");
   const reportPath = customOutput ? path.join(sidecarRoot, "verification-report.json") : path.join(project, "verification", "verification-report.json");
+  // structure_fingerprint는 계산만 되고 아무도 비교하지 않았다. 인접 장표와 도형 그래프가
+  // 같으면 내용만 바뀐 같은 장표이므로, 경고가 아니라 렌더 실패로 막는다.
+  let structureRepeatCheck = null;
+  if (model.shapePlan && args["allow-repeat-structure"] !== true) {
+    const peers = await collectPeerStructures(path.dirname(sidecarRoot), model.requirementId, reportPath);
+    const clash = peers.find((peer) => peer.fingerprint === model.shapePlan.structureFingerprint || peer.signature === model.shapePlan.compositionSignature);
+    if (clash) {
+      throw new Error(
+        `Slide ${model.requirementId} repeats the composition already rendered for ${clash.requirementId} (${clash.report}). `
+        + `structure_fingerprint=${model.shapePlan.structureFingerprint} composition_signature=${model.shapePlan.compositionSignature}. `
+        + "Redesign the shape_plan so adjacent slides do not share a shape graph, "
+        + "or pass --allow-repeat-structure when the repeated structure is semantically required.",
+      );
+    }
+    structureRepeatCheck = { compared_reports: peers.length, repeats_adjacent_slide: false };
+  }
   const workerTemp = await fs.mkdtemp(path.join(os.tmpdir(), "proposal-render-worker-"));
   const modelPath = path.join(workerTemp, "model.json");
   const layoutPath = path.join(workerTemp, "layout.json");
@@ -124,6 +183,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       primitive_count: model.shapePlan.primitives.length,
       shape_names: model.shapePlan.primitives.map((primitive) => primitive.name),
     } : null,
+    structure_repeat_check: structureRepeatCheck,
     reference_context: {
       mode: model.referenceContext.mode,
       selected_slide_ids: model.referenceContext.selectedSlideIds,

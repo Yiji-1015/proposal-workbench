@@ -27,7 +27,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 5. `portrait`에는 `니다.`로 끝나는 `governing_message`가 필수다.
 6. `density: high`와 5~8개의 독립 내용 블록을 유지한다. 같은 카드 모양을 반복하지 않는다.
 7. 신규 장표는 `layout_family: "agent_authored"`와 `shape_plan`을 사용한다. AI가 전체 메시지와 블록 관계를 보고 네이티브 도형, 크기, 좌표, 연결을 직접 결정한다.
-8. `composition_signature`와 `design_rationale`로 구조 선택을 설명한다. 인접 장표와 같은 구조 서명이 반복되면 의미상 필수인 경우가 아니면 다시 구성한다. 고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용이다.
+8. `composition_signature`와 `design_rationale`로 구조 선택을 설명한다. 렌더러가 인접 장표의 검수 보고서와 구조 지문을 비교해 반복을 차단하므로, 겹치면 다시 구성한다. 의미상 반드시 같아야 할 때만 `--allow-repeat-structure`를 쓴다. 고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용이며 `--legacy-layout` 없이는 렌더되지 않는다.
 9. 세 개 이상의 병렬 항목은 단순 불릿 대신 도식 노드, 레인, 매핑 또는 표로 표현한다.
 10. 최종 도식은 원·사각형·선·텍스트 등 편집 가능한 네이티브 PowerPoint 도형이어야 한다. 사용자가 요청한 사진·로고와 허용한 생성 이미지만 예외다.
 11. 복잡한 구조도 먼저 `native_diagram`과 편집 가능한 `content.explanation`으로 구성한다. 읽기 어려운 경우만 `text_explainer`, 사용자 허용 시만 `generated_visual_with_text`를 쓴다.
@@ -59,7 +59,16 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" --output "<output-dir>"
 ```
 
-결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. 보고서는 `native_shape_plan`, `composition_signature`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
+여러 장을 만들 때는 한 상위 폴더 아래 요구사항별 하위 폴더로 출력한다. 렌더러가 그 폴더의 검수 보고서를 읽어 구조 반복을 검사한다.
+
+결과는 `.pptx`, `wireframe.png`, `final-slide.png`, `verification-report.json`이다. 보고서는 `native_shape_plan`, `composition_signature`, `structure_repeat_check`, `reference_context`, 콘텐츠 상자 수, 방향, 렌더 상태와 산출물 경로를 기록한다.
+
+렌더러 플래그는 다음과 같다.
+
+- `--wireframe-only`: 승인용 와이어프레임만 만든다
+- `--outline`: 1차 초안 개요만 그린다
+- `--legacy-layout`: `agent_authored`가 아닌 과거 청사진을 그대로 다시 그린다
+- `--allow-repeat-structure`: 인접 장표와 같은 구조를 의도적으로 반복한다
 
 ## 설치 검증
 
@@ -74,6 +83,7 @@ node "<skill-root>/scripts/verify-skill.mjs"
 ## 완료 조건
 
 - 승인 전 최종 렌더링 금지
+- 신규 장표는 `layout_family: "agent_authored"`, 인접 장표와 다른 구조 지문
 - 최종 장표 `density: high`, 내용 상자 5개 이상
 - `agent_authored`의 모든 블록이 도형과 편집 가능한 텍스트로 표현됨
 - 도형이 안전 영역 안에 있고 연결선 참조가 유효함
