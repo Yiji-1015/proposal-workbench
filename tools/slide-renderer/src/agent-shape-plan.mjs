@@ -4,6 +4,21 @@ const ALLOWED_KINDS = new Set(["text", "rect", "roundRect", "ellipse", "diamond"
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 const ALLOWED_SIDES = new Set(["left", "right", "top", "bottom"]);
 const ALLOWED_CONNECTOR_KINDS = new Set(["straight"]);
+const MIN_PRIMITIVES = 8;
+
+// 내용 보존 검사는 원문을 지키려는 것이지 표기 방식을 지키려는 것이 아니다. 불릿 기호,
+// 대시, 따옴표, 공백만 다른 문장이 계속 거부되면서 저작 경로 자체가 포기되고 고정
+// 레이아웃으로 되돌아갔다. 같은 내용의 다른 표기는 같은 것으로 본다.
+function comparableText(value) {
+  return String(value ?? "")
+    .replace(/[\u00B7\u2022\u2219\u25CB\u25CF\u30FB]/g, " ")
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[\u2018\u2019\u02BC]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u00A0\u200B]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -79,8 +94,8 @@ export function normalizeAgentShapePlan(value, { canvas, blockIds, blockRequired
   requireObject(value, "blueprint.shape_plan");
   const designRationale = requiredString(value.design_rationale, "blueprint.shape_plan.design_rationale");
   const compositionSignature = requiredString(value.composition_signature, "blueprint.shape_plan.composition_signature");
-  if (!Array.isArray(value.primitives) || value.primitives.length < 10) {
-    throw new RangeError("blueprint.shape_plan.primitives must contain at least 10 native primitives");
+  if (!Array.isArray(value.primitives) || value.primitives.length < MIN_PRIMITIVES) {
+    throw new RangeError(`blueprint.shape_plan.primitives must contain at least ${MIN_PRIMITIVES} native primitives; found ${Array.isArray(value.primitives) ? value.primitives.length : 0}`);
   }
   const names = new Set();
   const textBlocks = new Set();
@@ -134,36 +149,47 @@ export function normalizeAgentShapePlan(value, { canvas, blockIds, blockRequired
     blockFrames[blockId] = unionFrame(blockFrames[blockId], position);
     return normalized;
   });
-  const primitiveIndexes = new Map(primitives.map((primitive, index) => [primitive.name, index]));
   const primitivesByName = new Map(primitives.map((primitive) => [primitive.name, primitive]));
-  for (const [index, primitive] of primitives.entries()) {
+  for (const primitive of primitives) {
     if (primitive.kind !== "connector") continue;
     if (!names.has(primitive.from) || !names.has(primitive.to)) throw new Error(`Agent-authored connector ${primitive.name} must reference existing primitive names`);
     if (primitive.from === primitive.to) throw new Error(`Agent-authored connector ${primitive.name} cannot connect a primitive to itself`);
     if (primitivesByName.get(primitive.from)?.kind === "connector" || primitivesByName.get(primitive.to)?.kind === "connector") {
       throw new Error(`Agent-authored connector ${primitive.name} endpoints must be drawable shapes, not connectors`);
     }
-    if (primitiveIndexes.get(primitive.from) >= index || primitiveIndexes.get(primitive.to) >= index) {
-      throw new Error(`Agent-authored connector ${primitive.name} must appear after its endpoint primitives`);
-    }
   }
+  // 렌더러는 연결선을 만나는 시점에 이미 그려진 도형만 참조할 수 있고, 참조가 없으면
+  // 조용히 엉뚱한 직선으로 폴백한다. 저작 순서를 강제하는 대신 여기서 연결선을 뒤로
+  // 모은다. 같은 종류끼리의 상대 순서는 그대로 둔다.
+  const orderedPrimitives = [
+    ...primitives.filter((primitive) => primitive.kind !== "connector"),
+    ...primitives.filter((primitive) => primitive.kind === "connector"),
+  ];
   for (const blockId of blockIds) {
     if (!blockFrames[blockId]) throw new Error(`Agent-authored shape plan does not represent block ${blockId}`);
     if (!visualBlocks.has(blockId)) throw new Error(`Agent-authored shape plan must include a non-text visual shape for block ${blockId}`);
     if (!textBlocks.has(blockId)) throw new Error(`Agent-authored shape plan must include editable text for block ${blockId}`);
-    const blockText = primitives.filter((primitive) => primitive.kind === "text" && primitive.blockId === blockId).map((primitive) => primitive.text).join("\n");
-    const normalizedBlockText = blockText.replace(/\s+/g, " ").trim();
+    const blockText = comparableText(orderedPrimitives
+      .filter((primitive) => primitive.kind === "text" && primitive.blockId === blockId)
+      .map((primitive) => primitive.text)
+      .join(" "));
     for (const requiredText of blockRequiredTexts.get(blockId)) {
-      if (!normalizedBlockText.includes(requiredText.value.replace(/\s+/g, " ").trim())) {
-        throw new Error(`Agent-authored shape plan must preserve content.${requiredText.field} for block ${blockId}`);
+      if (!blockText.includes(comparableText(requiredText.value))) {
+        throw new Error(`Agent-authored shape plan is missing content.${requiredText.field} for block ${blockId}. Add a text primitive with block_id ${JSON.stringify(blockId)} whose text contains ${JSON.stringify(requiredText.value)}`);
       }
     }
   }
-  const visibleText = primitives.filter((primitive) => primitive.kind === "text").map((primitive) => primitive.text).join("\n").replace(/\s+/g, " ").trim();
+  const visibleText = comparableText(orderedPrimitives.filter((primitive) => primitive.kind === "text").map((primitive) => primitive.text).join(" "));
   for (const valueText of protectedMetricValues) {
-    if (!visibleText.includes(valueText.replace(/\s+/g, " ").trim())) throw new Error(`Agent-authored shape plan must visibly preserve protected metric ${valueText}`);
+    if (!visibleText.includes(comparableText(valueText))) throw new Error(`Agent-authored shape plan must visibly preserve protected metric ${valueText}`);
   }
-  return { designRationale, compositionSignature, structureFingerprint: structureFingerprint(primitives, canvas), primitives, blockFrames };
+  return {
+    designRationale,
+    compositionSignature,
+    structureFingerprint: structureFingerprint(orderedPrimitives, canvas),
+    primitives: orderedPrimitives,
+    blockFrames,
+  };
 }
 
 export function agentShapeRecipe(shapePlan) {

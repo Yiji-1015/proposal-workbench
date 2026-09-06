@@ -11,8 +11,8 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 
 ## 비협상 규칙
 
-1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 단위 5~8개로 둔다.
-2. 신규 청사진은 `layout_family: "agent_authored"`를 기본으로 쓴다. 고정 `visual_category`, `slot`, 카드 템플릿을 선택하지 않는다.
+1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 단위 5~6개로 둔다. 7개 이상이 필요해 보이면 의미가 겹치는 항목을 하나의 상위 블록으로 통합한다.
+2. 신규 청사진은 `layout_family: "agent_authored"`를 쓴다. 고정 `visual_category`, `slot`, 카드 템플릿을 선택하지 않는다. `block_pool_auto`를 비롯한 하위 호환 값은 렌더러가 거부한다.
 3. 각 블록에 `content.headline`, `content.summary`, 자유 서술형 `visual_intent`, `content_priority`, `composition_constraints`를 기록한다. 이 값은 도형 이름이 아니라 전달할 의미, 강조 순서, 관계를 설명한다.
 4. 표·검증·흐름·계층·순환·1:N·병렬 역할 같은 관계를 분석하되 미리 정해진 토폴로지 enum으로 환원하지 않는다. 메이커 에이전트가 장표 전체의 주도 도식을 결정한다.
 5. 기간·마일스톤 근거가 없으면 로드맵을 만들지 않는다. 비교에는 `content.conclusion`으로 적용 방향을 쓴다.
@@ -21,7 +21,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 8. 다른 요구사항의 세부 내용을 끌어오지 않는다. 연결이 필요하면 요구사항 ID 한 줄 참조만 남긴다.
 9. 원문 정량지표의 `value_text`와 `source_refs[]`는 `protected_metrics`에 보존한다. 근거·출처·제작 메모는 가시 장표 문구에 노출하지 않는다.
 10. `portrait`에는 제안사의 행동과 결과를 말하고 `니다.`로 끝나는 `governing_message`를 넣는다.
-11. 방향은 사용자에게 확인한다. 팔레트나 템플릿이 없으면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF`를 쓴다.
+11. 청사진 생성 전에 장표 방향을 반드시 사용자에게 질문해 `landscape`(가로형) 또는 `portrait`(세로형) 중 하나를 명시적으로 확인한다. 사용자가 같은 요청에서 방향을 이미 지정한 경우에는 그 답을 확인된 방향으로 사용한다. 방향이 확인되지 않은 동안에는 방향을 추정하거나 청사진·와이어프레임을 생성하지 않는다. 팔레트나 템플릿이 없으면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF`를 쓴다.
 12. 복잡한 구조도 우선 `native_diagram`과 `content.explanation`으로 구성한다. 끝까지 구성해도 읽기 어려울 때만 `text_explainer`를 사용하고, 사용자가 허용한 경우만 `generated_visual_with_text`를 보조 시각으로 쓴다.
 13. 검색, 인제스트, SQLite, 임베딩, 에셋 카탈로그를 호출하거나 요구하지 않는다.
 
@@ -48,7 +48,7 @@ description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스�
 ## 실행 흐름
 
 1. 요구사항 ID, 범위와 인접 요구사항 경계를 확정한다.
-2. 방향과 팔레트를 확정한다.
+2. 사용자가 명시한 `landscape`(가로형) 또는 `portrait`(세로형)을 확인한다. 방향이 없으면 반드시 질문하고 응답 전에는 작업을 중단한다. 그다음 팔레트를 확정한다.
 3. 원문을 내용 단위로 나누고 블록별 `headline`과 `summary`를 쓴다.
 4. 블록별 `visual_intent`, 우선순위와 서로 연결되어야 하는 관계를 작성한다. 도형과 좌표는 이 단계에서 고정하지 않는다.
 5. `<plugin-root>/references/data-contract-v2.md`의 `agent_authored` 계약에 맞춰 `slide-blueprint.json`을 만든다. 초기 `status`는 `draft`다.

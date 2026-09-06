@@ -26,6 +26,16 @@ def main():
         else:
             raise AssertionError("Source and output paths must not match")
 
+    with tempfile.TemporaryDirectory() as tmp:
+        source = Path(tmp) / "source.pdf"
+        source.write_bytes(b"pdf")
+        try:
+            export_selected_slides(str(source), str(Path(tmp) / "out.pptx"), [1])
+        except FileNotFoundError as exc:
+            assert "PPT/PPTX" in str(exc)
+        else:
+            raise AssertionError("Non-PowerPoint sources must not be exportable")
+
 
 if __name__ == "__main__":
     main()

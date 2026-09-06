@@ -60,6 +60,11 @@ test("planner treats references as optional metadata", async () => {
   assert.match(planner, /layout_family: "agent_authored"/);
   assert.match(planner, /reference_context/);
   assert.match(planner, /세션 파일을 열거나 완료 상태를 재확인하지 않으며/);
+  assert.match(planner, /장표 방향을 반드시 사용자에게 질문/);
+  assert.match(planner, /독립 내용 단위 5~6개/);
+  assert.match(planner, /7개 이상.*상위 블록으로 통합/);
+  assert.match(planner, /방향이 확인되지 않은 동안에는.*청사진·와이어프레임을 생성하지 않는다/s);
+  assert.match(planner, /방향이 없으면 반드시 질문하고 응답 전에는 작업을 중단한다/);
   assert.match(ingest, /독립 인제스트/);
   assert.match(search, /proposal-slide-planner.*호출하지 않는다/s);
   assert.match(readme, /인제스트와 검색은 각각 독립 실행/);

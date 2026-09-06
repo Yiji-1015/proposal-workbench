@@ -51,7 +51,7 @@
 
 `shape_plan`은 `design_rationale`, `composition_signature`, `primitives[]`를 가진다. 각 primitive는 `kind`, 고유 `name`, `block_id`, `position`과 종류별 텍스트·스타일·연결 정보를 가진다. 상세 계약은 `agent-authored-layout.md`를 따른다.
 
-기존 `block_pool_auto` 입력은 5~6개 블록, 모두 `slot: "auto"`, 서로 다른 `visual_category`를 요구한다. 이 경로와 `BlockType` 표는 하위 호환용이며 신규 장표는 사용하지 않는다.
+기존 `block_pool_auto` 입력은 5~6개 블록, 모두 `slot: "auto"`, 서로 다른 `visual_category`를 요구한다. 이 경로와 `BlockType` 표는 하위 호환용이며 신규 장표는 사용하지 않는다. 세로형에서 항상 같은 1열 스택을 만들기 때문에 렌더러가 기본 거부하고, 과거 청사진을 다시 그릴 때만 `--legacy-layout`으로 연다.
 
 ## 선택적 `reference_context`
 

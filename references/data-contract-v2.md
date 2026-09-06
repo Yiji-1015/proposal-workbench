@@ -122,7 +122,8 @@ export interface SlideBlueprintContract {
   governing_message?: string; // 세로형(portrait)일 때 필수, 반드시 ~니다. 종결
   orientation: "landscape" | "portrait";
   layout_family: "agent_authored" | "block_pool_auto" | "three_column_with_bottom_band" | "generic_grid";
-                             // 신규 기본값은 agent_authored, 나머지는 하위 호환
+                             // 신규 장표는 agent_authored만 렌더된다.
+                             // 나머지는 하위 호환이며 --legacy-layout이 있어야 열린다
   density: "high";            // 제안서는 high 필수
   theme: {
     primary: string;          // 기본: #1769E0
@@ -135,7 +136,7 @@ export interface SlideBlueprintContract {
     line?: string;            // 기본: #C8D2DF
     white?: string;           // 기본: #FFFFFF
   };
-  blocks: SlideBlock[];       // 최소 5개의 독립된 내용 상자
+  blocks: SlideBlock[];       // 5~6개의 독립된 내용 상자
   shape_plan?: AgentShapePlan; // agent_authored에서 필수
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];

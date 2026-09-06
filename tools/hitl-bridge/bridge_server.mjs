@@ -208,15 +208,17 @@ function sendAssetProcessError(res, error) {
 // 실제로 원본이 드라이브 루트에서 다른 폴더로 옮겨졌을 때 "ENOENT ... access 'E:\...'"만 떴다.
 // 경로가 아예 없을 때만 안내가 있었고, 훨씬 흔한 이 경우에는 없었다.
 export async function resolveSourcePptx(manifest, sourceKey) {
-  if (!manifest.source_path) throw new Error("Original PPTX path is missing. Re-ingest this deck once.");
+  if (!manifest.source_path) throw new Error("Original PowerPoint path is missing. Re-ingest this deck once.");
 
   const sourcePptx = path.resolve(manifest.source_path);
-  if (path.extname(sourcePptx).toLowerCase() !== ".pptx") throw new Error("Original source is not a PPTX file.");
+  if (![".ppt", ".pptx"].includes(path.extname(sourcePptx).toLowerCase())) {
+    throw new Error("PPTX download is available only when the original source is a PPT or PPTX file.");
+  }
   try {
     await fs.access(sourcePptx);
   } catch {
     throw new Error(
-      `Original PPTX is not at the recorded path: ${sourcePptx}. `
+      `Original PowerPoint is not at the recorded path: ${sourcePptx}. `
       + `Put it back there, or re-ingest "${sourceKey}" from where the file is now.`,
     );
   }

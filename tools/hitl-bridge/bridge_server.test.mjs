@@ -23,15 +23,10 @@ test("picker keeps local selection across rerenders", async () => {
   assert.equal(hydration.length, 1);
   assert.match(picker, /card\.setAttribute\('role', 'checkbox'\)/);
   assert.match(picker, /download\.textContent = 'PNG 다운로드'/);
-  assert.match(picker, /id="btnExportPptx"/);
-  assert.match(picker, /\/export-pptx/);
-
-  const exportHandler = picker.slice(
-    picker.indexOf("document.getElementById('btnExportPptx').onclick"),
-    picker.indexOf("loadSession();"),
-  );
-  assert.doesNotMatch(exportHandler, /await saveSelection\(\)/);
-  assert.match(exportHandler, /selected_slide_ids/);
+  assert.doesNotMatch(picker, /id="btnExportPptx"/);
+  assert.doesNotMatch(picker, /getExportBlockReason/);
+  assert.doesNotMatch(picker, /\/export-pptx/);
+  assert.match(picker, /선택이 저장됐습니다\. Agent 채팅창/);
 });
 
 test("resolves selected slide numbers from one source deck", () => {
@@ -125,15 +120,25 @@ test("names the recorded path when the original PPTX has moved", async () => {
 test("still tells the user to re-ingest when the path was never recorded", async () => {
   await assert.rejects(
     () => resolveSourcePptx({}, "deck_key"),
-    /Original PPTX path is missing/,
+    /Original PowerPoint path is missing/,
   );
 });
 
-test("rejects a recorded source that is not a PPTX", async () => {
+test("rejects a recorded source that is not a PPT or PPTX", async () => {
   await assert.rejects(
     () => resolveSourcePptx({ source_path: "deck.pdf" }, "deck_key"),
-    /not a PPTX file/,
+    /only when the original source is a PPT or PPTX file/,
   );
+});
+
+test("accepts a recorded legacy PPT source", async () => {
+  const tmp = path.resolve(`__probe_${Date.now()}.ppt`);
+  await fs.writeFile(tmp, "x");
+  try {
+    assert.equal(await resolveSourcePptx({ source_path: tmp }, "deck_key"), tmp);
+  } finally {
+    await fs.rm(tmp, { force: true });
+  }
 });
 
 test("returns the resolved path when the original is still there", async () => {

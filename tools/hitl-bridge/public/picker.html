@@ -18,7 +18,6 @@
       </div>
       <div id="actionArea" class="selection-actions">
         <span id="selectionCount">0개 선택</span>
-        <button id="btnExportPptx" class="btn btn-success" disabled>PPTX 다운로드</button>
         <button id="btnConfirm" class="btn" disabled>
           <span id="btnConfirmText">선택 확정</span>
         </button>
@@ -26,7 +25,7 @@
     </header>
 
     <div id="completedBanner" class="banner" style="display: none;">
-      선택이 저장됐습니다. <strong>PPTX 다운로드</strong> 또는 Agent 채팅창에서 다음 작업을 이어갈 수 있습니다.
+      선택이 저장됐습니다. Agent 채팅창에서 다음 작업을 이어갈 수 있습니다.
     </div>
 
     <form id="searchForm" class="search-form">
@@ -56,7 +55,6 @@
     let sessionData = null;
     let selectedIds = new Set();
     let searchInProgress = false;
-    let exportInProgress = false;
 
     async function loadSession() {
       if (!sid) {
@@ -198,13 +196,11 @@
 
     function updateActionArea() {
       const btn = document.getElementById('btnConfirm');
-      const exportBtn = document.getElementById('btnExportPptx');
       document.getElementById('selectionCount').textContent = selectedIds.size + '개 선택';
       document.getElementById('btnConfirmText').textContent = selectedIds.size > 0
         ? selectedIds.size + '개 선택 확정'
         : '선택 확정';
       btn.disabled = selectedIds.size === 0 || sessionData?.status === 'completed' || searchInProgress;
-      exportBtn.disabled = selectedIds.size === 0 || searchInProgress || exportInProgress;
     }
 
     async function saveSelection() {
@@ -259,37 +255,6 @@
         await saveSelection();
       } catch (err) {
         alert('저장 실패: ' + err.message);
-      }
-    };
-
-    document.getElementById('btnExportPptx').onclick = async () => {
-      const btn = document.getElementById('btnExportPptx');
-      exportInProgress = true;
-      btn.textContent = 'PPTX 생성 중…';
-      updateActionArea();
-      try {
-        const res = await fetch('/api/sessions/' + encodeURIComponent(sid) + '/export-pptx', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ selected_slide_ids: Array.from(selectedIds) })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'PPTX 생성에 실패했습니다.');
-        sessionData.status = 'completed';
-        sessionData.selected_slide_ids = Array.from(selectedIds);
-        renderSession();
-        const download = document.createElement('a');
-        download.href = data.download_url;
-        download.download = data.file_name;
-        document.body.appendChild(download);
-        download.click();
-        download.remove();
-      } catch (err) {
-        alert('PPTX 다운로드 실패: ' + err.message);
-      } finally {
-        exportInProgress = false;
-        btn.textContent = 'PPTX 다운로드';
-        updateActionArea();
       }
     };
 

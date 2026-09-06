@@ -83,7 +83,9 @@ export function applyNativeShapePlan(slide, recipe, asset = null) {
         fromSide: item.fromSide,
         toSide: item.toSide,
         line: { style: "solid", fill: item.stroke ?? C.accent, width: item.lineWidth ?? 1 },
-        head: { type: "arrow", width: "sm", length: "sm" },
+        // OOXML에서 head는 선의 시작점, tail은 끝점이다. head에 화살표를 달면
+        // from 쪽을 가리켜 모든 관계가 반대로 읽힌다. 화살표는 도착점에 붙인다.
+        tail: { type: "arrow", width: "sm", length: "sm" },
       });
       connector.name = item.name;
       continue;
