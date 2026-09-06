@@ -150,7 +150,7 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
 3. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
 4. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용·우선순위·관계 확정** → `--outline` 초안 승인(`status: structure_approved`).
-5. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → AI가 장표별 네이티브 도형과 좌표를 직접 저작 → 와이어프레임 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
+5. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → AI가 장표별 네이티브 도형과 좌표를 직접 저작 → 와이어프레임 승인(`status: approved`) → `deliverables/<id>.pptx` 생성. PPTX는 1번 청사진 슬라이드와 2번 최종 장표로 구성되며, 1번은 PPTX만 여는 검토자를 위한 것이다. 제안서 합본에는 요구사항별 2번 슬라이드만 모은다.
 
 ### 참고 라이브러리는 슬라이드 색인이다
 
