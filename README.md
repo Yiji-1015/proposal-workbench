@@ -1,6 +1,6 @@
 # 제안 업무 자동화 워크벤치 (Proposal Workbench)
 
-> **Agent 중심 독립 Skill 체계 + Zero-dependency 초경량 HitL 뷰어 기반의 제안 업무 자동화 플랫폼**
+> **에셋 카탈로그 없이 작동하는 네이티브 PPT 코어 + 독립형 구조 레퍼런스 검색 도구**
 
 ---
 
@@ -47,11 +47,11 @@ proposal-workbench/
 │  ├─ proposal-reference-search/     ──▶ 독립 SQLite lexical/vector 검색 + HitL Reference Picker
 │  ├─ proposal-slide-planner/        ──▶ 5개 블록, 거버닝 메시지(~니다.), 정량지표 보존 장표 기획
 │  ├─ proposal-ppt-maker/            ──▶ OpenXML 기반 네이티브 도형 PPTX 생성
-│  └─ proposal-asset-curator/        ──▶ 블록·도식·아이콘 후보 선별 및 승인 자산 승격
+│  └─ proposal-asset-curator/        ──▶ 실험 보관: 코어에서 사용하지 않는 자산 연구 도구
 │
 ├─ tools/                            ──▶ Execution / Non-agentic Tools
 │  ├─ slide-renderer/                ──▶ OpenXML 파워포인트 도형 렌더링 엔진
-│  ├─ pattern-library/               ──▶ 사용자 제공 도식 자산 카탈로그 (초기 빈 상태 허용)
+│  ├─ pattern-library/               ──▶ 실험 보관: 코어 런타임과 분리된 기존 자산 카탈로그
 │  ├─ ppt-ingest/                    ──▶ COM 고화질 PNG 렌더러 + python-pptx 구조 추출기
 │  ├─ reference-search/              ──▶ SQLite lexical/vector 검색 모듈
 │  ├─ hitl-bridge/                   ──▶ Zero-dependency 단일 포트(5274) 브릿지 & HTML 뷰어
@@ -83,7 +83,7 @@ proposal-workbench/
 
 ### 0) 로컬 플러그인 설치
 
-저장소 루트가 곧 플러그인 소스입니다. 스킬은 `tools/slide-renderer`와 `tools/pattern-library`를 플러그인 루트 기준으로 찾으므로 `skills/`만 따로 복사하지 말고 저장소를 통째로 설치합니다.
+저장소 루트가 곧 플러그인 소스입니다. PPT 코어는 `tools/slide-renderer`만 사용하며 `tools/pattern-library`, 인제스트, 검색 색인이 없어도 작동합니다. 도구 경로를 함께 유지하기 위해 저장소를 통째로 설치합니다.
 
 **Claude Code** — `.claude-plugin/marketplace.json`을 로컬 marketplace로 등록한 뒤 설치합니다. 경로는 `.`이 아니라 `./` 형태여야 합니다.
 
@@ -92,7 +92,7 @@ claude plugin marketplace add ./
 claude plugin install proposal-workbench@proposal-workbench-local
 ```
 
-설치 후 `claude plugin details proposal-workbench`로 Skill 7개가 모두 잡혔는지 확인합니다. 새 세션부터 로드됩니다.
+설치 후 `claude plugin details proposal-workbench`로 6개 운영 Skill과 실험 보관 중인 curator가 표시되는지 확인합니다. 새 세션부터 로드됩니다.
 
 > 플러그인 캐시는 저장소의 복사본이며 경로가 버전으로 구분됩니다. 저장소를 고쳐도 `plugin.json`의 버전이 그대로면 `claude plugin install`·`update`·`marketplace update`가 모두 "이미 최신"으로 건너뜁니다. 개발 중에 수정본을 반영하려면 버전을 올리거나 다음처럼 재설치합니다.
 
@@ -122,7 +122,7 @@ npm --prefix tools/doc-converter install
 
 실제 PowerPoint 렌더링·검증까지 하려면 `python-pptx`, `pywin32`, 데스크톱 PowerPoint가 필요합니다. 구조·텍스트 추출만 할 때는 `powerpoint_com` 경고를 허용할 수 있습니다.
 
-### 1) 슬라이드 렌더러·자산 계약 검증
+### 1) 코어 슬라이드 렌더러 검증
 ```powershell
 node skills/proposal-ppt-maker/scripts/verify-skill.mjs
 ```
@@ -148,10 +148,9 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 1. **RFP 분석**: `$rfp-analyzer` 실행 → `storage/runs/<id>/RFP_분석보고서.md` 하나만 산출. 요구사항 목록·정량 조건·Gap을 모두 이 파일에 담고 JSON·HTML로 중복 생성하지 않는다.
 2. **선택적 PPT 인제스트**: 레퍼런스 라이브러리에 추가할 때만 `$proposal-ppt-ingest` 실행 후 종료.
-3. **선택적 에셋 선별**: `$proposal-asset-curator` 실행 → 블록 후보를 검토하고 명시적으로 승인한 후보만 `tools/pattern-library`로 승격.
-4. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
-5. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 블록 타입 선택 → `--outline`으로 사각형과 문구만 그린 초안을 표시하고 승인(`status: structure_approved`). 개요 모드는 타입별 내용을 요구하지 않아 첫 초안이 빨리 나온다.
-6. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → 블록마다 참고 자산 검색·선택 → 와이어프레임 재표시 후 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
+3. **선택적 레퍼런스 탐색**: 사용자가 요청할 때만 `$proposal-reference-search` 실행 → 후보 선택 결과를 보고하고 종료.
+4. **장표 기획 (1차 승인)**: `$proposal-slide-planner` 실행 → 방향 선택 → **블록별 내용 확정** → 내용에 맞는 서로 다른 블록 타입 선택 → `--outline` 초안 승인(`status: structure_approved`).
+5. **상세화·PPTX 생성 (2차 승인)**: `$proposal-ppt-maker` 실행 → 블록별 문구 상세화 → 내장 네이티브 도식으로 와이어프레임 재표시 후 승인(`status: approved`) → `deliverables/<id>.pptx` 생성.
 
 ### 참고 라이브러리는 슬라이드 색인이다
 
@@ -159,17 +158,17 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 
 **이 경로는 장표 기획의 필수 선행 단계가 아니다.** 인제스트·검색·기획은 각각 독립 실행한다. 기획은 RFP만으로도 가능하며, 사용자가 완료된 검색 세션이나 `selected_slide_ids`를 명시적으로 전달했을 때만 레퍼런스를 참고한다.
 
-> **동결: `tools/pattern-library` 자산 적용 경로**
+> **실험 격리: `proposal-asset-curator`와 `tools/pattern-library`**
 >
 > `$proposal-asset-curator`가 만드는 `responsive_native_template` 자산을 렌더링에 직접 적용하는 경로는 현재 **실험적이며 사용하지 않는다.** 실측 결과 템플릿 252개 중 208개가 좌표 범위를 벗어났고(좌표 정규화 버그는 수정했으나 기존 템플릿은 재인제스트가 필요), 60%는 텍스트 슬롯이 2개 이하라 자산을 적용하면 블록 내용이 소실된다. 원본 글꼴 크기도 추출 단계에서 유실된다.
 >
-> 코드와 카탈로그는 지우지 않고 그대로 둔다. 자산을 참고하고 싶으면 위의 슬라이드 색인을 쓴다.
+> 코드와 카탈로그는 연구 재개 가능성을 위해 보관하지만 코어 설치·검증·렌더링 경로에서는 참조하지 않는다. 과거 장표를 참고하려면 위의 독립 슬라이드 색인을 쓴다.
 
-### 자산을 다루는 원칙
+### 네이티브 도식을 만드는 원칙
 
-장표는 **네이티브 PowerPoint 도형으로 완성**한다. `tools/pattern-library`의 자산은 원본 슬라이드를 그대로 옮겨오는 부품이 아니라 **구조를 참고할 레퍼런스**다. 원본을 픽셀 단위로 재현하는 것은 이 도구의 목표가 아니며, 자산을 그대로 적용하지 못하는 것은 실패가 아니다.
+장표는 **내장 레시피가 만드는 네이티브 PowerPoint 도형으로 완성**한다. 청사진의 `visual_category`가 흐름·허브·게이트·매핑·레인·표·지표 같은 렌더러를 직접 선택한다. `block_pool_auto`에서는 한 장 안의 타입 중복을 금지해 요구사항마다 다른 도식 조합이 나오도록 한다.
 
-그렇다고 참고를 건너뛰어서는 안 된다. 사용자가 레퍼런스를 전달했으면 블록마다 어떤 슬라이드의 어떤 구조를 참고했는지 `usage_note`에 남긴다. 참고할 것이 없으면 그 사실을 적은 뒤 RFP 근거만으로 구성한다.
+사용자가 레퍼런스를 전달했으면 `reference_context.notes`에 어떤 구조를 참고했는지 남긴다. 참고할 것이 없으면 별도 파일이나 검색 세션 없이 RFP 근거만으로 구성한다.
 
 작업 순서도 고정이다. **블록별 내용을 문장 수준으로 확정한 다음에** 그 내용에 맞는 블록 타입을 고른다. 그릇을 먼저 정하고 내용을 끼워 맞추면 요구사항이 달라도 같은 장표가 나온다.
 
@@ -178,6 +177,6 @@ node tools/hitl-bridge/hitl_launcher.mjs --open "http://localhost:5274/picker.ht
 | 단계 | 담당 | 확정하는 것 | 청사진 `status` |
 | --- | --- | --- | --- |
 | 1차 | `$proposal-slide-planner` | 블록 구성 + 블록별 간단 내용 | `draft` → `structure_approved` |
-| 2차 | `$proposal-ppt-maker` | 자산 선택 + 문구 상세화 | `structure_approved` → `approved` |
+| 2차 | `$proposal-ppt-maker` | 네이티브 도식 + 문구 상세화 | `structure_approved` → `approved` |
 
 한 번에 완성본을 들이밀면 구조를 바꾸기 어려워진다. 1차에서 뼈대를 합의한 뒤 2차에서 살을 붙인다. 1차에서 확정된 블록 구성은 사용자가 바꾸라고 하지 않는 한 2차에서 임의로 바꾸지 않는다. 렌더러는 `approved`만 통과시키므로 `draft`와 `structure_approved` 단계에서는 PPTX가 만들어지지 않는다.

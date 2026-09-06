@@ -135,12 +135,18 @@ export interface SlideBlueprintContract {
   blocks: SlideBlock[];       // 최소 5개의 독립된 내용 상자
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];
-  reference_slide_ids?: string[];
+  reference_context?: {
+    mode: "none" | "user_provided";
+    selected_slide_ids: string[];
+    notes: { block_id: string; reference_id: string; usage_note: string }[];
+  };                         // 선택 메타. 렌더러는 세션·색인·원본 파일을 로드하지 않는다
   status?: "draft" | "structure_approved" | "approved";
                              // draft -> 1차 승인 시 structure_approved -> 2차 승인 시 approved.
                              // 렌더러는 approved만 최종 PPTX로 통과시킨다
 }
 ```
+
+`block_pool_auto`에서는 한 장 안의 `visual_category`를 모두 다르게 사용한다. `visual_category`가 내장 네이티브 렌더러를 직접 선택하며 `asset-mapping.json`은 코어 계약에 없다. `reference_context`는 과거 장표에서 참고한 구조를 설명할 뿐 렌더링 의존성이 아니다.
 
 
 ### `BlockType` — 렌더러에 등록된 14종

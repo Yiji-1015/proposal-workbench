@@ -13,7 +13,6 @@ const layout = JSON.parse(await fs.readFile(options.layout, "utf8"));
 const result = await renderPresentation({
   model,
   layout,
-  patternRoot: options.pattern,
   outputPptx: options.output,
   wireframePng: options.wireframe,
   finalSlidePng: options.final,

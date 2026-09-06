@@ -1,70 +1,58 @@
 ---
 name: proposal-slide-planner
-description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스를 바탕으로 고밀도 제안 슬라이드 청사진과 자산 매핑을 만드는 Skill.
+description: RFP 요구사항과 선택적으로 제공된 구조 레퍼런스를 바탕으로 고밀도 제안 슬라이드 청사진을 만드는 Skill.
 ---
 
 # Proposal Slide Planner
 
-요구사항 ID, 정량지표, 근거와 선택적 구조 레퍼런스를 `slide-blueprint.json`과 `asset-mapping.json`으로 정규화한다. 최종 렌더링은 `tools/slide-renderer`가 담당한다.
+요구사항 ID, 정량지표, 근거와 선택적 구조 레퍼런스를 `blueprint/slide-blueprint.json`으로 정규화한다. 최종 렌더링은 `tools/slide-renderer`가 담당한다.
 
-승인은 두 번 나눠 받는다. **1차는 이 Skill이 담당하며 블록 구성과 블록별 간단 내용을 확정한다.** 자산 선택과 문구 상세화는 2차에서 `$proposal-ppt-maker`가 맡는다. 한 번에 완성본을 들이밀면 사용자가 구조를 바꾸기 어려워지므로 순서를 지킨다.
+이 Skill은 1차 승인까지만 담당한다. 블록 구성과 블록별 간단 내용을 확정하고 `status: "structure_approved"`로 넘긴다. 자산을 검색하거나 고르지 않으며 `asset-mapping.json`을 만들지 않는다.
 
 ## 비협상 규칙
 
-1. `density`는 반드시 `high`로 둔다.
-2. `blocks[]`에는 서로 다른 역할을 가진 독립 내용 상자를 최소 5개 둔다.
-3. 세로형 `portrait` 청사진에는 제안사의 행동과 결과를 말하는 `governing_message`를 넣고 `니다.`로 끝낸다.
-4. 원문 정량지표의 `value_text`와 `source_refs[]`를 `protected_metrics`에 그대로 보존한다.
-5. 비교 블록은 나열로 끝내지 않고 `content.conclusion`에 적용 방향을 쓴다.
-6. `requirement_summary`와 자산 검색 메모는 최종 가시 제목에 노출하지 않는다.
-6-1. **근거 메타와 가시 문구를 분리한다.** `source_refs`, 원문 인용, 보호 정량지표, 자산 매핑·fallback 정보는 JSON·검수용 메타에만 남긴다. 장표 카피에는 “RFP에서”, “요구사항에서”, “원문”, “근거”, “출처” 같은 표현을 넣지 않고 구현·운영·활용 언어로 정리한다. 사용자가 원문 인용을 요청한 경우만 예외다.
-6-2. **로드맵은 근거가 있을 때만 선택한다.** 원문이나 사용자 지시에 기간·마일스톤·일정·단계 전환이 있을 때만 `gantt_roadmap`을 사용한다. 요구사항의 처리 순서나 기능 목록을 임의의 주차·월차 로드맵으로 변환하지 않는다. 근거가 없으면 `blueprint_flow`, `chevron_pipeline`, `matrix_table` 등 요구사항에 직접 답하는 구조를 선택한다.
-7. 사용자에게 가로형(`landscape`)·세로형(`portrait`) 방향을 묻는다.
-8. 별도 팔레트나 템플릿이 없으면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF`를 사용한다.
-9. 이 Skill은 검색이나 인제스트를 호출하지 않는다.
-10. **장표 단위를 명시한다.** 기본은 `slide_scope: "requirement"`로 RFP 개별 요구사항 1건당 1페이지를 만들고 `primary_requirement_id`와 단일 `requirement_ids`를 기록한다. 전체 추진방향·아키텍처·로드맵 같은 개요 장표만 여러 요구사항을 묶을 수 있으며, 이때 `slide_scope: "overview"`, `primary_requirement_id: null`과 포함 `requirement_ids`를 기록한다. 하나의 요구사항이 여러 페이지를 필요로 하면 동일 요구사항 ID의 연속 장표로 구성한다.
-10-1. **여러 장으로 나눌 때는 각 장이 스스로 성립해야 하고 분량이 비슷해야 한다.** 한 요구사항을 연속 장표로 나누려면 각 장이 최소 5개 블록을 원문 근거만으로 채울 수 있어야 한다. 한 장은 꽉 차고 다른 장은 헐거우면 나누지 않은 것만 못하다. 나눌 때는 내용 단위를 주제로 갈라 각 장에 비슷한 수가 가도록 배분한다. 어느 한쪽이라도 자리표시자나 같은 말 반복으로 블록을 채워야 한다면 나누지 말고 한 장으로 둔다.
-
-10-2. **나눌지 말지는 원문 분량으로 판단하고 근거를 보고한다.** 요구사항 원문의 세부 내용 길이와 내용 단위 수를 세어 한 장에 담을지 여러 장으로 나눌지 정하고, 그 수치를 사용자에게 알린다. 내용 단위가 한 장의 블록 수보다 많아 합쳐야 했다면 어떤 단위를 왜 합쳤는지도 함께 보고한다. 나누고 싶다는 요청이 있어도 원문이 받쳐주지 않으면 그 사실을 먼저 알리고 판단을 받는다.
-
-11. **복잡한 아키텍처는 설명 우선으로 판단하되, 네이티브 도식은 끝까지 구성한다.** 간단한 도식과 부연설명을 기본으로 하되 출발점·처리·데이터 흐름·통제·도착점·운영상 의미를 가능한 한 빠짐없이 `native_diagram`과 `content.explanation`에 담는다. 도식 라벨은 짧게 축약할 수 있지만 기능·수치·관계는 생략하지 않는다. 네이티브 도식을 끝까지 구성해도 읽기·의사결정이 불가능할 때만 `architecture_treatment: "text_explainer"`를 사용한다. 사용자가 나노바나나/imagegen을 허용한 경우에만 `generated_visual_with_text`를 보조 시각으로 선택하며, 이미지에 사실·수치·근거를 맡기지 않는다.
-12. **가독성 한도까지 정보량을 채운다.** RFP 기능·세부 처리·통제·검증 기준·성과·자사 역량 상태를 가능한 한 빠짐없이 기록하고 큰 빈 패널이나 두세 줄 요약으로 끝내지 않는다. 긴 내용은 노드·주석·편집 텍스트로 나누며, 8pt 이하 축소나 중복 문장으로 밀도를 만들지 않는다.
-13. **블록별 내용을 먼저 확정하고 그다음에 그릇을 고른다.** 요구사항 원문을 내용 단위로 쪼개 각 블록이 무엇을 말할지 문장 수준으로 확정한 뒤에 `visual_category`를 정한다. 그릇을 먼저 고르고 내용을 끼워 맞추면 어떤 요구사항이든 같은 장표가 나온다. 내용 단위가 5개보다 적으면 원문을 다시 읽어 통제·검증·산출물·예외 처리처럼 빠진 단위를 찾고, 그래도 부족하면 억지로 늘리지 말고 그 사실을 보고한다.
-
-13-1. **확정한 내용에 맞는 블록 타입을 고른다.** 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 일정만 `gantt_roadmap`을 사용한다. 계층 구조는 `architecture`, 순환·환류는 `feedback_loop`, 1:N 연결은 `mapping`, 병렬 역할은 `swimlane`, 통과 기준은 `quality_gate`, 방사형 연결은 `hub_spoke`, 순차 격자는 `process_grid`, 대립하는 선택지는 `comparison`을 쓴다. `comparison`은 두 항목이 실제로 대립할 때만 쓰고 병행·동시 확보에는 쓰지 않는다. `blueprint_flow`의 단계는 일정으로 간주하지 않으며 `steps[]`와 동일 길이의 `step_details[]`를 작성해 각 처리 노드의 세부 문구를 보존한다. `layout_family: "block_pool_auto"`에서는 5~6개 블록을 `slot: "auto"`로 선언한다.
-
-14. **이 Skill은 1차 승인까지만 담당한다.** 1차에서 확정하는 것은 블록 구성과 블록별 간단 내용이다. 자산 선택과 문구 상세화는 2차에서 `$proposal-ppt-maker`가 맡는다. 1차 단계에서 자산을 고르거나 `step_details[]`·`rows[]` 같은 상세 문구를 완성하지 않는다.
-
-14-1. **1차 산출물의 범위.** 블록마다 `visual_category`, `content.headline`, 그리고 그 블록이 무엇을 말할지 한두 문장으로 요약한 `content.summary`만 채운다. 표의 `rows`, 지표의 `metrics`, 도식의 `diagram_labels` 같은 타입별 내용은 2차에서 채우며, 통과를 위해 자리표시자를 넣지 않는다. 1차 렌더는 `--outline`으로 실행하면 타입별 내용 없이 사각형과 문구만 그린다. `asset-mapping.json`의 각 항목은 `status: "pending_stage2"`로 두고 자산 ID를 적지 않는다. 청사진 `status`는 `draft`로 시작해 1차 승인 시 `structure_approved`로 바꾼다.
-
-15. **다른 요구사항의 몫을 가져오지 않는다.** 블록에 담는 내용은 `primary_requirement_id`의 원문 세부 내용에서 나와야 한다. 인접 요구사항에만 있는 내용은 그 요구사항의 장표 몫이므로 실체로 넣지 않는다. 연결을 밝혀야 이해되는 지점은 `SEC-006 연계`처럼 ID 한 줄 참조로만 남기고 그 요구사항의 세부 항목을 옮겨 적지 않는다.
-
-15-1. **경계를 먼저 확인하고 보고한다.** 블록 내용을 정하기 전에 대상 요구사항과 표현이 겹치는 인접 요구사항을 찾아 사용자에게 알린다. 겹치는 것이 있으면 어디까지가 이번 장표의 몫인지 확정한 뒤에 내용을 쓴다. 이 확인을 건너뛰면 원문이 더 길고 상세한 쪽의 내용이 이번 장표로 빨려 들어가고, 정작 그 요구사항의 장표를 만들 때 쓸 내용이 남지 않는다.
+1. `density`는 `high`, `blocks[]`는 서로 다른 역할의 독립 내용 상자 5~6개로 둔다.
+2. `layout_family: "block_pool_auto"`에서는 모든 블록을 `slot: "auto"`로 선언하고 한 장 안의 `visual_category`를 서로 다르게 쓴다. 같은 카드 토폴로지 반복으로 개수를 채우지 않는다.
+3. 내용을 먼저 확정한 뒤 그릇을 고른다. 각 블록의 `content.headline`과 `content.summary`를 정한 다음 의미에 맞는 `visual_category`를 선택한다.
+4. 표·검증은 `matrix_table`, 지표는 `metric_dashboard`, 범위·효과는 `scope_outcome_mapping`, 입력·처리·결과는 `blueprint_flow`, 단계·게이트는 `chevron_pipeline`, 근거 있는 일정만 `gantt_roadmap`을 사용한다. 계층은 `architecture`, 순환은 `feedback_loop`, 1:N은 `mapping`, 병렬 역할은 `swimlane`, 통과 기준은 `quality_gate`, 방사형 연결은 `hub_spoke`, 순차 격자는 `process_grid`, 실제 대립 항목은 `comparison`을 사용한다.
+5. 기간·마일스톤 근거가 없으면 로드맵을 만들지 않는다. 비교에는 `content.conclusion`으로 적용 방향을 쓴다.
+6. `slide_scope: "requirement"`는 개별 요구사항 1건과 단일 `requirement_ids`를 사용한다. 여러 요구사항을 묶는 개요만 `slide_scope: "overview"`로 둔다.
+7. 한 요구사항을 여러 장으로 나눌 때 각 장이 원문 근거만으로 5개 블록을 채우고 비슷한 분량으로 스스로 성립해야 한다. 자리표시자나 반복 문장이 필요하면 나누지 않는다.
+8. 다른 요구사항의 세부 내용을 끌어오지 않는다. 연결이 필요하면 요구사항 ID 한 줄 참조만 남긴다.
+9. 원문 정량지표의 `value_text`와 `source_refs[]`는 `protected_metrics`에 보존한다. 근거·출처·제작 메모는 가시 장표 문구에 노출하지 않는다.
+10. `portrait`에는 제안사의 행동과 결과를 말하고 `니다.`로 끝나는 `governing_message`를 넣는다.
+11. 방향은 사용자에게 확인한다. 팔레트나 템플릿이 없으면 `#1769E0`, `#123B78`, `#4A8CF0`, `#EEF5FF`를 쓴다.
+12. 복잡한 구조도 우선 `native_diagram`과 `content.explanation`으로 구성한다. 끝까지 구성해도 읽기 어려울 때만 `text_explainer`를 사용하고, 사용자가 허용한 경우만 `generated_visual_with_text`를 보조 시각으로 쓴다.
+13. 검색, 인제스트, SQLite, 임베딩, 에셋 카탈로그를 호출하거나 요구하지 않는다.
 
 ## 선택적 구조 레퍼런스
 
-레퍼런스 없이도 RFP만으로 기획할 수 있다. 사용자가 첨부 이미지를 주면 구조와 배치만 참고하고 색상, 타이포그래피, 문구, 업무 내용은 무시한다. 첨부 이미지를 인제스트하거나 검색 색인에 추가하지 않는다. 이미지를 읽을 수 없으면 다시 첨부해 달라고 요청하고 자동 검색으로 대체하지 않는다.
+레퍼런스 없이도 RFP만으로 완전하게 기획한다. 사용자가 첨부 이미지나 완료된 검색 결과의 `selected_slide_ids`를 명시적으로 제공한 경우에만 구조와 배치를 참고한다. 색상, 타이포그래피, 문구와 업무 내용은 복사하지 않는다.
 
-완료된 검색 세션이나 `selected_slide_ids`는 사용자가 명시적으로 전달한 경우에만 사용한다. 세션을 받으면 완료 상태와 `selected_slide_ids`를 확인한다. 세션이 없거나 완료되지 않았으면 그 상태를 보고하고 레퍼런스 없이 계속할지 묻는다. 레퍼런스가 없거나 사용하지 않기로 한 경우 자산 재사용을 가장하지 않고 RFP 근거만으로 진행한다.
+레퍼런스 정보는 청사진의 선택 필드에만 기록한다.
 
-레퍼런스는 `ppt-ingest`가 만든 슬라이드 PNG와 SQLite 색인에서 온다. 선택된 슬라이드는 **구조 레퍼런스**이며 배치와 구성만 참고하고 문구·색상·업무 내용은 가져오지 않는다. `tools/pattern-library`의 `responsive_native_template` 자산을 렌더링에 적용하는 경로는 동결 상태이므로 사용하지 않는다.
+```json
+{
+  "reference_context": {
+    "mode": "user_provided",
+    "selected_slide_ids": ["slide_001"],
+    "notes": [
+      { "block_id": "process", "reference_id": "slide_001", "usage_note": "상단 흐름과 하단 통제 영역의 구조만 참고" }
+    ]
+  }
+}
+```
+
+레퍼런스가 없으면 `mode: "none"`, 빈 배열을 사용하거나 필드 자체를 생략한다. 세션 파일을 열거나 완료 상태를 재확인하지 않으며, 레퍼런스가 없거나 읽을 수 없어도 작업을 막거나 자동 검색으로 대체하지 않는다. `proposal-ppt-ingest`와 `proposal-reference-search`는 사용자가 별도로 실행하는 독립 도구다.
 
 ## 실행 흐름
 
-1. 요구사항 ID와 범위를 먼저 확정한다.
-2. 방향을 확인하고 기본 팔레트 또는 사용자가 명시한 팔레트를 적용한다.
-3. 첨부 이미지, 명시적으로 전달된 완료 세션, 레퍼런스 없음 중 입력 상태를 확정한다.
-3-1. **블록별 내용을 확정한다.** 요구사항 원문을 내용 단위로 쪼개고 각 단위가 말할 내용을 한두 문장으로 적는다. 이 단계가 끝나기 전에는 `visual_category`를 정하지 않는다.
-3-2. **확정한 내용마다 그릇을 고른다.** 내용에 맞는 블록 타입을 정한다. 자산과 레퍼런스 대응은 여기서 정하지 않는다.
-4. `<plugin-root>/references/data-contract-v2.md` 계약에 맞춰 두 JSON을 만든다. 자산 매핑은 전부 `status: "pending_stage2"`로 둔다.
-5. 승인 대기 세션을 `storage/sessions/plan_<id>.json`에 저장한다.
-6. **1차 승인을 받는다.** 블록 구성과 블록별 간단 내용을 와이어프레임과 함께 표시하고, 사용자 명시 승인 전에는 `$proposal-ppt-maker` 호출과 최종 PPTX 생성을 금지한다. 승인 전 청사진 `status`는 `draft`, 1차 승인 후에는 `structure_approved`로 둔다. 렌더러는 `approved`만 통과시키므로 두 값 모두 PPTX 생성을 막는다.
-7. 필요하면 HitL 검토 화면을 연다.
+1. 요구사항 ID, 범위와 인접 요구사항 경계를 확정한다.
+2. 방향과 팔레트를 확정한다.
+3. 원문을 내용 단위로 나누고 블록별 `headline`과 `summary`를 쓴다.
+4. 각 내용에 맞는 서로 다른 `visual_category`를 배정한다.
+5. `<plugin-root>/references/data-contract-v2.md`에 맞춰 `slide-blueprint.json`을 만든다. 초기 `status`는 `draft`다.
+6. `--outline` 와이어프레임을 보여주고 1차 승인을 받는다. 승인 후 `status`를 `structure_approved`로 바꾼다.
+7. 사용자 승인 후에만 `$proposal-ppt-maker`로 상세 문구와 최종 PPTX를 만든다.
 
-`block_pool_auto`를 선택한 경우 요구사항의 표·지표·매핑·흐름·단계·일정 신호에 따라 블록 타입을 조합하고, 같은 카드 모양을 반복하지 않는다.
-
-```powershell
-node tools/hitl-bridge/hitl_launcher.mjs --open "http://127.0.0.1:5274/planner.html?session=plan_<id>"
-```
-
-사용자 승인 후에만 `$proposal-ppt-maker`를 호출한다. 승인 전에는 PPTX를 만들지 않는다.
+승인 전에는 최종 PPTX를 만들지 않는다.

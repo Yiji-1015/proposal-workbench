@@ -1,5 +1,4 @@
 import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
-import { resolveRendererKey } from "./asset-recipes.mjs";
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -27,15 +26,10 @@ function normalizeBlock(block, outline = false) {
   const blockId = ownString(block, "block_id", "block_id");
   const visualCategory = ownString(block, "visual_category");
   const blockTypeDefinition = getBlockTypeDefinition(visualCategory);
-  // 개요 모드에서는 블록을 사각형과 문구로만 그리므로 타입별 내용 계약을 요구하지
-  // 않는다. 1차 초안에서 표의 rows나 지표의 metrics를 채우려고 자리표시자를 넣을
-  // 필요가 없어진다. 타입 정의는 그대로 두어 레이아웃 폭·높이는 유지한다.
   const content = blockTypeDefinition && !outline
     ? validateBlockTypeContent(visualCategory, block.content)
     : structuredClone(block.content ?? {});
-  if (outline && !String(content.headline ?? "").trim()) {
-    throw new TypeError(`${blockId} content.headline is required in outline mode`);
-  }
+  if (outline && !String(content.headline ?? "").trim()) throw new TypeError(`${blockId} content.headline is required in outline mode`);
   if (content.explanation != null && typeof content.explanation !== "string") throw new TypeError(`content.explanation for ${blockId} must be a string`);
   if (typeof content.explanation === "string") content.explanation = content.explanation.trim();
   const steps = Array.isArray(content.steps) ? content.steps.map((step) => String(step).trim()).filter(Boolean) : [];
@@ -57,7 +51,7 @@ function normalizeBlock(block, outline = false) {
     blockId,
     role: ownString(block, "role"),
     slot: ownString(block, "slot"),
-    visualCategory: ownString(block, "visual_category"),
+    visualCategory,
     direction: typeof block.direction === "string" ? block.direction : "none",
     importance: typeof block.importance === "string" ? block.importance : "optional",
     architectureTreatment,
@@ -69,34 +63,6 @@ function normalizeBlock(block, outline = false) {
     blockTypeDefinition,
     sourceRefs: Array.isArray(block.source_refs) ? [...block.source_refs] : [],
   };
-}
-
-function inferAssetStepCount(catalogItem) {
-  if (Number.isInteger(catalogItem.step_count) && catalogItem.step_count > 1) return catalogItem.step_count;
-  const words = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
-  const match = String(catalogItem.module_type ?? "").toLowerCase().match(/(?:^|_)(two|three|four|five|six|seven|eight|nine|ten)_step(?:_|$)/);
-  return match ? words[match[1]] : null;
-}
-
-const APPROVED_PHOTO_LICENSES = new Set(["user_confirmed", "cc0", "cc-by", "cc-by-sa", "public-domain", "royalty-free"]);
-
-function contentItemCount(block) {
-  return block.steps.length
-    || block.options.length
-    || (Array.isArray(block.content?.items) ? block.content.items.length : 0)
-    || (Array.isArray(block.content?.diagram_labels) ? block.content.diagram_labels.length : 0)
-    || (Array.isArray(block.content?.bullets) ? block.content.bullets.length : 0)
-    || (Array.isArray(block.content?.left) ? block.content.left.length : 0)
-    || (Array.isArray(block.content?.right) ? block.content.right.length : 0);
-}
-
-function validateFixedNodeCount(item, catalogItem, block, rendererKey) {
-  if (!new Set(["hub_spoke", "mapping"]).has(catalogItem.module_type) && !["hub_spoke", "mapping"].includes(item.module_type)) return;
-  const fixed = item.approved_node_count ?? catalogItem.approved_node_count ?? catalogItem.fixed_node_count;
-  if (fixed == null) return;
-  if (!Number.isInteger(fixed) || fixed < 1) throw new Error(`Fixed node count for ${catalogItem.module_id} is invalid`);
-  const actual = contentItemCount(block);
-  if (actual && actual !== fixed) throw new Error(`Fixed ${rendererKey} asset ${catalogItem.module_id} requires ${fixed} nodes; received ${actual}`);
 }
 
 function normalizeTheme(theme = {}) {
@@ -119,15 +85,32 @@ function countMeaningfulAreas(blocks) {
   }, 0);
 }
 
-export function compileRenderModel({ requirement, blueprint, mapping, catalog, outline = false }) {
+function normalizeReferenceContext(value, blockIds) {
+  if (value == null) return { mode: "none", selectedSlideIds: [], notes: [] };
+  requireObject(value, "blueprint.reference_context");
+  const mode = ownString(value, "mode", "blueprint.reference_context.mode");
+  if (!["none", "user_provided"].includes(mode)) throw new Error("blueprint.reference_context.mode must be none or user_provided");
+  const selectedSlideIds = value.selected_slide_ids == null ? [] : idList(value.selected_slide_ids, "blueprint.reference_context.selected_slide_ids");
+  if (mode === "none" && selectedSlideIds.length) throw new Error("reference_context mode none cannot include selected_slide_ids");
+  const notes = value.notes == null ? [] : value.notes.map((note, index) => {
+    requireObject(note, `blueprint.reference_context.notes[${index}]`);
+    const blockId = ownString(note, "block_id", `blueprint.reference_context.notes[${index}].block_id`);
+    if (!blockIds.has(blockId)) throw new Error(`reference_context note references unknown block ${blockId}`);
+    return {
+      blockId,
+      referenceId: ownString(note, "reference_id", `blueprint.reference_context.notes[${index}].reference_id`),
+      usageNote: ownString(note, "usage_note", `blueprint.reference_context.notes[${index}].usage_note`),
+    };
+  });
+  return { mode, selectedSlideIds, notes };
+}
+
+export function compileRenderModel({ requirement, blueprint, outline = false }) {
   requireObject(requirement, "requirement");
   requireObject(blueprint, "blueprint");
-  requireObject(mapping, "mapping");
-  if (!Array.isArray(catalog)) throw new TypeError("catalog must be an array");
   const requirementId = ownString(requirement, "requirement_id", "requirement.requirement_id");
   const blueprintId = ownString(blueprint, "requirement_id", "blueprint.requirement_id");
-  const mappingId = ownString(mapping, "requirement_id", "mapping.requirement_id");
-  if (new Set([requirementId, blueprintId, mappingId]).size !== 1) throw new Error("Requirement IDs must match across requirement, blueprint, and mapping inputs");
+  if (requirementId !== blueprintId) throw new Error("Requirement IDs must match across requirement and blueprint inputs");
   const slideScope = ownString(blueprint, "slide_scope", "blueprint.slide_scope");
   if (!["requirement", "overview"].includes(slideScope)) throw new Error("blueprint.slide_scope must be requirement or overview");
   const requirementIds = idList(blueprint.requirement_ids, "blueprint.requirement_ids");
@@ -145,8 +128,6 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog, o
   const density = blueprint.density ?? "high";
   if (density !== "high") throw new Error(`blueprint.density must be high for proposal slides; received ${density}`);
   const layoutFamily = ownString(blueprint, "layout_family", "blueprint.layout_family");
-  if (!Array.isArray(mapping.mappings)) throw new Error("mapping.mappings must be an array");
-
   const blocks = blueprint.blocks.map((block) => normalizeBlock(block, outline));
   if (layoutFamily === "block_pool_auto") {
     if (blocks.length < 5 || blocks.length > 6) throw new Error("block_pool_auto requires 5 to 6 blocks");
@@ -154,94 +135,33 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog, o
       if (!block.blockTypeDefinition) throw new Error(`block_pool_auto does not support visual_category ${block.visualCategory}`);
       if (block.slot !== "auto") throw new Error(`block_pool_auto requires slot auto for ${block.blockId}`);
     }
+    if (new Set(blocks.map((block) => block.visualCategory)).size !== blocks.length) {
+      throw new Error("block_pool_auto visual_category values must be unique within a slide");
+    }
   }
   for (const block of blocks) {
     if (block.role === "technology_comparison") {
       const conclusion = block.content?.conclusion;
-      if (typeof conclusion !== "string" || !conclusion.trim()) {
-        throw new Error(`technology_comparison block ${block.blockId} must include content.conclusion`);
-      }
+      if (typeof conclusion !== "string" || !conclusion.trim()) throw new Error(`technology_comparison block ${block.blockId} must include content.conclusion`);
     }
   }
   const blockIds = new Set(blocks.map((block) => block.blockId));
   if (blockIds.size !== blocks.length) throw new Error("blueprint block IDs must be unique");
   const meaningfulAreaCount = countMeaningfulAreas(blocks);
   if (meaningfulAreaCount < 5) throw new Error(`blueprint must contain at least 5 meaningful areas across nodes, lanes, steps, conclusions, and text regions; found ${meaningfulAreaCount}`);
-  const catalogById = new Map(catalog.map((item) => [item.module_id, item]));
-  const selectedAssets = [];
-  const fallbackBlocks = [];
-  for (const item of mapping.mappings) {
-    requireObject(item, "mapping item");
-    const blockId = ownString(item, "block_id", "mapping.block_id");
-    if (!blockIds.has(blockId)) throw new Error(`mapping references unknown block ${blockId}`);
-    if (item.status === "architecture_required") {
-      throw new Error(`Block ${blockId} is marked 상세 아키텍처 필요 and cannot be rendered as a final slide`);
-    }
-    if (item.status === "selected_candidate") {
-      const assetId = ownString(item, "asset_id", "mapping.asset_id");
-      const catalogItem = catalogById.get(assetId);
-      if (!catalogItem) throw new Error(`Unknown asset ${assetId} selected for ${blockId}`);
-      if (catalogItem.asset_kind === "photo_asset" || catalogItem.renderer_key === "photo_asset_reference") {
-        throw new Error(`photo_asset ${assetId} cannot be mapped directly; use photo_id on a native asset`);
-      }
-      const rendererKey = resolveRendererKey(item, catalogItem);
-      if (!rendererKey) throw new Error(`Unsupported renderer for selected asset ${assetId}; declare a supported renderer_key or choose no_suitable_asset`);
-      const block = blocks.find((candidate) => candidate.blockId === blockId);
-      const requiresPhoto = catalogItem.asset_kind === "media_frame"
-        || catalogItem.requires_photo === true
-        || catalogItem.media_required === true
-        || Number(catalogItem.media_slots) > 0;
-      if (requiresPhoto && item.photo_id == null) throw new Error(`Selected asset ${assetId} requires photo_id`);
-      const actualStepCount = block.steps.length || block.options.length;
-      const assetStepCount = inferAssetStepCount(catalogItem);
-      const adaptations = [];
-      if (rendererKey === "process_grid" && actualStepCount && assetStepCount && actualStepCount !== assetStepCount) {
-        if (actualStepCount < 2 || actualStepCount > 12) throw new Error(`Process asset ${assetId} cannot reflow ${actualStepCount} steps; supported range is 2-12`);
-        adaptations.push({ type: "node_count_reflow", from: assetStepCount, to: actualStepCount });
-      }
-      validateFixedNodeCount(item, catalogItem, block, rendererKey);
-      let photoId = null;
-      let photoCatalog = null;
-      if (item.photo_id != null) {
-        photoId = ownString(item, "photo_id", "mapping.photo_id");
-        photoCatalog = catalogById.get(photoId);
-        if (!photoCatalog || photoCatalog.asset_kind !== "photo_asset" || photoCatalog.renderer_key !== "photo_asset_reference") {
-          throw new Error(`photo_id ${photoId} must reference a catalog photo_asset`);
-        }
-        if (!APPROVED_PHOTO_LICENSES.has(photoCatalog.license_status)) {
-          throw new Error(`photo_id ${photoId} does not have an approved license status`);
-        }
-      }
-      selectedAssets.push({
-        blockId,
-        assetId,
-        template: item.template ?? catalogItem.template,
-        usageMode: item.usage_mode ?? "semantic",
-        rendererKey,
-        adaptations,
-        photoId,
-        photoCatalog: photoCatalog ? structuredClone(photoCatalog) : null,
-        mapping: structuredClone(item),
-        catalog: structuredClone(catalogItem),
-      });
-    } else if (item.status === "no_suitable_asset" || String(item.status).startsWith("fallback")) {
-      fallbackBlocks.push({ blockId, fallback: item.fallback ?? "native_shapes", reason: item.usage_note ?? "No compatible selected asset" });
-    }
-  }
-
+  const referenceContext = normalizeReferenceContext(blueprint.reference_context, blockIds);
   const orientation = blueprint.orientation === "portrait" ? "portrait" : "landscape";
   let governingMessage = "";
   if (orientation === "portrait") {
     governingMessage = ownString(blueprint, "governing_message", "blueprint.governing_message");
-    if (!/니다\.$/.test(governingMessage)) {
-      throw new Error("blueprint.governing_message for portrait slides must end in 니다.");
-    }
-  } else if (typeof blueprint.governing_message === "string") {
-    governingMessage = blueprint.governing_message.trim();
-  }
+    if (!/니다\.$/.test(governingMessage)) throw new Error("blueprint.governing_message for portrait slides must end in 니다.");
+  } else if (typeof blueprint.governing_message === "string") governingMessage = blueprint.governing_message.trim();
   const protectedMetrics = Array.isArray(blueprint.protected_metrics)
     ? blueprint.protected_metrics.map((metric) => ({ metricId: metric.metric_id, label: metric.label, valueText: String(metric.value_text), sourceRefs: [...(metric.source_refs ?? [])] }))
     : [];
+  const nativeDiagrams = blocks
+    .filter((block) => block.blockTypeDefinition?.rendererKey)
+    .map((block) => ({ blockId: block.blockId, rendererKey: block.blockTypeDefinition.rendererKey, visualCategory: block.visualCategory }));
   return {
     requirementId,
     slideScope,
@@ -259,8 +179,8 @@ export function compileRenderModel({ requirement, blueprint, mapping, catalog, o
     contentBoxCount: blocks.length,
     meaningfulAreaCount,
     blocks,
-    selectedAssets,
-    fallbackBlocks,
+    nativeDiagrams,
+    referenceContext,
   };
 }
 

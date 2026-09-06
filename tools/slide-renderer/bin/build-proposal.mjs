@@ -7,7 +7,6 @@ import { compileRenderModel } from "../src/compile-render-model.mjs";
 import { createLayoutPlan } from "../src/layouts.mjs";
 
 const rendererRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const defaultPatternRoot = path.resolve(rendererRoot, "..", "pattern-library");
 const BOOLEAN_FLAGS = new Set(["wireframe-only", "outline"]);
 
 function parseArgs(argv) {
@@ -33,14 +32,10 @@ async function readJson(file) { return JSON.parse(await fs.readFile(file, "utf8"
 export async function buildProposal(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   const project = path.resolve(args.project);
-  const patternRoot = path.resolve(args["pattern-library"] ?? defaultPatternRoot);
-  const [requirement, blueprint, mapping, catalogRaw] = await Promise.all([
+  const [requirement, blueprint] = await Promise.all([
     readJson(path.join(project, "input", "requirement.json")),
     readJson(path.join(project, "blueprint", "slide-blueprint.json")),
-    readJson(path.join(project, "mapping", "asset-mapping.json")),
-    readJson(path.join(patternRoot, "unified-visual-module-catalog.json")),
   ]);
-  const catalog = Array.isArray(catalogRaw) ? catalogRaw : (catalogRaw.modules ?? catalogRaw.items ?? []);
   // 승인 게이트는 렌더 진입점에 둔다. 래퍼(run-proposal.mjs)에만 두면 이 CLI를 직접
   // 호출해 우회할 수 있다. 와이어프레임은 승인을 받기 위해 보여주는 자료이므로
   // 승인 전에도 만들 수 있어야 한다. 승인 전에 나가면 안 되는 것은 최종 PPTX다.
@@ -54,7 +49,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       + "Render the wireframe with --wireframe-only, show it to the user, and set status to \"approved\" after they approve.",
     );
   }
-  const model = compileRenderModel({ requirement, blueprint, mapping, catalog, outline });
+  const model = compileRenderModel({ requirement, blueprint, outline });
   const layout = createLayoutPlan(model);
   const customOutput = args.output ? path.resolve(args.output) : null;
   const outputPptx = customOutput ?? path.join(project, "output", `${model.requirementId}.pptx`);
@@ -70,7 +65,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
   await fs.writeFile(layoutPath, JSON.stringify(layout), "utf8");
   const worker = spawnSync(process.execPath, [
     path.join(rendererRoot, "bin", "render-worker.mjs"),
-    "--model", modelPath, "--layout", layoutPath, "--pattern", patternRoot,
+    "--model", modelPath, "--layout", layoutPath,
     "--output", outputPptx, "--wireframe", wireframePng, "--final", finalSlidePng,
     "--result", resultPath, "--wireframe-only", wireframeOnly ? "true" : "false", "--outline", outline ? "true" : "false",
   ], { encoding: "utf8", timeout: 120000 });
@@ -115,25 +110,17 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     content_box_count: model.contentBoxCount,
     meaningful_area_count: model.meaningfulAreaCount,
     picture_shape_count: rendered.pictureShapeCount ?? rendered.picture_shape_count ?? 0,
-    selected_assets: rendered.assets.map((asset) => ({
-      block_id: asset.blockId,
-      asset_id: asset.assetId,
-      template: asset.template,
-      source_sha256: asset.sha256,
-      renderer_key: asset.rendererKey,
-      selected: asset.selected,
-      loaded: asset.loaded,
-      applied: asset.applied,
-      fidelity_passed: asset.fidelityPassed,
-      used: asset.applied && asset.fidelityPassed,
-      usage_mode: asset.usageMode,
-      render_mode: asset.renderMode,
-      structure_fingerprint: asset.structureFingerprint,
-      required_motifs: asset.requiredMotifs,
-      produced_motifs: asset.producedMotifs,
-      adaptations: asset.adaptations,
+    native_diagrams: model.nativeDiagrams.map((item) => ({
+      block_id: item.blockId,
+      visual_category: item.visualCategory,
+      renderer_key: item.rendererKey,
+      render_mode: "native_powerpoint_shapes",
     })),
-    fallback_blocks: model.fallbackBlocks,
+    reference_context: {
+      mode: model.referenceContext.mode,
+      selected_slide_ids: model.referenceContext.selectedSlideIds,
+      notes: model.referenceContext.notes.map((note) => ({ block_id: note.blockId, reference_id: note.referenceId, usage_note: note.usageNote })),
+    },
     runtime_fallbacks: rendered.runtimeFallbacks ?? [],
     outputs: { pptx: outputPptx, wireframe: wireframePng, final_slide: finalSlidePng },
     checks: { png_is_real_raster: validPng, pptx_is_zip_package: validPptx, slide_count: rendered.slideCount, requirement_id_not_hardcoded: true, render_worker_exit_code: worker.status, native_cleanup_recovered: worker.status !== 0 },

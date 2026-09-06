@@ -7,13 +7,12 @@ function validBrief() {
     requirement_ids: ["SFR-002", "SFR-003"],
     slide_scope: { count: 4, orientation: "portrait" },
     palette: { primary: "#1769E0", navy: "#123B78" },
-    approved_asset_mappings: [
-      { block_id: "quality", asset_id: "source_template_quality_feedback_loop", renderer_key: "feedback_loop" },
-    ],
+    reference_context: { mode: "none", selected_slide_ids: [], notes: [] },
+    native_topology_constraints: ["unique_visual_category_per_slide"],
     forbidden_actions: ["start_localhost", "create_review_ppt", "expand_validation_infrastructure"],
     time_budget_minutes: 30,
     max_review_rounds: 1,
-    completion_criteria: ["editable_pptx", "inline_preview", "honest_asset_report"],
+    completion_criteria: ["editable_pptx", "inline_preview", "native_diagram_report"],
   };
 }
 
