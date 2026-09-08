@@ -182,6 +182,13 @@ export async function buildProposal(argv = process.argv.slice(2)) {
       design_rationale: model.shapePlan.designRationale,
       primitive_count: model.shapePlan.primitives.length,
       shape_names: model.shapePlan.primitives.map((primitive) => primitive.name),
+      layout_quality: {
+        surface_coverage: model.shapePlan.layoutQuality.surfaceCoverage,
+        largest_empty_band_px: model.shapePlan.layoutQuality.largestEmptyBand,
+        side_by_side_block_pairs: model.shapePlan.layoutQuality.sideBySidePairs,
+        text_primitive_count: model.shapePlan.layoutQuality.textPrimitiveCount,
+        text_metrics: "malgun_gothic_measured",
+      },
     } : null,
     structure_repeat_check: structureRepeatCheck,
     reference_context: {
