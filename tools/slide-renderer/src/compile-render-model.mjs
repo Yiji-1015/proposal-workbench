@@ -1,5 +1,5 @@
 import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
-import { normalizeAgentShapePlan } from "./agent-shape-plan.mjs";
+import { estimateTextFit, normalizeAgentShapePlan } from "./agent-shape-plan.mjs";
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -192,6 +192,8 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     governingMessage = ownString(blueprint, "governing_message", "blueprint.governing_message");
     if (!/니다\.$/.test(governingMessage)) throw new Error("blueprint.governing_message for portrait slides must end in 니다.");
   } else if (typeof blueprint.governing_message === "string") governingMessage = blueprint.governing_message.trim();
+  const title = ownString(blueprint, "slide_title", "blueprint.slide_title");
+  if (!outline) checkHeaderFit(title, governingMessage, orientation);
   const nativeDiagrams = agentAuthored
     ? []
     : blocks
@@ -205,7 +207,7 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     requirementName: requirement.requirement_name ?? requirementId,
     requirementSummary: requirement.requirement_summary ?? "",
     governingMessage,
-    title: ownString(blueprint, "slide_title", "blueprint.slide_title"),
+    title,
     layoutFamily,
     density,
     canvas,
@@ -218,6 +220,27 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     shapePlan,
     referenceContext,
   };
+}
+
+// 제목과 거버닝 메시지는 렌더러가 고정 상자에 그리므로 shape_plan 검사가 닿지 않는다.
+// 미리보기 글꼴에서는 한 줄이던 제목이 맑은 고딕에서는 두 줄로 내려와 거버닝 메시지를
+// 덮는 일이 있었다. 헤더 상자 크기와 실측 글꼴 폭으로 미리 거른다.
+const HEADER_BOXES = {
+  portrait: { title: { width: 648, height: 70, fontSize: 28, maxLines: 1 }, subtitle: { width: 648, height: 50, fontSize: 14, maxLines: 2 } },
+  landscape: { title: { width: 980, height: 48, fontSize: 36, maxLines: 1 }, subtitle: { width: 1120, height: 34, fontSize: 16, maxLines: 1 } },
+};
+
+function checkHeaderFit(title, governingMessage, orientation) {
+  const boxes = HEADER_BOXES[orientation];
+  const titleFit = estimateTextFit(title, { left: 0, top: 0, ...boxes.title }, boxes.title.fontSize);
+  if (titleFit.neededLines > boxes.title.maxLines) {
+    throw new Error(`blueprint.slide_title needs ${titleFit.neededLines} lines at ${boxes.title.fontSize}pt in the ${orientation} header but only ${boxes.title.maxLines} fits; shorten the title (about ${orientation === "portrait" ? 17 : 26} Korean characters at most)`);
+  }
+  if (!governingMessage) return;
+  const subtitleFit = estimateTextFit(governingMessage, { left: 0, top: 0, ...boxes.subtitle }, boxes.subtitle.fontSize);
+  if (subtitleFit.neededLines > boxes.subtitle.maxLines) {
+    throw new Error(`blueprint.governing_message needs ${subtitleFit.neededLines} lines at ${boxes.subtitle.fontSize}pt in the ${orientation} header but only ${boxes.subtitle.maxLines} fit; shorten it (about ${orientation === "portrait" ? 68 : 52} Korean characters at most)`);
+  }
 }
 
 const DEFAULT_THEME = {

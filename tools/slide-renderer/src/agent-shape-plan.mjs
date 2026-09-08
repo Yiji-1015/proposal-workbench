@@ -5,17 +5,27 @@ const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 const ALLOWED_SIDES = new Set(["left", "right", "top", "bottom"]);
 const ALLOWED_CONNECTOR_KINDS = new Set(["straight"]);
 const MIN_PRIMITIVES = 8;
+const SURFACE_KINDS = new Set(["rect", "roundRect", "ellipse", "diamond"]);
+
+// 배치 품질 하한선. 같은 렌더러로 만든 장표가 어떤 날은 상하좌우를 다 쓰는 구성으로,
+// 어떤 날은 상자 한 줄을 세로로 쌓고 아래 40%를 비운 채로 나왔다. 검증기가 도형 수와
+// 안전영역만 보고 배치 자체는 보지 않았기 때문이다. 아래 값은 실제로 승인된 장표
+// (상단 2단·중앙 허브·하단 2단·결론 밴드)는 통과하고, 1열 스택은 떨어지도록 잡았다.
+const LAYOUT_RULES = {
+  portrait: { minSurfaceCoverage: 0.6, maxEmptyBand: 120, minHeadlineFont: 14 },
+  landscape: { minSurfaceCoverage: 0.55, maxEmptyBand: 80, minHeadlineFont: 14 },
+};
 
 // 내용 보존 검사는 원문을 지키려는 것이지 표기 방식을 지키려는 것이 아니다. 불릿 기호,
 // 대시, 따옴표, 공백만 다른 문장이 계속 거부되면서 저작 경로 자체가 포기되고 고정
 // 레이아웃으로 되돌아갔다. 같은 내용의 다른 표기는 같은 것으로 본다.
 function comparableText(value) {
   return String(value ?? "")
-    .replace(/[\u00B7\u2022\u2219\u25CB\u25CF\u30FB]/g, " ")
-    .replace(/[\u2010-\u2015\u2212]/g, "-")
-    .replace(/[\u2018\u2019\u02BC]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u00A0\u200B]/g, " ")
+    .replace(/[·•∙○●・]/g, " ")
+    .replace(/[‐-―−]/g, "-")
+    .replace(/[‘’ʼ]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[ ​]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -50,6 +60,13 @@ function resolveColor(value, name, theme, fallback = "none") {
   throw new Error(`${name} must be none, a theme token, or a #RRGGBB theme color`);
 }
 
+export function bodySafeArea(canvas) {
+  const margin = 24;
+  const top = canvas.orientation === "portrait" ? 166 : 150;
+  const bottom = canvas.height - 50;
+  return { left: margin, top, right: canvas.width - margin, bottom, width: canvas.width - margin * 2, height: bottom - top };
+}
+
 function normalizePosition(value, name, canvas) {
   requireObject(value, name);
   const position = {
@@ -59,10 +76,8 @@ function normalizePosition(value, name, canvas) {
     height: finiteNumber(value.height, `${name}.height`),
   };
   if (position.width <= 0 || position.height <= 0) throw new RangeError(`${name} width and height must be positive`);
-  const margin = 24;
-  const bodyTop = canvas.orientation === "portrait" ? 166 : 150;
-  const bodyBottom = canvas.height - 50;
-  if (position.left < margin || position.top < bodyTop || position.left + position.width > canvas.width - margin || position.top + position.height > bodyBottom) {
+  const body = bodySafeArea(canvas);
+  if (position.left < body.left || position.top < body.top || position.left + position.width > body.right || position.top + position.height > body.bottom) {
     throw new RangeError(`${name} must stay inside the agent-authored body safe area`);
   }
   return position;
@@ -88,6 +103,158 @@ function structureFingerprint(primitives, canvas) {
     return `${primitive.kind}:${bucket(left, canvas.width)},${bucket(top, canvas.height)},${bucket(width, canvas.width)},${bucket(height, canvas.height)}`;
   }).join("|");
   return createHash("sha256").update(canonical).digest("hex").slice(0, 16);
+}
+
+// ---------- 배치 품질 ----------
+
+// 렌더러는 슬라이드 단위를 96dpi 픽셀로, 글자 크기를 pt로 받는다. 폭 계수는 맑은 고딕
+// 실측값이다(한글 1.00em, 영문 0.47~0.50em, 숫자 0.55em, 공백 0.35em). 미리보기 PNG는
+// 대체 글꼴로 그려져 한글이 약 25% 좁게 보이므로, PNG에서 한 줄에 들어가던 문장이
+// PowerPoint에서는 두 줄로 넘친다. 그래서 미리보기가 아니라 실제 글꼴 기준으로 잡는다.
+function glyphWidth(char, px) {
+  const code = char.codePointAt(0);
+  if (char === " ") return px * 0.35;
+  if (char === "\n") return 0;
+  if ((code >= 0x1100 && code <= 0x11FF) || (code >= 0x3000 && code <= 0x303F) || (code >= 0x3130 && code <= 0x318F)
+    || (code >= 0x4E00 && code <= 0x9FFF) || (code >= 0xAC00 && code <= 0xD7AF) || (code >= 0xFF00 && code <= 0xFFEF)) return px * 0.98;
+  if (/[0-9]/.test(char)) return px * 0.56;
+  if (/[.,:;'"()\-·]/.test(char)) return px * 0.33;
+  return px * 0.5;
+}
+
+// 텍스트 상자 안쪽 여백(좌우 7.2px, 상하 3.6px)과 맑은 고딕 줄 간격(약 1.3em)을 반영한다.
+export function estimateTextFit(text, position, fontSize) {
+  const px = fontSize * (96 / 72);
+  const lineHeight = px * 1.3;
+  const usableWidth = Math.max(1, position.width - 14);
+  const allowedLines = Math.max(1, Math.floor((position.height - 7 + lineHeight * 0.15) / lineHeight));
+  let neededLines = 0;
+  let widestLine = 0;
+  for (const line of String(text).split("\n")) {
+    let width = 0;
+    for (const char of line) width += glyphWidth(char, px);
+    widestLine = Math.max(widestLine, Math.min(width, usableWidth));
+    neededLines += Math.max(1, Math.ceil(width / usableWidth));
+  }
+  return { allowedLines, neededLines, fits: neededLines <= allowedLines, extent: { width: widestLine + 14, height: neededLines * lineHeight + 7 } };
+}
+
+function surfaceCoverage(surfaces, body, step = 8) {
+  const columns = Math.ceil(body.width / step);
+  const rows = Math.ceil(body.height / step);
+  const covered = new Uint8Array(columns * rows);
+  for (const { position } of surfaces) {
+    const c0 = Math.max(0, Math.floor((position.left - body.left) / step));
+    const c1 = Math.min(columns - 1, Math.floor((position.left + position.width - body.left - 1) / step));
+    const r0 = Math.max(0, Math.floor((position.top - body.top) / step));
+    const r1 = Math.min(rows - 1, Math.floor((position.top + position.height - body.top - 1) / step));
+    for (let r = r0; r <= r1; r += 1) for (let c = c0; c <= c1; c += 1) covered[r * columns + c] = 1;
+  }
+  let count = 0;
+  for (const cell of covered) count += cell;
+  return count / (columns * rows);
+}
+
+function largestEmptyBand(surfaces, body) {
+  const intervals = surfaces.map(({ position }) => [position.top, position.top + position.height]).sort((a, b) => a[0] - b[0]);
+  let cursor = body.top;
+  let largest = { size: 0, from: body.top, to: body.top };
+  for (const [top, bottom] of intervals) {
+    if (top - cursor > largest.size) largest = { size: top - cursor, from: cursor, to: top };
+    cursor = Math.max(cursor, bottom);
+  }
+  if (body.bottom - cursor > largest.size) largest = { size: body.bottom - cursor, from: cursor, to: body.bottom };
+  return largest;
+}
+
+function sideBySidePairs(blockFrames) {
+  const frames = Object.entries(blockFrames);
+  let pairs = 0;
+  for (let i = 0; i < frames.length; i += 1) {
+    for (let j = i + 1; j < frames.length; j += 1) {
+      const a = frames[i][1];
+      const b = frames[j][1];
+      const horizontallyDisjoint = a.left + a.width <= b.left + 8 || b.left + b.width <= a.left + 8;
+      const verticalOverlap = Math.min(a.top + a.height, b.top + b.height) - Math.max(a.top, b.top);
+      if (horizontallyDisjoint && verticalOverlap > 40) pairs += 1;
+    }
+  }
+  return pairs;
+}
+
+function contains(outer, inner) {
+  return inner.left >= outer.left && inner.top >= outer.top
+    && inner.left + inner.width <= outer.left + outer.width && inner.top + inner.height <= outer.top + outer.height;
+}
+
+function inscribedRect(shape) {
+  const { left, top, width, height } = shape.position;
+  const scale = shape.kind === "ellipse" ? 0.71 : 0.5;
+  const w = width * scale;
+  const h = height * scale;
+  return { left: left + (width - w) / 2, top: top + (height - h) / 2, width: w, height: h };
+}
+
+function checkLayoutQuality(primitives, blockIds, blockFrames, canvas) {
+  const rules = LAYOUT_RULES[canvas.orientation];
+  const body = bodySafeArea(canvas);
+  const surfaces = primitives.filter((primitive) => SURFACE_KINDS.has(primitive.kind));
+  const texts = primitives.filter((primitive) => primitive.kind === "text");
+  const problems = [];
+
+  const coverage = surfaceCoverage(surfaces, body);
+  if (coverage < rules.minSurfaceCoverage) {
+    problems.push(`surface shapes cover ${Math.round(coverage * 100)}% of the body safe area; at least ${Math.round(rules.minSurfaceCoverage * 100)}% is required. Use the width and height of the canvas instead of stacking a few boxes in one column`);
+  }
+
+  const band = largestEmptyBand(surfaces, body);
+  if (band.size > rules.maxEmptyBand) {
+    problems.push(`an empty horizontal band of ${Math.round(band.size)}px (top ${Math.round(band.from)} to ${Math.round(band.to)}) has no surface shape; the largest allowed gap is ${rules.maxEmptyBand}px. Fill the space with content or shrink the slide's blank area`);
+  }
+
+  const pairs = sideBySidePairs(blockFrames);
+  if (blockIds.size >= 4 && pairs === 0) {
+    problems.push("all blocks are stacked in a single column; at least two blocks must sit side by side when the slide has four or more blocks");
+  }
+
+  for (const blockId of blockIds) {
+    const blockTexts = texts.filter((primitive) => primitive.blockId === blockId);
+    const sizes = new Set(blockTexts.map((primitive) => primitive.fontSize));
+    const largest = Math.max(...blockTexts.map((primitive) => primitive.fontSize));
+    const headline = blockTexts.find((primitive) => primitive.fontSize === largest);
+    if (sizes.size < 2 || largest < rules.minHeadlineFont || !headline?.bold) {
+      problems.push(`block ${blockId} needs a bold headline text of at least ${rules.minHeadlineFont}pt and a smaller body text as separate text primitives; found font sizes [${[...sizes].join(", ")}]`);
+    }
+  }
+
+  const overflows = [];
+  for (const primitive of texts) {
+    const fit = estimateTextFit(primitive.text, primitive.position, primitive.fontSize);
+    if (!fit.fits) overflows.push(`${primitive.name} (${fit.neededLines} lines needed, ${fit.allowedLines} fit at ${primitive.fontSize}pt in ${Math.round(primitive.position.width)}x${Math.round(primitive.position.height)})`);
+    const center = { left: primitive.position.left + primitive.position.width / 2, top: primitive.position.top + primitive.position.height / 2 };
+    for (const shape of surfaces) {
+      if (shape.kind !== "ellipse" && shape.kind !== "diamond") continue;
+      const p = shape.position;
+      if (center.left < p.left || center.left > p.left + p.width || center.top < p.top || center.top > p.top + p.height) continue;
+      // 상자 크기가 아니라 실제 글자가 차지하는 넓이를 본다. 작은 원 안의 두 글자 라벨은
+      // 상자가 원보다 넓어도 문제가 없고, 타원을 꽉 채운 문단은 상자가 안에 있어도 잘린다.
+      const inscribed = inscribedRect(shape);
+      if (fit.extent.width > inscribed.width * 1.15 || fit.extent.height > inscribed.height * 1.15) {
+        problems.push(`text ${primitive.name} needs about ${Math.round(fit.extent.width)}x${Math.round(fit.extent.height)} but ${shape.kind} ${shape.name} only offers ${Math.round(inscribed.width)}x${Math.round(inscribed.height)} inside its curve; shorten the text, enlarge the shape, or use a rectangle`);
+      }
+    }
+  }
+  if (overflows.length) problems.push(`text does not fit its box: ${overflows.join("; ")}`);
+
+  if (problems.length) {
+    throw new Error(`Agent-authored shape plan fails the layout quality gate:\n- ${problems.join("\n- ")}`);
+  }
+  return {
+    surfaceCoverage: Number(coverage.toFixed(3)),
+    largestEmptyBand: Math.round(band.size),
+    sideBySidePairs: pairs,
+    textPrimitiveCount: texts.length,
+  };
 }
 
 export function normalizeAgentShapePlan(value, { canvas, blockIds, blockRequiredTexts, protectedMetricValues, theme }) {
@@ -183,12 +350,14 @@ export function normalizeAgentShapePlan(value, { canvas, blockIds, blockRequired
   for (const valueText of protectedMetricValues) {
     if (!visibleText.includes(comparableText(valueText))) throw new Error(`Agent-authored shape plan must visibly preserve protected metric ${valueText}`);
   }
+  const layoutQuality = checkLayoutQuality(orderedPrimitives, blockIds, blockFrames, canvas);
   return {
     designRationale,
     compositionSignature,
     structureFingerprint: structureFingerprint(orderedPrimitives, canvas),
     primitives: orderedPrimitives,
     blockFrames,
+    layoutQuality,
   };
 }
 

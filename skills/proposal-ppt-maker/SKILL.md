@@ -15,6 +15,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 
 - 입력·출력 JSON을 만들기 전에 [references/io-contract.md](references/io-contract.md)를 전체 읽는다.
 - 자유 배치 도형 계획을 만들기 전에 [references/agent-authored-layout.md](references/agent-authored-layout.md)를 전체 읽는다.
+- 좌표를 쓰기 전에 [references/composition-skeletons.md](references/composition-skeletons.md)에서 블록 관계에 맞는 골격을 고른다. 빈 캔버스에서 시작하지 않는다.
 - 세로형 장표는 [references/portrait-proposal.md](references/portrait-proposal.md)를 전체 읽는다.
 - 사용자가 서브에이전트를 명시적으로 요청한 경우만 [references/agent-execution-contract.md](references/agent-execution-contract.md)를 읽고 계약을 검증한다.
 
@@ -26,7 +27,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 4. 기간 근거가 없으면 로드맵을 만들지 않는다. 비교 블록은 `content.conclusion`에 적용 방향을 쓴다.
 5. `portrait`에는 `니다.`로 끝나는 `governing_message`가 필수다.
 6. `density: high`와 5~8개의 독립 내용 블록을 유지한다. 같은 카드 모양을 반복하지 않는다.
-7. 신규 장표는 `layout_family: "agent_authored"`와 `shape_plan`을 사용한다. AI가 전체 메시지와 블록 관계를 보고 네이티브 도형, 크기, 좌표, 연결을 직접 결정한다.
+7. 신규 장표는 `layout_family: "agent_authored"`와 `shape_plan`을 사용한다. AI가 전체 메시지와 블록 관계를 보고 네이티브 도형, 크기, 좌표, 연결을 직접 결정한다. 렌더러의 배치 품질 게이트(표면 점유율 60% 이상, 빈 가로 띠 120px 이하, 좌우 배치, 블록별 굵은 헤드라인과 별도 본문, 맑은 고딕 실측 기준 텍스트 넘침 없음)를 통과하지 못하면 와이어프레임도 만들어지지 않는다.
 8. `composition_signature`와 `design_rationale`로 구조 선택을 설명한다. 렌더러가 인접 장표의 검수 보고서와 구조 지문을 비교해 반복을 차단하므로, 겹치면 다시 구성한다. 의미상 반드시 같아야 할 때만 `--allow-repeat-structure`를 쓴다. 고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용이며 `--legacy-layout` 없이는 렌더되지 않는다.
 9. 세 개 이상의 병렬 항목은 단순 불릿 대신 도식 노드, 레인, 매핑 또는 표로 표현한다.
 10. 최종 도식은 원·사각형·선·텍스트 등 편집 가능한 네이티브 PowerPoint 도형이어야 한다. 사용자가 요청한 사진·로고와 허용한 생성 이미지만 예외다.

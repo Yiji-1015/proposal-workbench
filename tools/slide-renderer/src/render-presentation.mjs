@@ -40,7 +40,9 @@ function addHeader(slide, model, page, wireframe) {
   if (wireframe) text(slide, `eyebrow-${suffix}`, "SLIDE BLUEPRINT · WIREFRAME", { left: portrait ? 36 : 48, top: 26, width: portrait ? 400 : 520, height: 22 }, 13, C.blue, true);
   const titlePosition = { left: portrait ? 36 : 48, top: 56, width: portrait ? 648 : 980, height: portrait ? 70 : 48 };
   if (wireframe) {
-    text(slide, `title-${suffix}`, headerTitle, titlePosition, portrait ? 28 : 36, C.navy, true);
+    // 와이어프레임 제목은 "청사진 | " 접두어만큼 길어지므로 한 단계 작게 그린다. 최종 제목은
+    // compileRenderModel이 한 줄에 들어가는지 검사한다.
+    text(slide, `title-${suffix}`, headerTitle, titlePosition, portrait ? 24 : 32, C.navy, true);
   } else {
     const titleShape = rect(slide, `title-${suffix}`, titlePosition, "none", "none");
     titleShape.text = headerTitle;
@@ -51,7 +53,9 @@ function addHeader(slide, model, page, wireframe) {
   // 이미 말하고 있으므로, 있을 때는 실제 메시지를 보여준다.
   const subtitle = model.governingMessage || model.requirementSummary
     || (wireframe ? "내용 구조·배치·asset 매핑 승인용 초안" : "");
-  text(slide, `subtitle-${suffix}`, subtitle, { left: portrait ? 36 : 48, top: portrait ? 128 : 108, width: portrait ? 648 : 1120, height: portrait ? 42 : 34 }, portrait ? 15 : 16, C.gray);
+  // 세로형 거버닝 메시지는 맑은 고딕 기준 두 줄까지 허용한다. 14pt 두 줄이 본문 안전영역
+  // 시작(166) 위에서 끝나도록 상자를 116~166에 둔다.
+  text(slide, `subtitle-${suffix}`, subtitle, { left: portrait ? 36 : 48, top: portrait ? 116 : 108, width: portrait ? 648 : 1120, height: portrait ? 50 : 34 }, portrait ? 14 : 16, C.gray);
   const displayRequirementId = model.primaryRequirementId || (model.slideScope === "overview" ? "OVERVIEW" : model.requirementId);
   text(slide, `requirement-id-${suffix}`, displayRequirementId, { left: model.canvas.width - 150, top: 42, width: 112, height: 24 }, 14, C.blue, true, "center");
   text(slide, `page-${suffix}`, String(page).padStart(2, "0"), { left: model.canvas.width - 92, top: model.canvas.height - 36, width: 54, height: 18 }, 12, C.blue, true, "right");

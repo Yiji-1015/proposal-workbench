@@ -84,7 +84,7 @@
 - `<requirement-id>.pptx`: 슬라이드 2장이다. 1번은 `청사진 | <제목>` 와이어프레임, 2번이 최종 장표다. 1번은 의도적으로 포함한다. 채팅이나 PNG를 보지 않고 PPTX만 여는 검토자도 같은 파일에서 구조 의도를 확인할 수 있어야 하기 때문이다. 제안서 원고에 합칠 때는 2번 슬라이드만 가져간다.
 - `wireframe.png`: 2차 승인용 구조 미리보기. PPTX 1번 슬라이드와 같은 내용이다.
 - `final-slide.png`: 완성 장표 미리보기. PPTX 2번 슬라이드와 같은 내용이다.
-- `verification-report.json`: 방향, 레이아웃, `density`, `content_box_count`, `native_shape_plan`, `composition_signature`, `reference_context`, 산출물 경로와 렌더 상태
+- `verification-report.json`: 방향, 레이아웃, `density`, `content_box_count`, `native_shape_plan`(`composition_signature`, `structure_fingerprint`, `layout_quality`의 표면 점유율·최대 빈 띠·좌우 블록 쌍 수), `reference_context`, 산출물 경로와 렌더 상태
 
 `source_refs`, `protected_metrics`, 레퍼런스 메모는 기계 판독 메타이며 최종 장표의 가시 문구가 아니다.
 

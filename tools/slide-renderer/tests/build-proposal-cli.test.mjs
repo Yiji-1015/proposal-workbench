@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { compliantShapePlan } from "./helpers/compliant-shape-plan.mjs";
 
 const rendererRoot = path.resolve(import.meta.dirname, "..");
 
@@ -22,17 +23,7 @@ async function convertToAgentAuthored(project) {
   const blueprint = JSON.parse(await fs.readFile(blueprintPath, "utf8"));
   blueprint.layout_family = "agent_authored";
   blueprint.blocks = blueprint.blocks.map(({ block_id, role, content, source_refs }) => ({ block_id, role, content: { headline: content.headline }, source_refs }));
-  blueprint.shape_plan = {
-    design_rationale: "핵심 범위에서 분석 흐름과 검증 결과로 이어지는 세로 리듬을 구성한다.",
-    composition_signature: "portrait-staggered-ribbon-v1",
-    primitives: blueprint.blocks.flatMap((block, index) => {
-      const top = 180 + index * 190;
-      return [
-        { kind: index === 3 ? "diamond" : "roundRect", name: `${block.block_id}-surface`, block_id: block.block_id, position: { left: 48 + index * 16, top, width: 624 - index * 32, height: 140 }, fill: index % 2 ? "pale" : "white", stroke: "line" },
-        { kind: "text", name: `${block.block_id}-text`, block_id: block.block_id, position: { left: 76 + index * 16, top: top + 42, width: 568 - index * 32, height: 48 }, text: `${block.content.headline}${index === 0 ? " · 30초 이내 · 3개 채널" : ""}`, font_size: 17, color: "navy", bold: true, alignment: "center" },
-      ];
-    }),
-  };
+  blueprint.shape_plan = compliantShapePlan(blueprint.blocks, { signature: "portrait-staggered-ribbon-v1", extraHeadlineSuffix: " · 30초 이내 · 3개 채널" });
   await fs.writeFile(blueprintPath, JSON.stringify(blueprint, null, 2), "utf8");
 }
 
@@ -61,7 +52,8 @@ test("builds an agent-authored proposal without fixed recipes", async (t) => {
   assert.equal(report.layout_family, "agent_authored");
   assert.equal(report.layout_key, "agent_authored:portrait");
   assert.equal(report.native_shape_plan.render_mode, "agent_authored_native_shapes");
-  assert.equal(report.native_shape_plan.primitive_count, 10);
+  assert.equal(report.native_shape_plan.primitive_count, 15);
+  assert.ok(report.native_shape_plan.layout_quality.surface_coverage >= 0.6);
   assert.equal(report.native_shape_plan.composition_signature, "portrait-staggered-ribbon-v1");
   assert.match(report.native_shape_plan.structure_fingerprint, /^[0-9a-f]{16}$/);
   assert.deepEqual(report.runtime_fallbacks, []);

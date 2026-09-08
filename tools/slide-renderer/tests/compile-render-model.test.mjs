@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { compileRenderModel } from "../src/compile-render-model.mjs";
+import { compliantShapePlan } from "./helpers/compliant-shape-plan.mjs";
 
 function fixture() {
   const requirement = {
@@ -38,17 +39,7 @@ function agentFixture() {
     role: blockId,
     content: { headline: `${blockId} headline` },
   }));
-  inputs.blueprint.shape_plan = {
-    design_rationale: "요구사항의 원인에서 효과로 이어지는 비대칭 세로 흐름을 사용한다.",
-    composition_signature: "portrait-asymmetric-spine-v1",
-    primitives: inputs.blueprint.blocks.flatMap((block, index) => {
-      const top = 180 + index * 190;
-      return [
-        { kind: index === 2 ? "ellipse" : "roundRect", name: `${block.block_id}-surface`, block_id: block.block_id, position: { left: 48 + index * 12, top, width: 600 - index * 24, height: 142 }, fill: index === 2 ? "pale" : "white", stroke: "line" },
-        { kind: "text", name: `${block.block_id}-text`, block_id: block.block_id, position: { left: 72 + index * 12, top: top + 34, width: 552 - index * 24, height: 56 }, text: `${block.content.headline}${index === 0 ? " · 분기 1회" : ""}`, color: "ink", font_size: 18, bold: true },
-      ];
-    }),
-  };
+  inputs.blueprint.shape_plan = compliantShapePlan(inputs.blueprint.blocks, { signature: "portrait-asymmetric-spine-v1", extraHeadlineSuffix: " · 분기 1회" });
   return inputs;
 }
 
@@ -86,7 +77,8 @@ test("compiles an agent-authored native shape plan without fixed visual categori
   assert.equal(model.layoutFamily, "agent_authored");
   assert.equal(model.blocks[0].visualCategory, "agent_authored");
   assert.equal(model.blocks[0].blockTypeDefinition, null);
-  assert.equal(model.shapePlan.primitives.length, 10);
+  assert.equal(model.shapePlan.primitives.length, 15);
+  assert.ok(model.shapePlan.layoutQuality.surfaceCoverage >= 0.6);
   assert.equal(model.shapePlan.compositionSignature, "portrait-asymmetric-spine-v1");
   assert.match(model.shapePlan.structureFingerprint, /^[0-9a-f]{16}$/);
   assert.deepEqual(model.nativeDiagrams, []);
@@ -189,4 +181,14 @@ test("agent-authored outline can precede detailed shape planning", () => {
   delete inputs.blueprint.shape_plan;
   assert.doesNotThrow(() => compileRenderModel({ ...inputs, outline: true }));
   assert.throws(() => compileRenderModel(inputs), /shape_plan/);
+});
+
+test("rejects a title or governing message that wraps in the fixed header", () => {
+  const longTitle = agentFixture();
+  longTitle.blueprint.slide_title = "관리자 권한 전 생애주기를 정책 기반으로 통제하는 접근통제 수행 방안";
+  assert.throws(() => compileRenderModel(longTitle), /slide_title needs 2 lines.*shorten the title/);
+
+  const longMessage = agentFixture();
+  longMessage.blueprint.governing_message = "관리자 권한의 신청, 승인, 부여, 점검, 회수까지 전 생애주기를 정책 기반으로 통제하고 모든 변경 이력을 추적해 감사 대응과 보안 통제 수준을 동시에 확보합니다.";
+  assert.throws(() => compileRenderModel(longMessage), /governing_message needs 3 lines/);
 });
