@@ -161,11 +161,79 @@
 ### H. 상단 3열 · 하단 풀폭 결론
 
 ```text
-┌──────────┐ ┌──────────┐ ┌──────────┐   48,160 390×330 ×3 (간격 20)
+┌──────────┐ ┌──────────┐ ┌──────────┐   48,160 388×330 ×3 (간격 20: 48, 456, 864)
 └──────────┘ └──────────┘ └──────────┘
 ┌──────────────────────────────────────┐   48,510  1180×150
 └──────────────────────────────────────┘
 ```
+
+## `composition`으로 적기
+
+좌표를 직접 쓰지 않는다. 청사진에 `composition`을 적고 `tools/slide-renderer/bin/compose-shape-plan.mjs --project <dir> --write`를 실행하면 렌더러가 `shape_plan`을 만든다. 골격과 슬롯 이름은 `--skeletons`로 출력할 수 있다.
+
+```json
+{
+  "composition": {
+    "skeleton": "C-deep",
+    "rationale": "범위 밴드에서 3열 파이프라인으로 흐르고 저장 결과가 하단 두 블록으로 내려간다.",
+    "signature": "portrait-scope-band-three-column-pipeline-v1",
+    "blocks": {
+      "scope":     { "slot": "band",  "style": "navy", "items": [{ "type": "metric", "value": "4.7TB", "label": "전처리 대상 규모" }] },
+      "filter":    { "slot": "col-1", "style": "pale", "accent": "stripe", "items": [{ "type": "chips", "labels": ["중복 문서 제거", "최고보안등급 제외"] }] },
+      "refresh":   { "slot": "foot-left", "items": [
+        { "type": "loop", "labels": ["신규 문서
+수집", "증분
+전처리", "색인
+반영"], "caption": "모델 교체 시 재임베딩만 수행", "gap": 40 },
+        { "type": "note", "pin": "bottom", "label": "일정 연계", "body": "범위 확정 M1~2" }
+      ] }
+    },
+    "connectors": [
+      { "from": "filter", "to": "transform", "from_side": "right", "to_side": "left" },
+      { "from": "flow-step-1-2", "to": "missing", "from_side": "right", "to_side": "left", "stroke": "accent", "width": 1 }
+    ]
+  }
+}
+```
+
+골격 이름과 슬롯:
+
+| 방향 | 골격 | 슬롯 |
+| --- | --- | --- |
+| 세로 | `A` | `top-left`, `top-right`, `hub`(타원), `foot-left`, `foot-right`, `band` |
+| 세로 | `B` | `rail`, `panel-1`, `panel-2`, `panel-3`, `band` |
+| 세로 | `B-tall` | `rail`(전체 높이), `panel-1`, `panel-2-left`, `panel-2-right`, `panel-3`, `panel-4` |
+| 세로 | `C` | `band`, `col-1`, `col-2`, `col-3`, `foot-left`, `foot-right`, `conclusion` |
+| 세로 | `C-deep` | `band`, `col-1`, `col-2`, `col-3`, `foot-left`, `foot-right`(하단이 깊음) |
+| 세로 | `D` | `lane-1`, `lane-2`, `lane-3`, `foot-left`, `foot-right` |
+| 세로 | `E` | `top`, `mid-1`, `mid-2`, `mid-3`, `foot-left`, `foot-right` |
+| 세로 | `F` | `left-1`~`left-4`, `right-1`~`right-4`, `band` |
+| 가로 | `G` | `summary`, `flow`, `detail-left`, `detail-right`, `control` |
+| 가로 | `H` | `col-1`, `col-2`, `col-3`, `band` |
+
+블록 항목:
+
+- `slot`: 슬롯 이름 또는 `{ left, top, width, height, ellipse? }` 직접 지정. 한 슬롯은 한 블록만 쓴다. 모든 슬롯을 채울 필요는 없지만 비우면 점유율·빈 띠 게이트에 걸릴 수 있다.
+- `style`: `white`, `pale`, `navy`, `primary`. 타원 슬롯은 기본 `primary`.
+- `accent`: `bar`(좌측 세로 막대) 또는 `stripe`(헤드라인 위 짧은 줄).
+- `headline_size`, `body_size`, `align`, `padding`, `item_gap`: 필요할 때만.
+- `items[]`: 헤드라인·본문 아래에 순서대로 쌓인다. `pin: "bottom"`이면 슬롯 바닥에 붙는다. `gap`으로 앞 요소와의 간격을 바꾼다.
+
+요소 종류:
+
+| type | 필드 | 그리는 것 |
+| --- | --- | --- |
+| `chips` | `labels[]`, `layout: "stack"\|"row"`, `fill: white\|accent\|primary\|navy`, `alternate`, `size` | 둥근 사각형 라벨. 세로 쌓기 또는 가로 나열 |
+| `loop` | `labels[]`, `caption`, `emphasize_last` | 원 노드를 화살표로 이은 순환·순서, 아래 설명 띠 |
+| `checklist` | `labels[]`, `emphasize_last` | 체크 표시가 있는 행 |
+| `gauges` | `rows[[label, desc]]` | 왼쪽 막대가 있는 지표 행 |
+| `decision` | `input`, `gate`, `outcomes[]` | 입력 칩 → 마름모 → 결과 칩 분기 |
+| `steps` | `labels[]`, `spacing` | 번호 원을 세로로 잇는 단계 레일. 남은 높이에 맞춰 퍼진다 |
+| `metric` | `value`, `label` | 슬롯 우측 상단 수치 배지. 본문 폭을 그만큼 줄인다 |
+| `note` | `label`, `body` | 작은 메모 상자. 보통 `pin: "bottom"` |
+| `text` | `text`, `size`, `bold`, `color`, `alignment` | 자유 텍스트 한 줄·문단 |
+
+연결선 `from`/`to`에는 블록 ID(표면 도형으로 풀림) 또는 요소 도형 이름(`<block>-step-1-2`, `<block>-loop-1-3`, `<block>-chip-1-2` 등)을 쓴다.
 
 ## 골격을 고른 뒤 할 일
 

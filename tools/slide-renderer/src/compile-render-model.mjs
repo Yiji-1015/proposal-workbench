@@ -1,5 +1,6 @@
 import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
 import { estimateTextFit, normalizeAgentShapePlan } from "./agent-shape-plan.mjs";
+import { composeShapePlan } from "./compose-shape-plan.mjs";
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -178,8 +179,16 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
   const protectedMetrics = Array.isArray(blueprint.protected_metrics)
     ? blueprint.protected_metrics.map((metric) => ({ metricId: metric.metric_id, label: metric.label, valueText: String(metric.value_text), sourceRefs: [...(metric.source_refs ?? [])] }))
     : [];
+  // shape_plan을 직접 쓰지 않고 composition(골격·슬롯·요소)만 적은 청사진은 여기서
+  // 컴파일한다. 두 환경(Claude Code, Codex)이 같은 저작 도구를 쓰게 하려는 것이다.
+  let shapePlanSource = "shape_plan";
+  let rawShapePlan = blueprint.shape_plan;
+  if (agentAuthored && !outline && rawShapePlan == null && blueprint.composition != null) {
+    rawShapePlan = composeShapePlan(blueprint.composition, { blocks: blueprint.blocks, orientation });
+    shapePlanSource = "composition";
+  }
   const shapePlan = agentAuthored && !outline
-    ? normalizeAgentShapePlan(blueprint.shape_plan, {
+    ? normalizeAgentShapePlan(rawShapePlan, {
       canvas,
       blockIds,
       blockRequiredTexts: new Map(blocks.map((block) => [block.blockId, collectVisibleContent(block.content)])),
@@ -218,6 +227,7 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     blocks,
     nativeDiagrams,
     shapePlan,
+    shapePlanSource,
     referenceContext,
   };
 }

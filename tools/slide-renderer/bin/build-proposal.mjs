@@ -177,6 +177,7 @@ export async function buildProposal(argv = process.argv.slice(2)) {
     })),
     native_shape_plan: model.shapePlan ? {
       render_mode: "agent_authored_native_shapes",
+      shape_plan_source: model.shapePlanSource,
       composition_signature: model.shapePlan.compositionSignature,
       structure_fingerprint: model.shapePlan.structureFingerprint,
       design_rationale: model.shapePlan.designRationale,
