@@ -142,24 +142,36 @@ function itemChips(em, ctx, item, top, index) {
 
 function itemLoop(em, ctx, item, top, index) {
   const labels = item.labels ?? [];
-  const diameter = 92;
-  const gap = Math.max(-2, (ctx.inner.width - diameter * labels.length) / Math.max(1, labels.length - 1));
-  const usedGap = Math.min(gap, 24);
-  const totalWidth = diameter * labels.length + usedGap * (labels.length - 1);
-  const start = ctx.inner.left + (ctx.inner.width - totalWidth) / 2;
+  const n = labels.length;
+  // 폭이 넉넉하면 92px 원 안에 라벨을 넣고, 좁으면 번호 원 아래에 라벨을 둔다. 원을 줄여
+  // 라벨을 욱여넣으면 곡선 안쪽 검사에 걸리고 실제로도 읽기 어렵다.
+  const minGap = 16;
+  const inside = 92 * n + minGap * (n - 1) <= ctx.inner.width;
+  const diameter = inside ? 92 : 52;
+  const gap = inside ? Math.min(24, (ctx.inner.width - diameter * n) / Math.max(1, n - 1)) : 0;
+  const cell = inside ? diameter + gap : ctx.inner.width / n;
+  const start = inside ? ctx.inner.left + (ctx.inner.width - (diameter * n + gap * (n - 1))) / 2 : ctx.inner.left;
+  let cursor = top + diameter;
   labels.forEach((label, i) => {
-    const left = start + i * (diameter + usedGap);
+    const emphasized = i === n - 1 && item.emphasize_last;
+    const left = inside ? start + i * cell : start + i * cell + (cell - diameter) / 2;
     const name = `${ctx.blockId}-loop-${index}-${i + 1}`;
-    em.shape("ellipse", name, ctx.blockId, { left, top, width: diameter, height: diameter }, i === labels.length - 1 && item.emphasize_last ? "primary" : "pale", "primary", 1.5);
-    em.text(`${name}-label`, ctx.blockId, { left: left + 8, top: top + 25, width: diameter - 16, height: 42 }, label, 10, { bold: true, color: i === labels.length - 1 && item.emphasize_last ? "white" : "navy", alignment: "center" });
+    em.shape("ellipse", name, ctx.blockId, { left, top, width: diameter, height: diameter }, emphasized ? "primary" : "pale", "primary", 1.5);
+    if (inside) {
+      em.text(`${name}-label`, ctx.blockId, { left: left + 2, top: top + Math.round(diameter / 2) - 21, width: diameter - 4, height: 42 }, label, 10, { bold: true, color: emphasized ? "white" : "navy", alignment: "center" });
+    } else {
+      em.text(`${name}-no`, ctx.blockId, { left, top: top + 14, width: diameter, height: 24 }, String(i + 1), 12, { bold: true, color: emphasized ? "white" : "navy", alignment: "center" });
+      const labelHeight = textHeight(label, cell - 6, 10);
+      em.text(`${name}-label`, ctx.blockId, { left: start + i * cell + 3, top: top + diameter + 6, width: cell - 6, height: labelHeight }, label, 10, { bold: true, color: "navy", alignment: "center" });
+      cursor = Math.max(cursor, top + diameter + 6 + labelHeight);
+    }
     if (i > 0) em.connector(`${ctx.blockId}-loop-${index}-link-${i}`, ctx.blockId, `${ctx.blockId}-loop-${index}-${i}`, name, "right", "left");
   });
-  let cursor = top + diameter;
   if (item.caption) {
     const height = textHeight(item.caption, ctx.inner.width - 8, 10.5);
     em.shape("roundRect", `${ctx.blockId}-loop-${index}-caption`, ctx.blockId, { left: ctx.inner.left, top: cursor + 20, width: ctx.inner.width, height: height + 8 }, "navy", "navy");
     em.text(`${ctx.blockId}-loop-${index}-caption-label`, ctx.blockId, { left: ctx.inner.left + 4, top: cursor + 24, width: ctx.inner.width - 8, height }, item.caption, 10.5, { bold: true, color: "white", alignment: "center" });
-    em.connector(`${ctx.blockId}-loop-${index}-to-caption`, ctx.blockId, `${ctx.blockId}-loop-${index}-${labels.length}`, `${ctx.blockId}-loop-${index}-caption`, "bottom", "top", "accent", 1.2);
+    em.connector(`${ctx.blockId}-loop-${index}-to-caption`, ctx.blockId, `${ctx.blockId}-loop-${index}-${n}`, `${ctx.blockId}-loop-${index}-caption`, "bottom", "top", "accent", 1.2);
     cursor += 20 + height + 8;
   }
   return cursor;
@@ -243,7 +255,131 @@ function itemText(em, ctx, item, top, index) {
   return top + height;
 }
 
-const ITEM_RENDERERS = { chips: itemChips, loop: itemLoop, checklist: itemChecklist, gauges: itemGauges, decision: itemDecision, steps: itemSteps, note: itemNote, text: itemText };
+// ---------- 표·매핑·계층·부분 수동 ----------
+
+// 표. 헤더 행은 navy, 본문 행은 흰색·연한 파랑을 번갈아 쓴다. 셀 높이는 가장 긴 셀의 줄 수로 정한다.
+function itemTable(em, ctx, item, top, index) {
+  const columns = item.columns ?? [];
+  const rows = item.rows ?? [];
+  if (!columns.length) throw new Error(`composition block ${ctx.blockId} table needs columns[]`);
+  const ratios = item.widths ?? columns.map(() => 1);
+  const total = ratios.reduce((sum, value) => sum + value, 0);
+  const widths = ratios.map((value) => (ctx.inner.width * value) / total);
+  const size = item.size ?? 10.5;
+  const base = `${ctx.blockId}-table-${index}`;
+  let cursor = top;
+  const drawRow = (cells, rowIndex, header) => {
+    const height = Math.max(30, ...cells.map((cell, c) => textHeight(String(cell ?? ""), widths[c] - 12, size) + 6));
+    let left = ctx.inner.left;
+    cells.forEach((cell, c) => {
+      const name = `${base}-r${rowIndex}-c${c + 1}`;
+      const fill = header ? "navy" : rowIndex % 2 === 0 ? "pale" : "white";
+      em.shape("rect", name, ctx.blockId, { left, top: cursor, width: widths[c], height }, fill, header ? "navy" : "line");
+      em.text(`${name}-label`, ctx.blockId, { left: left + 6, top: cursor + 3, width: widths[c] - 12, height: height - 6 }, String(cell ?? ""), size, { bold: header || (item.bold_first_column && c === 0), color: header ? "white" : "ink", alignment: header ? "center" : c === 0 ? "left" : "center" });
+      left += widths[c];
+    });
+    return height;
+  };
+  cursor += drawRow(columns, 0, true);
+  rows.forEach((cells, r) => {
+    if (cells.length !== columns.length) throw new Error(`composition block ${ctx.blockId} table row ${r + 1} has ${cells.length} cells but ${columns.length} columns`);
+    cursor += drawRow(cells, r + 1, false);
+  });
+  return cursor;
+}
+
+// 좌우 매핑. 왼쪽 항목과 오른쪽 대응을 칩 두 열로 두고 links로 잇는다. links가 없으면 같은 행끼리 잇는다.
+function itemMapping(em, ctx, item, top, index) {
+  const left = item.left ?? [];
+  const right = item.right ?? [];
+  if (!left.length || !right.length) throw new Error(`composition block ${ctx.blockId} mapping needs left[] and right[]`);
+  const gutter = item.gutter ?? 56;
+  const width = (ctx.inner.width - gutter) / 2;
+  const size = item.size ?? 10.5;
+  const base = `${ctx.blockId}-map-${index}`;
+  const rowGap = 10;
+  const column = (labels, x, key, style) => {
+    let cursor = top;
+    labels.forEach((label, i) => {
+      const height = chipHeightFor(label, width, size);
+      emitChip(em, `${base}-${key}-${i + 1}`, ctx.blockId, { left: x, top: cursor, width, height }, label, { ...style, size });
+      cursor += height + rowGap;
+    });
+    return cursor - rowGap;
+  };
+  const leftEnd = column(left, ctx.inner.left, "l", CHIP_FILLS[item.left_fill ?? "white"] ?? CHIP_FILLS.white);
+  const rightEnd = column(right, ctx.inner.left + width + gutter, "r", CHIP_FILLS[item.right_fill ?? "primary"] ?? CHIP_FILLS.primary);
+  const links = item.links ?? left.map((_, i) => [i + 1, Math.min(i + 1, right.length)]);
+  links.forEach(([l, r], i) => {
+    if (!left[l - 1] || !right[r - 1]) throw new Error(`composition block ${ctx.blockId} mapping link ${i + 1} points outside left/right`);
+    em.connector(`${base}-link-${i + 1}`, ctx.blockId, `${base}-l-${l}`, `${base}-r-${r}`, "right", "left", item.stroke ?? "accent", 1.2);
+  });
+  return Math.max(leftEnd, rightEnd);
+}
+
+// 계층. 루트 상자 아래에 자식 상자를 가로로 두고, 자식 아래에 손자 칩을 세로로 단다.
+function itemHierarchy(em, ctx, item, top, index) {
+  if (!item.root) throw new Error(`composition block ${ctx.blockId} hierarchy needs root`);
+  const children = item.children ?? [];
+  const base = `${ctx.blockId}-tree-${index}`;
+  const rootWidth = Math.min(ctx.inner.width, Math.max(160, ctx.inner.width * 0.5));
+  const rootHeight = chipHeightFor(item.root, rootWidth, 11) + 4;
+  emitChip(em, `${base}-root`, ctx.blockId, { left: ctx.inner.left + (ctx.inner.width - rootWidth) / 2, top, width: rootWidth, height: rootHeight }, item.root, { ...CHIP_FILLS.navy, size: 11 });
+  if (!children.length) return top + rootHeight;
+  const gap = 12;
+  const width = (ctx.inner.width - gap * (children.length - 1)) / children.length;
+  const childTop = top + rootHeight + 28;
+  let deepest = childTop;
+  children.forEach((child, i) => {
+    const label = typeof child === "string" ? child : child.label;
+    const leaves = typeof child === "string" ? [] : child.children ?? [];
+    const left = ctx.inner.left + i * (width + gap);
+    const height = chipHeightFor(label, width, 10.5);
+    emitChip(em, `${base}-c${i + 1}`, ctx.blockId, { left, top: childTop, width, height }, label, { ...CHIP_FILLS.white, size: 10.5 });
+    em.connector(`${base}-root-c${i + 1}`, ctx.blockId, `${base}-root`, `${base}-c${i + 1}`, "bottom", "top", "primary", 1.2);
+    let cursor = childTop + height + 8;
+    leaves.forEach((leaf, j) => {
+      const leafHeight = chipHeightFor(leaf, width, 10);
+      emitChip(em, `${base}-c${i + 1}-l${j + 1}`, ctx.blockId, { left, top: cursor, width, height: leafHeight }, leaf, { ...CHIP_FILLS.accent, size: 10 });
+      cursor += leafHeight + 6;
+    });
+    deepest = Math.max(deepest, leaves.length ? cursor - 6 : childTop + height);
+  });
+  return deepest;
+}
+
+// 부분 수동 요소. 골격에 없는 도식 하나를 슬롯 안에서만 직접 그린다. 좌표는 origin에 따라
+// "flow"(본문 아래 현재 위치, x는 안쪽 여백 기준) 또는 "slot"(슬롯 좌상단) 기준의 상대값이다.
+// 이름은 블록 접두어가 붙고, 연결선의 from/to는 같은 요소 안의 이름이나 다른 블록 ID를 쓴다.
+function itemPrimitives(em, ctx, item, top, index) {
+  const list = item.primitives ?? [];
+  if (!list.length) throw new Error(`composition block ${ctx.blockId} primitives item needs primitives[]`);
+  const origin = item.origin === "slot" ? { left: ctx.slot.left, top: ctx.slot.top } : { left: ctx.inner.left, top };
+  const prefix = `${ctx.blockId}-custom-${index}-`;
+  const local = new Set(list.filter((p) => p.kind !== "connector").map((p) => p.name));
+  let bottom = top;
+  for (const [i, raw] of list.entries()) {
+    requireObject(raw, `composition block ${ctx.blockId} primitives[${i}]`);
+    if (typeof raw.name !== "string" || !raw.name) throw new Error(`composition block ${ctx.blockId} primitives[${i}] needs a name`);
+    const name = prefix + raw.name;
+    if (raw.kind === "connector") {
+      const resolve = (value) => (local.has(value) ? prefix + value : em.names.has(value) ? value : `${value}-surface`);
+      em.connector(name, ctx.blockId, resolve(raw.from), resolve(raw.to), raw.from_side, raw.to_side, raw.stroke ?? "primary", raw.line_width ?? 1.5);
+      continue;
+    }
+    requireObject(raw.position, `composition block ${ctx.blockId} primitives[${i}].position`);
+    const position = { left: origin.left + raw.position.left, top: origin.top + raw.position.top, width: raw.position.width, height: raw.position.height };
+    if (raw.kind === "text") {
+      em.text(name, ctx.blockId, position, raw.text, raw.font_size ?? 11, { bold: raw.bold === true, color: raw.color ?? "ink", alignment: raw.alignment ?? "left" });
+    } else {
+      em.shape(raw.kind, name, ctx.blockId, position, raw.fill ?? "white", raw.stroke ?? "line", raw.line_width ?? 1);
+    }
+    bottom = Math.max(bottom, position.top + position.height);
+  }
+  return bottom;
+}
+
+const ITEM_RENDERERS = { chips: itemChips, loop: itemLoop, checklist: itemChecklist, gauges: itemGauges, decision: itemDecision, steps: itemSteps, note: itemNote, text: itemText, table: itemTable, mapping: itemMapping, hierarchy: itemHierarchy, primitives: itemPrimitives };
 
 function defaultSizes(slot, styleName) {
   if (styleName === "navy" || styleName === "primary") return { headline: 17, body: 12 };
@@ -317,7 +453,7 @@ function composeBlock(em, blockId, content, spec, slot) {
   const items = (spec.items ?? []).filter((item) => item.type !== "metric");
   const pinned = items.filter((item) => item.pin === "bottom");
   const flowing = items.filter((item) => item.pin !== "bottom");
-  const ctx = { blockId, inner, style, slotWidth: slot.width };
+  const ctx = { blockId, inner, style, slotWidth: slot.width, slot };
   const gap = spec.item_gap ?? 14;
   flowing.forEach((item, index) => {
     const render = ITEM_RENDERERS[item.type];
@@ -376,4 +512,21 @@ export function composeShapePlan(composition, { blocks, orientation }) {
     composition_signature: composition.signature,
     primitives: em.primitives,
   };
+}
+
+// 블록별로 어떤 슬롯에 어떤 요소를 썼는지 요약한다. 와이어프레임 승인 때 "이 블록이 칩
+// 나열로 끝났는지"를 사람이 바로 보게 하려는 것이다.
+export function summarizeComposition(composition, blocks) {
+  const summary = {};
+  for (const block of blocks) {
+    const spec = composition.blocks?.[block.block_id];
+    if (!spec) continue;
+    const slot = typeof spec.slot === "string" ? spec.slot : `custom ${spec.slot?.width}x${spec.slot?.height}@${spec.slot?.left},${spec.slot?.top}`;
+    const items = (spec.items ?? []).map((item) => {
+      const count = item.labels?.length ?? item.rows?.length ?? item.children?.length ?? item.primitives?.length ?? item.left?.length ?? null;
+      return count == null ? item.type : `${item.type}(${count})`;
+    });
+    summary[block.block_id] = { slot, style: spec.style ?? "white", items: items.length ? items : ["headline+body only"] };
+  }
+  return summary;
 }

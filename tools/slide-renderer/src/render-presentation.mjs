@@ -92,6 +92,9 @@ export function applyNativeShapePlan(slide, recipe, asset = null) {
         tail: { type: "arrow", width: "sm", length: "sm" },
       });
       connector.name = item.name;
+      // @oai/artifact-tool은 새 연결선을 기본적으로 도형 뒤로 보낸다. 카드 표면 위에 그린
+      // 노드 사이 화살표가 전부 표면에 가려져 보이지 않았다. 연결선은 항상 맨 앞에 둔다.
+      connector.bringToFront?.();
       continue;
     }
     const geometry = item.custom_geometry ? "custom" : item.kind === "connector" ? "line" : item.kind;

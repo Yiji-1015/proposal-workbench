@@ -175,7 +175,7 @@ export interface Composition {
     accent?: "bar" | "stripe";
     headline_size?: number; body_size?: number; align?: "left" | "center" | "right";
     padding?: number; item_gap?: number;
-    items?: { type: "chips" | "loop" | "checklist" | "gauges" | "decision" | "steps" | "metric" | "note" | "text"; pin?: "bottom"; gap?: number; [key: string]: unknown }[];
+    items?: { type: "chips" | "loop" | "checklist" | "gauges" | "decision" | "steps" | "metric" | "note" | "text" | "table" | "mapping" | "hierarchy" | "primitives"; pin?: "bottom"; gap?: number; [key: string]: unknown }[];
   }>;
   connectors?: { from: string; to: string; from_side?: string; to_side?: string; stroke?: string; width?: number; name?: string }[];
 }

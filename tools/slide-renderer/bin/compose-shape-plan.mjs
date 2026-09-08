@@ -9,7 +9,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { compileRenderModel } from "../src/compile-render-model.mjs";
-import { composeShapePlan, SKELETONS } from "../src/compose-shape-plan.mjs";
+import { composeShapePlan, SKELETONS, summarizeComposition } from "../src/compose-shape-plan.mjs";
 
 function parseArgs(argv) {
   const values = {};
@@ -55,6 +55,8 @@ export async function composeProject(argv = process.argv.slice(2)) {
     primitiveCount: shapePlan.primitives.length,
     layoutQuality: model.shapePlan.layoutQuality,
     structureFingerprint: model.shapePlan.structureFingerprint,
+    // 블록별 요소 요약. 관계를 표현해야 할 블록이 칩 나열로 끝났는지 여기서 먼저 본다.
+    blocks: summarizeComposition(blueprint.composition, blueprint.blocks),
     written: false,
   };
   if (args.write) {

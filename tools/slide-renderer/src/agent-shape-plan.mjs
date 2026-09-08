@@ -239,7 +239,8 @@ function checkLayoutQuality(primitives, blockIds, blockFrames, canvas) {
       // 상자 크기가 아니라 실제 글자가 차지하는 넓이를 본다. 작은 원 안의 두 글자 라벨은
       // 상자가 원보다 넓어도 문제가 없고, 타원을 꽉 채운 문단은 상자가 안에 있어도 잘린다.
       const inscribed = inscribedRect(shape);
-      if (fit.extent.width > inscribed.width * 1.15 || fit.extent.height > inscribed.height * 1.15) {
+      // 가운데 정렬된 짧은 라벨은 상자 안쪽 여백을 다 쓰지 않으므로 20%까지 봐준다.
+      if (fit.extent.width > inscribed.width * 1.2 || fit.extent.height > inscribed.height * 1.2) {
         problems.push(`text ${primitive.name} needs about ${Math.round(fit.extent.width)}x${Math.round(fit.extent.height)} but ${shape.kind} ${shape.name} only offers ${Math.round(inscribed.width)}x${Math.round(inscribed.height)} inside its curve; shorten the text, enlarge the shape, or use a rectangle`);
       }
     }
@@ -313,7 +314,9 @@ export function normalizeAgentShapePlan(value, { canvas, blockIds, blockRequired
         normalized[target] = side;
       }
     }
-    blockFrames[blockId] = unionFrame(blockFrames[blockId], position);
+    // 연결선의 position은 자리표시자일 뿐 렌더러가 쓰지 않는다. 블록 영역에 넣으면 좌우
+    // 배치 검사가 엉뚱한 겹침을 본다.
+    if (kind !== "connector") blockFrames[blockId] = unionFrame(blockFrames[blockId], position);
     return normalized;
   });
   const primitivesByName = new Map(primitives.map((primitive) => [primitive.name, primitive]));
