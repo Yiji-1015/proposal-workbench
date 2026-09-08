@@ -52,9 +52,17 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 ```
 
 1. `structure_approved` 청사진의 상세 콘텐츠를 채운다.
-2. 장표별 `shape_plan`을 직접 저작하고 와이어프레임을 렌더링해 채팅에 표시한다.
-3. 2차 명시 승인을 받은 뒤 `status: "approved"`로 바꾼다.
-4. 최종 PPTX와 PNG를 생성하고 시각 QA를 수행한다.
+2. 장표별 배치를 `composition`으로 적는다. 골격 이름, 블록별 슬롯·스타일·요소(칩, 루프, 체크리스트, 판정, 게이지, 단계, 수치, 메모), 블록 사이 연결선만 쓰고 좌표는 쓰지 않는다. 아래 명령이 맑은 고딕 실측 폭으로 상자를 계산해 `shape_plan`을 만들고 배치 품질 게이트까지 검사한다. 슬롯에 내용이 넘치면 어느 블록이 몇 px 부족한지 알려 주므로 문장을 줄이거나 슬롯을 바꾼 뒤 다시 실행한다.
+
+   ```powershell
+   node "<workbench-root>/tools/slide-renderer/bin/compose-shape-plan.mjs" --project "<requirement-project>" --write
+   node "<workbench-root>/tools/slide-renderer/bin/compose-shape-plan.mjs" --skeletons
+   ```
+
+   `--write`는 만들어진 `shape_plan`을 청사진에 저장한다. `composition`만 있고 `shape_plan`이 없는 청사진은 렌더러가 렌더 시점에 같은 방식으로 컴파일하므로 `--write` 없이도 렌더된다. 골격에 없는 구성이 정말 필요할 때만 `shape_plan`을 직접 쓴다. 직접 쓴 `shape_plan`이 있으면 `composition`보다 우선한다.
+3. 와이어프레임을 렌더링해 채팅에 표시한다.
+4. 2차 명시 승인을 받은 뒤 `status: "approved"`로 바꾼다.
+5. 최종 PPTX와 PNG를 생성하고 시각 QA를 수행한다.
 
 ```powershell
 node "<skill-root>/scripts/run-proposal.mjs" --project "<requirement-project>" --output "<output-dir>"

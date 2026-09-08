@@ -137,7 +137,8 @@ export interface SlideBlueprintContract {
     white?: string;           // 기본: #FFFFFF
   };
   blocks: SlideBlock[];       // 5~6개의 독립된 내용 상자
-  shape_plan?: AgentShapePlan; // agent_authored에서 필수
+  shape_plan?: AgentShapePlan; // agent_authored에서 필수. composition만 있으면 렌더러가 컴파일
+  composition?: Composition;   // 골격·슬롯·요소로 적는 배치. shape_plan이 있으면 무시
   protected_metrics: QuantitativeMetric[];
   source_refs: SourceRef[];
   reference_context?: {
@@ -162,6 +163,21 @@ export interface NativeShapePrimitive {
   from?: string; to?: string;
   from_side?: "left" | "right" | "top" | "bottom";
   to_side?: "left" | "right" | "top" | "bottom";
+}
+
+export interface Composition {
+  skeleton?: string;          // A, B, B-tall, C, C-deep, D, E, F (세로) / G, H (가로)
+  rationale: string;
+  signature: string;
+  blocks: Record<string, {    // block_id → 슬롯 배치
+    slot: string | { left: number; top: number; width: number; height: number; ellipse?: boolean };
+    style?: "white" | "pale" | "navy" | "primary";
+    accent?: "bar" | "stripe";
+    headline_size?: number; body_size?: number; align?: "left" | "center" | "right";
+    padding?: number; item_gap?: number;
+    items?: { type: "chips" | "loop" | "checklist" | "gauges" | "decision" | "steps" | "metric" | "note" | "text"; pin?: "bottom"; gap?: number; [key: string]: unknown }[];
+  }>;
+  connectors?: { from: string; to: string; from_side?: string; to_side?: string; stroke?: string; width?: number; name?: string }[];
 }
 
 export interface AgentShapePlan {
