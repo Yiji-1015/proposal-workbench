@@ -29,7 +29,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
 6. `density: high`와 5~8개의 독립 내용 블록을 유지한다. 같은 카드 모양을 반복하지 않는다.
 7. 신규 장표는 `layout_family: "agent_authored"`와 `shape_plan`을 사용한다. AI가 전체 메시지와 블록 관계를 보고 네이티브 도형, 크기, 좌표, 연결을 직접 결정한다. 렌더러의 배치 품질 게이트(표면 점유율 60% 이상, 빈 가로 띠 120px 이하, 좌우 배치, 블록별 굵은 헤드라인과 별도 본문, 맑은 고딕 실측 기준 텍스트 넘침 없음)를 통과하지 못하면 와이어프레임도 만들어지지 않는다.
 8. `composition_signature`와 `design_rationale`로 구조 선택을 설명한다. 렌더러가 인접 장표의 검수 보고서와 구조 지문을 비교해 반복을 차단하므로, 겹치면 다시 구성한다. 의미상 반드시 같아야 할 때만 `--allow-repeat-structure`를 쓴다. 고정 `visual_category`→`renderer_key` 경로는 기존 청사진 호환용이며 `--legacy-layout` 없이는 렌더되지 않는다.
-9. 세 개 이상의 병렬 항목은 단순 불릿 대신 도식 노드, 레인, 매핑 또는 표로 표현한다.
+9. 세 개 이상의 병렬 항목은 단순 불릿 대신 도식 노드, 레인, 매핑 또는 표로 표현한다. 블록의 관계가 골격 요소(칩, 루프, 표, 매핑, 계층, 판정 등)에 맞지 않으면 칩으로 대체하지 않는다. `primitives` 요소로 슬롯 안에 직접 그리거나, 장표 전체가 골격과 다르면 `shape_plan`을 직접 쓴다. 관계와 요소의 대응은 [references/composition-skeletons.md](references/composition-skeletons.md)의 기준표를 따른다.
 10. 최종 도식은 원·사각형·선·텍스트 등 편집 가능한 네이티브 PowerPoint 도형이어야 한다. 사용자가 요청한 사진·로고와 허용한 생성 이미지만 예외다.
 11. 복잡한 구조도 먼저 `native_diagram`과 편집 가능한 `content.explanation`으로 구성한다. 읽기 어려운 경우만 `text_explainer`, 사용자 허용 시만 `generated_visual_with_text`를 쓴다.
 12. 다른 요구사항의 몫을 가져오지 않는다. 연결이 필요하면 ID 한 줄 참조만 둔다.
@@ -59,7 +59,7 @@ PPTX 제작과 시각 QA에는 `presentations:Presentations`를 사용한다.
    node "<workbench-root>/tools/slide-renderer/bin/compose-shape-plan.mjs" --skeletons
    ```
 
-   `--write`는 만들어진 `shape_plan`을 청사진에 저장한다. `composition`만 있고 `shape_plan`이 없는 청사진은 렌더러가 렌더 시점에 같은 방식으로 컴파일하므로 `--write` 없이도 렌더된다. 골격에 없는 구성이 정말 필요할 때만 `shape_plan`을 직접 쓴다. 직접 쓴 `shape_plan`이 있으면 `composition`보다 우선한다.
+   출력의 `blocks` 요약(블록별 슬롯과 요소)을 와이어프레임과 함께 채팅에 보여 준다. 관계를 표현해야 할 블록이 `chips`나 `headline+body only`로 끝났으면 승인 요청 전에 요소를 바꾼다. `--write`는 만들어진 `shape_plan`을 청사진에 저장한다. `composition`만 있고 `shape_plan`이 없는 청사진은 렌더러가 렌더 시점에 같은 방식으로 컴파일하므로 `--write` 없이도 렌더된다. 골격에 없는 구성이 정말 필요할 때만 `shape_plan`을 직접 쓴다. 직접 쓴 `shape_plan`이 있으면 `composition`보다 우선한다.
 3. 와이어프레임을 렌더링해 채팅에 표시한다.
 4. 2차 명시 승인을 받은 뒤 `status: "approved"`로 바꾼다.
 5. 최종 PPTX와 PNG를 생성하고 시각 QA를 수행한다.

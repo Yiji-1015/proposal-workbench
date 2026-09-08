@@ -51,7 +51,7 @@
 
 `shape_plan`은 `design_rationale`, `composition_signature`, `primitives[]`를 가진다. 각 primitive는 `kind`, 고유 `name`, `block_id`, `position`과 종류별 텍스트·스타일·연결 정보를 가진다. 상세 계약은 `agent-authored-layout.md`를 따른다.
 
-`shape_plan` 대신 `composition`(골격 이름, 블록별 슬롯·스타일·요소, 연결선)을 적을 수 있다. `tools/slide-renderer/bin/compose-shape-plan.mjs --project <dir> --write`가 이를 `shape_plan`으로 컴파일하며, `shape_plan`이 없고 `composition`만 있으면 렌더러가 렌더 시점에 같은 방식으로 컴파일한다. 둘 다 있으면 `shape_plan`이 우선한다. 필드는 `composition-skeletons.md`를 따른다. 검수 보고서의 `native_shape_plan.shape_plan_source`가 어느 쪽을 썼는지 기록한다.
+`shape_plan` 대신 `composition`(골격 이름, 블록별 슬롯·스타일·요소, 연결선)을 적을 수 있다. `tools/slide-renderer/bin/compose-shape-plan.mjs --project <dir> --write`가 이를 `shape_plan`으로 컴파일하며, `shape_plan`이 없고 `composition`만 있으면 렌더러가 렌더 시점에 같은 방식으로 컴파일한다. 둘 다 있으면 `shape_plan`이 우선한다. 필드는 `composition-skeletons.md`를 따른다. 검수 보고서의 `native_shape_plan.shape_plan_source`가 어느 쪽을 썼는지, `composition_summary`가 블록별 슬롯과 요소를 기록한다.
 
 기존 `block_pool_auto` 입력은 5~6개 블록, 모두 `slot: "auto"`, 서로 다른 `visual_category`를 요구한다. 이 경로와 `BlockType` 표는 하위 호환용이며 신규 장표는 사용하지 않는다. 세로형에서 항상 같은 1열 스택을 만들기 때문에 렌더러가 기본 거부하고, 과거 청사진을 다시 그릴 때만 `--legacy-layout`으로 연다.
 

@@ -232,6 +232,27 @@
 | `metric` | `value`, `label` | 슬롯 우측 상단 수치 배지. 본문 폭을 그만큼 줄인다 |
 | `note` | `label`, `body` | 작은 메모 상자. 보통 `pin: "bottom"` |
 | `text` | `text`, `size`, `bold`, `color`, `alignment` | 자유 텍스트 한 줄·문단 |
+| `table` | `columns[]`, `rows[][]`, `widths[]`, `bold_first_column`, `size` | 헤더 행이 있는 표. 행 높이는 가장 긴 셀에 맞춘다 |
+| `mapping` | `left[]`, `right[]`, `links[[l, r]]`, `gutter`, `left_fill`, `right_fill` | 좌우 칩 두 열을 화살표로 잇는 대응 관계. `links` 없으면 같은 행끼리 |
+| `hierarchy` | `root`, `children[]`(문자열 또는 `{label, children[]}`) | 루트 → 자식 가로 배치 → 손자 세로 칩의 2~3단 계층 |
+| `primitives` | `primitives[]`, `origin: "flow"\|"slot"` | 골격에 없는 도식 하나를 슬롯 안에서 직접 그린다. 좌표는 본문 아래 현재 위치(`flow`) 또는 슬롯 좌상단(`slot`) 기준 상대값. 이름에 블록 접두어가 붙고 연결선은 같은 요소 안 이름이나 다른 블록 ID를 가리킨다 |
+
+## 관계에 맞는 요소를 고르는 기준
+
+골격과 요소는 배치의 하한선이지 내용을 끼워 맞추는 틀이 아니다. 블록의 관계가 아래 표의 어느 요소에도 맞지 않으면 칩으로 대체하지 말고 `primitives`로 그리거나, 장표 전체가 골격과 다르면 `shape_plan`을 직접 쓴다.
+
+| 블록이 말하는 관계 | 쓰는 요소 | 칩으로 대체하면 생기는 왜곡 |
+| --- | --- | --- |
+| 서로 독립인 병렬 항목 3~4개 | `chips` | 없음 |
+| 순서·순환 (A 다음 B, 다시 A) | `loop`, `steps` | 순서가 사라진다 |
+| 항목 ↔ 대응 (요구와 구현, 문제와 해결) | `mapping` | 무엇이 무엇에 대응하는지 사라진다 |
+| 행×열 비교 (단계별 기준, 항목별 담당) | `table` | 두 축 중 하나가 사라진다 |
+| 상위 → 하위 분해 | `hierarchy` | 계층이 평평해진다 |
+| 조건 분기 | `decision` | 분기 조건이 사라진다 |
+| 수치 대비·지표 | `gauges`, `metric` | 수치가 본문 속에 묻힌다 |
+| 위 어디에도 없는 도식 (아키텍처, N:M 연결, 시간 축) | `primitives` 또는 직접 `shape_plan` | 억지 매핑 |
+
+`compose-shape-plan.mjs`는 블록별로 어떤 슬롯에 어떤 요소를 몇 개 썼는지 `blocks` 요약으로 출력하고, 검수 보고서의 `composition_summary`에도 남긴다. 와이어프레임 승인 때 관계를 표현해야 할 블록이 `chips`나 `headline+body only`로 끝났는지 이 요약에서 먼저 본다.
 
 연결선 `from`/`to`에는 블록 ID(표면 도형으로 풀림) 또는 요소 도형 이름(`<block>-step-1-2`, `<block>-loop-1-3`, `<block>-chip-1-2` 등)을 쓴다.
 

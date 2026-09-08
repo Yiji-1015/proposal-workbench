@@ -1,6 +1,6 @@
 import { getBlockTypeDefinition, validateBlockTypeContent } from "./block-types.mjs";
 import { estimateTextFit, normalizeAgentShapePlan } from "./agent-shape-plan.mjs";
-import { composeShapePlan } from "./compose-shape-plan.mjs";
+import { composeShapePlan, summarizeComposition } from "./compose-shape-plan.mjs";
 
 function requireObject(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${name} must be an object`);
@@ -183,10 +183,12 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
   // 컴파일한다. 두 환경(Claude Code, Codex)이 같은 저작 도구를 쓰게 하려는 것이다.
   let shapePlanSource = "shape_plan";
   let rawShapePlan = blueprint.shape_plan;
+  let compositionSummary = null;
   if (agentAuthored && !outline && rawShapePlan == null && blueprint.composition != null) {
     rawShapePlan = composeShapePlan(blueprint.composition, { blocks: blueprint.blocks, orientation });
     shapePlanSource = "composition";
   }
+  if (agentAuthored && blueprint.composition != null) compositionSummary = summarizeComposition(blueprint.composition, blueprint.blocks);
   const shapePlan = agentAuthored && !outline
     ? normalizeAgentShapePlan(rawShapePlan, {
       canvas,
@@ -228,6 +230,7 @@ export function compileRenderModel({ requirement, blueprint, outline = false }) 
     nativeDiagrams,
     shapePlan,
     shapePlanSource,
+    compositionSummary,
     referenceContext,
   };
 }

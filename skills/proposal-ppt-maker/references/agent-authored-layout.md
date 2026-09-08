@@ -45,7 +45,7 @@
 }
 ```
 
-허용 `kind`는 `text`, `rect`, `roundRect`, `ellipse`, `diamond`, `line`, `connector`다. 이미지와 SVG는 허용하지 않는다. `connector`는 비연결선 도형의 고유 `name`을 `from`, `to`로 참조하고 `connector_kind`는 `straight`만 사용한다. 선언 위치는 자유다. 렌더러가 연결선을 자동으로 도형 뒤로 옮겨 그리므로 저작 순서를 맞출 필요가 없다. `from_side`, `to_side`는 `left`, `right`, `top`, `bottom` 중 하나다.
+허용 `kind`는 `text`, `rect`, `roundRect`, `ellipse`, `diamond`, `line`, `connector`다. 이미지와 SVG는 허용하지 않는다. `connector`는 비연결선 도형의 고유 `name`을 `from`, `to`로 참조하고 `connector_kind`는 `straight`만 사용한다. 선언 위치는 자유다. 렌더러가 연결선을 도형 목록 끝으로 옮기고 맨 앞 층에 그리므로 저작 순서를 맞출 필요가 없고, 카드 표면 위에 놓인 노드 사이 화살표도 가려지지 않는다. `from_side`, `to_side`는 `left`, `right`, `top`, `bottom` 중 하나다.
 
 색은 `primary`, `navy`, `accent`, `pale`, `surface`, `ink`, `gray`, `line`, `white`, `none` 토큰을 우선 사용한다. 직접 쓴 `#RRGGBB`는 현재 테마 값과 정확히 일치해야 한다. 글자 크기는 10~44pt, 선 두께는 0~8 범위다.
 
