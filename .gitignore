@@ -35,3 +35,5 @@ tmp/
 storage/work/
 test/
 .gstack/
+Claude outputs/
+_to_delete/
