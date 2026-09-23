@@ -1,6 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractSectionsFromMarkdown } from "./cli.mjs";
+import { assertSupportedExtension, extractSectionsFromMarkdown, SUPPORTED_EXTENSIONS } from "./cli.mjs";
+
+test("kordoc이 처리하는 확장자는 통과시킨다", () => {
+  for (const ext of SUPPORTED_EXTENSIONS) {
+    assert.equal(assertSupportedExtension(`제안요청서${ext}`), ext);
+  }
+  assert.equal(assertSupportedExtension("제안요청서.HWP"), ".hwp");
+});
+
+test("PPTX는 ppt-ingest로 안내하며 거부한다", () => {
+  // PPTX도 ZIP이라 검사 없이 넘기면 HWPX로 오인되어 엉뚱한 오류가 났다.
+  assert.throws(
+    () => assertSupportedExtension("솔루션소개서.pptx"),
+    /proposal-ppt-ingest/,
+  );
+  assert.throws(() => assertSupportedExtension("템플릿.potx"), /proposal-ppt-ingest/);
+});
+
+test("그 밖의 확장자는 지원 목록과 함께 거부한다", () => {
+  assert.throws(() => assertSupportedExtension("메모.txt"), /지원하지 않는 확장자/);
+  assert.throws(() => assertSupportedExtension("확장자없음"), /\(없음\)/);
+});
 
 test("마크다운 헤딩을 레벨과 함께 추출한다", () => {
   const sections = extractSectionsFromMarkdown("# 제안요청서\n본문\n### 2026. 6.\n꼬리말");

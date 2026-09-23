@@ -87,8 +87,28 @@ export function extractSectionsFromMarkdown(markdown) {
   return sections;
 }
 
+// kordoc이 실제로 처리하는 확장자. PPTX·POTX도 내부는 ZIP이라 확장자 검사 없이 넘기면
+// HWPX로 오인되어 "HWPX에서 섹션 파일을 찾을 수 없습니다" 같은 무관한 오류가 난다.
+// 파싱을 시도하기 전에 걸러 원인을 그대로 알려준다.
+export const SUPPORTED_EXTENSIONS = [".hwp", ".hwpx", ".hml", ".pdf", ".xls", ".xlsx", ".docx"];
+const PPT_EXTENSIONS = [".pptx", ".potx", ".ppt", ".pptm"];
+
+export function assertSupportedExtension(fileName) {
+  const ext = path.extname(fileName).toLowerCase();
+  if (SUPPORTED_EXTENSIONS.includes(ext)) return ext;
+  if (PPT_EXTENSIONS.includes(ext)) {
+    throw new Error(
+      `${ext}는 document-converter가 처리하지 않습니다. 프레젠테이션 파일은 proposal-ppt-ingest Skill로 인제스트하세요.`,
+    );
+  }
+  throw new Error(
+    `지원하지 않는 확장자입니다: ${ext || "(없음)"} (허용: ${SUPPORTED_EXTENSIONS.join(", ")})`,
+  );
+}
+
 export async function convertDocument(inputFilePath, outputDir = null) {
   const resolvedInput = path.resolve(inputFilePath);
+  assertSupportedExtension(resolvedInput);
   const fileBuffer = await fs.readFile(resolvedInput);
   const fileName = path.basename(resolvedInput);
   const docId = crypto.createHash("sha256").update(fileBuffer).digest("hex");
